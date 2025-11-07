@@ -33,10 +33,10 @@ const items = await Model.insertMany([
 const allItems = await Model.find();
 
 // READ - Find with filter
-const activeItems = await Model.find({ status: 'active' });
+const activeItemsFiltered = await Model.find({ status: 'active' });
 
 // READ - Find one document
-const item = await Model.findOne({ name: 'Example' });
+const singleItem = await Model.findOne({ name: 'Example' });
 
 // READ - Find by ID
 const itemById = await Model.findById('507f1f77bcf86cd799439011');
@@ -207,7 +207,7 @@ schema.statics.findActive = function() {
 };
 
 // Usage:
-const activeItems = await Model.findActive();
+const activeItemsCustom = await Model.findActive();
 
 // ============================================
 // INSTANCE METHODS (defined in schema)
@@ -220,8 +220,8 @@ schema.methods.activate = function() {
 };
 
 // Usage:
-const item = await Model.findById(id);
-await item.activate();
+const itemInstance = await Model.findById(id);
+await itemInstance.activate();
 
 // ============================================
 // MIDDLEWARE/HOOKS
