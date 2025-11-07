@@ -1,0 +1,55 @@
+const express = require('express');
+const app = express();
+
+// Import configuration
+const config = require('./config/config');
+const connectDatabase = require('./config/database');
+
+// Import middleware
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./middleware/logger');
+
+// Import routes
+const exampleRoutes = require('./routes/exampleRoutes');
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(logger);
+
+// Routes
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Welcome to Online Auction API',
+    info: 'This is a template backend structure. Check /api/examples for example endpoints.'
+  });
+});
+
+// Example routes - use this pattern for your own routes
+app.use('/api/examples', exampleRoutes);
+
+// Error handling middleware (should be last)
+app.use(errorHandler);
+
+// Connect to MongoDB and start server
+const PORT = config.port || 3000;
+
+const startServer = async () => {
+  try {
+    // Connect to MongoDB Atlas
+    await connectDatabase();
+    
+    // Start server after successful database connection
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Environment: ${config.env}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+module.exports = app;
