@@ -22,7 +22,7 @@ export const ProductCardExample = () => {
       title: 'Vintage Rolex Submariner Watch',
       description: 'Rare 1960s Rolex Submariner in excellent condition with original box and papers. A true collector\'s item.',
       currentBid: 15750.00,
-      startingPrice: 10000.00,
+      buyNowPrice: 10000.00,
       imageUrl: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&auto=format&fit=crop',
       endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
       bidCount: 23,
@@ -34,7 +34,7 @@ export const ProductCardExample = () => {
       title: 'MacBook Pro 16-inch M3 Max',
       description: 'Brand new sealed MacBook Pro with M3 Max chip, 64GB RAM, 2TB SSD. Space Black.',
       currentBid: 3200.00,
-      startingPrice: 2500.00,
+      buyNowPrice: 2500.00,
       imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop',
       endTime: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
       bidCount: 45,
@@ -46,7 +46,7 @@ export const ProductCardExample = () => {
       title: 'Vintage Gibson Les Paul Guitar',
       description: '1959 Gibson Les Paul Standard in sunburst finish. Professionally restored.',
       currentBid: 125000.00,
-      startingPrice: 80000.00,
+      buyNowPrice: 80000.00,
       imageUrl: 'https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=800&auto=format&fit=crop',
       endTime: new Date(Date.now() - 1000), // Already ended
       bidCount: 156,
@@ -58,7 +58,7 @@ export const ProductCardExample = () => {
       title: 'Rare First Edition Book Collection',
       description: 'Complete set of Harry Potter first editions, all signed by J.K. Rowling.',
       currentBid: 8500.00,
-      startingPrice: 5000.00,
+      buyNowPrice: 5000.00,
       imageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop',
       endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
       bidCount: 12

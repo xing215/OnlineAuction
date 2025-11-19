@@ -3,7 +3,7 @@ export interface Product {
   title: string;
   description: string;
   currentBid: number;
-  startingPrice: number;
+  buyNowPrice: number;
   imageUrl: string;
   endTime: Date;
   bidCount: number;
