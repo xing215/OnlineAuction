@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Product } from "../../types";
 import { formatCurrency } from "../../ultilities/FormatCurrency";
-import { AccessTime, Favorite, FavoriteBorder, Gavel, People } from "@mui/icons-material";
+import { AccessTime, Favorite, FavoriteBorder, Gavel } from "@mui/icons-material";
 export interface ProductCardProps {
   product: Product;
   onBidClick?: (productId: string) => void;
