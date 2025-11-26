@@ -1,6 +1,6 @@
-import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { ProductCard } from "./ProductCard";
+import { useInfiniteLoop } from "../../hooks/useInfiniteLoops";
 import type { Product } from "../../types";
 
 export interface ProductListProps {
@@ -18,21 +18,9 @@ export const ProductList: React.FC<ProductListProps> = ({
   onBidClick,
   onViewDetails,
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const ITEM_WIDTH = 300;
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 300; // Adjust based on card width + gap
-      const newScrollLeft =
-        scrollContainerRef.current.scrollLeft +
-        (direction === "left" ? -scrollAmount : scrollAmount);
-
-      scrollContainerRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
-    }
-  };
+  const { containerRef, extendedItems, scroll } = useInfiniteLoop(products, ITEM_WIDTH);
 
   return (
     <section className="w-full bg-gray-50 ">
@@ -69,16 +57,16 @@ export const ProductList: React.FC<ProductListProps> = ({
 
         {/* Products Carousel */}
         <div
-          ref={scrollContainerRef}
-          className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide scroll-smooth"
+          ref={containerRef}
+          className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide hide-scrollbar"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
           }}
         >
-          {products.map((product) => (
+          {extendedItems.map((product, index) => (
             <ProductCard
-              key={product.id}
+              key={`${product.id} - ${index}`}
               product={product}
               onBidClick={onBidClick}
               onViewDetails={onViewDetails}

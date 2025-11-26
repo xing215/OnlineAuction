@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Product } from "../../types";
-import { formatCurrency } from "../../ultilities/FormatCurrency";
+import { formatCurrency } from "../../utilities/FormatCurrency";
 import {
   AccessTime,
   Favorite,
