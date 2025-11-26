@@ -1,7 +1,12 @@
 import { useState } from "react";
 import type { Product } from "../../types";
 import { formatCurrency } from "../../ultilities/FormatCurrency";
-import { AccessTime, Favorite, FavoriteBorder, Gavel } from "@mui/icons-material";
+import {
+  AccessTime,
+  Favorite,
+  FavoriteBorder,
+  Gavel,
+} from "@mui/icons-material";
 export interface ProductCardProps {
   product: Product;
   onBidClick?: (productId: string) => void;
@@ -49,11 +54,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isAuctionEnded = product.endTime.getTime() <= new Date().getTime();
 
   return (
-    <article className="group flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden w-[280px] flex-shrink-0">
+    <article className="group flex flex-col bg-white rounded-2xl hover:shadow-sm transition-all duration-300 w-[200px] sm:w-[280px] flex-shrink-0">
       {/* Image Section */}
-      <div className="relative w-full h-[280px] bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-t-2xl flex-shrink-0">
+      <div className="relative w-full h-[200px] sm:h-[280px] bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-t-2xl flex-shrink-0">
         {imageError ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+          <div className="relative inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
             <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               No Image Available
             </span>
@@ -62,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <img
             src={product.imageUrl}
             alt={product.title}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="relative inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={handleImageError}
             loading="lazy"
           />
@@ -112,11 +117,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Price and Bid Count Row */}
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-yellow-600 dark:text-yellow-500">
+          <span className="text-lg sm:text-xl font-bold text-yellow-600 dark:text-yellow-500">
             {formatCurrency(product.currentBid)}
           </span>
           <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-            <span className="text-sm font-medium">Lượt ra giá: {product.bidCount}</span>
+            <span className="text-xs sm:text-sm font-medium">
+              Lượt ra giá: {product.bidCount}
+            </span>
           </div>
         </div>
 
@@ -140,7 +147,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Action Buttons */}
         <div className="flex gap-2 mt-2">
           <button
-            className="flex-1 px-4 py-2.5 bg-[#D5AD41] hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all duration-200 text-sm shadow-md hover:shadow-lg flex items-center justify-between gap-2"
+            className={
+              isAuctionEnded
+                ? "flex-1 px-4 py-2.5 bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all duration-200 text-sm shadow-md flex items-center justify-center"
+                : "flex-1 px-4 py-2.5 bg-[#D5AD41] hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all duration-200 text-sm shadow-md hover:shadow-lg flex items-center justify-between gap-2"
+            }
             onClick={handleBidClick}
             disabled={isAuctionEnded}
           >
@@ -154,13 +165,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Bid Button */}
-        <button
-          className="w-full px-4 py-2.5 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-full transition-all duration-200 text-sm flex items-center justify-center gap-2"
-          onClick={handleViewDetails}
-        >
-          <span>Đặt giá</span>
-          <Gavel></Gavel>
-        </button>
+        {isAuctionEnded ? (
+          ""
+        ) : (
+          <button
+            className="w-full px-4 py-2.5 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-full transition-all duration-200 text-sm flex items-center justify-center gap-2"
+            onClick={handleViewDetails}
+          >
+            <span>Đặt giá</span>
+            <Gavel></Gavel>
+          </button>
+        )}
       </div>
     </article>
   );
