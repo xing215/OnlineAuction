@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { ExpandMoreRounded, HomeRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
+import { Outlet } from "react-router-dom";
 import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
 
@@ -67,8 +68,8 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
   return (
     <div className="flex min-h-screen bg-[#26241A] text-white">
-      <aside className="w-[256px] h-screen sticky top-0 bg-[#3E3C31] px-6 py-6 flex flex-col justify-between">
-        <div className="space-y-6 overflow-y-auto pr-2">
+      <aside className="sticky top-0 flex h-screen w-[256px] flex-col bg-[#3E3C31] px-6 py-6">
+        <div className="flex-1 space-y-6 overflow-y-auto pr-2">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799]">
               <HomeRounded className="h-5 w-5 text-[#3E3C31]" />
@@ -96,7 +97,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pt-6">
           <div className="space-y-2 border-l border-[#d5ad41]/60 pl-4">
             <p className={sectionTitleStyles}>Tài khoản</p>
             {isAccountOpen &&
@@ -135,7 +136,9 @@ export const Layout = ({ children }: PropsWithChildren) => {
           </button>
         </div>
       </aside>
-      {children && <main className="flex-1 bg-transparent">{children}</main>}
+      <main className="flex-1 bg-transparent">
+        {children ?? <Outlet />}
+      </main>
     </div>
   );
 };

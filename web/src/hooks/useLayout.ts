@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   PRIMARY_NAV_KEYS,
   SECONDARY_NAV_KEYS,
@@ -19,16 +20,11 @@ const getPageKeyFromPath = (path: string): WebPageKey => {
   return match ?? "HOME";
 };
 
-const getInitialPage = (): WebPageKey => {
-  if (typeof window === "undefined") {
-    return "HOME";
-  }
-
-  return getPageKeyFromPath(window.location.pathname);
-};
-
 export const useLayout = () => {
-  const [activePage, setActivePage] = useState<WebPageKey>(() => getInitialPage());
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [activePage, setActivePage] = useState<WebPageKey>(() => getPageKeyFromPath(location.pathname));
   const [searchValue, setSearchValue] = useState("");
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -55,13 +51,8 @@ export const useLayout = () => {
 
   const handleNavigate = (key: WebPageKey) => {
     setActivePage(key);
-
-    if (typeof window !== "undefined") {
-      const targetPath = WEB_PAGE[key].path;
-      if (window.location.pathname !== targetPath) {
-        window.history.pushState({}, "", targetPath);
-      }
-    }
+    const targetPath = WEB_PAGE[key].path;
+    navigate(targetPath);
   };
 
   const handleSearchChange = (value: string) => {
@@ -77,20 +68,8 @@ export const useLayout = () => {
   };
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-
-    const handlePopState = () => {
-      setActivePage(getPageKeyFromPath(window.location.pathname));
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
+    setActivePage(getPageKeyFromPath(location.pathname));
+  }, [location.pathname]);
 
   return {
     activePage,
