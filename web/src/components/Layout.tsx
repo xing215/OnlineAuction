@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { ExpandMoreRounded, HomeRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
+import { ExpandMoreRounded, MenuRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
 import { Outlet } from "react-router-dom";
 import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
@@ -16,6 +16,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
     isAccountOpen,
     isSidebarCollapsed,
     isSidebarAnimating,
+    isMobile,
     handleNavigate,
     handleSearchChange,
     toggleCategory,
@@ -74,26 +75,53 @@ export const Layout = ({ children }: PropsWithChildren) => {
     );
   };
 
+  const desktopWidthClasses = isSidebarCollapsed ? "w-[80px] px-4" : "w-[256px] min-w-[256px] px-6";
+  const sidebarClasses = isMobile
+    ? `fixed top-0 left-0 z-40 flex h-screen w-[256px] flex-col bg-[#3E3C31] px-6 py-6 transition-transform duration-300 ease-in-out ${
+        isSidebarCollapsed ? "-translate-x-full" : "translate-x-0"
+      }`
+    : `sticky top-0 flex h-screen flex-col overflow-hidden bg-[#3E3C31] py-6 transition-all duration-300 ease-in-out ${desktopWidthClasses}`;
+  const navScrollClass =
+    isSidebarCollapsed || isSidebarAnimating ? "overflow-hidden" : "overflow-y-auto";
+
   return (
-    <div className="flex min-h-screen bg-[#26241A] text-white">
-      <aside
-        className={`sticky top-0 flex h-screen flex-col overflow-hidden bg-[#3E3C31] py-6 transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? "w-[80px] px-4" : "w-[256px] px-6"
-        }`}
-      >
-        <div
-          className={`flex-1 space-y-6 pr-2 ${
-            isSidebarCollapsed || isSidebarAnimating ? "overflow-hidden" : "overflow-y-auto"
-          }`}
-        >
+    <div className="min-h-screen bg-[#26241A] text-white">
+      {isMobile && (
+        <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#3E3C31] px-4 py-3 md:hidden">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={isSidebarCollapsed ? "Mở menu" : "Đóng menu"}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
+          >
+            <MenuRounded className="h-5 w-5" />
+          </button>
+          <p className="text-lg font-semibold text-transparent bg-gradient-to-b from-[#d5ad41] to-[#f4d799] bg-clip-text">
+            Golden Bid
+          </p>
+        </header>
+      )}
+
+      {isMobile && !isSidebarCollapsed && (
+        <button
+          type="button"
+          aria-label="Đóng menu"
+          onClick={toggleSidebar}
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden cursor-pointer"
+        />
+      )}
+
+      <div className="md:flex">
+        <aside className={sidebarClasses}>
+          <div className={`flex-1 space-y-6 pr-2 ${navScrollClass}`}>
           <div className={isSidebarCollapsed ? "flex items-center justify-center" : "flex items-center gap-3"}>
             <button
               type="button"
               onClick={toggleSidebar}
-              aria-label={isSidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
+                aria-label={isSidebarCollapsed ? "Mở menu" : "Thu gọn menu"}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
             >
-              <HomeRounded className="h-5 w-5 text-[#3E3C31]" />
+                <MenuRounded className="h-5 w-5 text-[#3E3C31]" />
             </button>
             {!isSidebarCollapsed && (
               <div>
@@ -162,10 +190,11 @@ export const Layout = ({ children }: PropsWithChildren) => {
             </button>
           </div>
         )}
-      </aside>
-      <main className="flex-1 bg-transparent">
-        {children ?? <Outlet />}
-      </main>
+        </aside>
+        <main className={`flex-1 bg-transparent md:pt-0 ${isMobile ? "pt-16" : ""}`}>
+          {children ?? <Outlet />}
+        </main>
+      </div>
     </div>
   );
 };

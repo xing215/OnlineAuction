@@ -30,6 +30,7 @@ export const useLayout = () => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSidebarAnimating, setIsSidebarAnimating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const sidebarAnimationTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const primaryNav = useMemo<LayoutNavItem[]>(
@@ -104,6 +105,39 @@ export const useLayout = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+
+    const handleChange = (matches: boolean) => {
+      setIsMobile(matches);
+      setIsSidebarCollapsed(matches ? true : false);
+    };
+
+    handleChange(mediaQuery.matches);
+
+    const onMediaQueryChange = (event: MediaQueryListEvent) => {
+      handleChange(event.matches);
+    };
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", onMediaQueryChange);
+
+      return () => {
+        mediaQuery.removeEventListener("change", onMediaQueryChange);
+      };
+    }
+
+    mediaQuery.addListener(onMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeListener(onMediaQueryChange);
+    };
+  }, []);
+
   return {
     activePage,
     primaryNav,
@@ -113,6 +147,7 @@ export const useLayout = () => {
     isAccountOpen,
     isSidebarCollapsed,
     isSidebarAnimating,
+    isMobile,
     handleNavigate,
     handleSearchChange,
     toggleCategory,
