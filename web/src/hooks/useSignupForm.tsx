@@ -29,20 +29,25 @@ export const useRegisterForm = () => {
         }));
 
         if (name === "email" && regErrors.email) {
-            setRegErrors((prev) => ({ ...prev, email: undefined }));
+            setRegErrors((prev) => {
+                const { email: _removed, ...rest } = prev;
+                return rest;
+            });
         }
         if (
             (name === "password" || name === "confirmPassword") &&
             (regErrors.password || regErrors.confirmPassword)
         ) {
-            setRegErrors((prev) => ({
-                ...prev,
-                password: undefined,
-                confirmPassword: undefined,
-            }));
+            setRegErrors((prev) => {
+                const { password: _passwordRemoved, confirmPassword: _confirmRemoved, ...rest } = prev;
+                return rest;
+            });
         }
         if (name === "agreeToTerms" && regErrors.agreeToTerms) {
-            setRegErrors((prev) => ({ ...prev, agreeToTerms: undefined }));
+            setRegErrors((prev) => {
+                const { agreeToTerms: _removed, ...rest } = prev;
+                return rest;
+            });
         }
     };
 
