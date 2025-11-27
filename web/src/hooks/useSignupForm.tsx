@@ -30,8 +30,9 @@ export const useRegisterForm = () => {
 
         if (name === "email" && regErrors.email) {
             setRegErrors((prev) => {
-                const { email: _removed, ...rest } = prev;
-                return rest;
+                const next = { ...prev };
+                delete next.email;
+                return next;
             });
         }
         if (
@@ -39,14 +40,17 @@ export const useRegisterForm = () => {
             (regErrors.password || regErrors.confirmPassword)
         ) {
             setRegErrors((prev) => {
-                const { password: _passwordRemoved, confirmPassword: _confirmRemoved, ...rest } = prev;
-                return rest;
+                const next = { ...prev };
+                delete next.password;
+                delete next.confirmPassword;
+                return next;
             });
         }
         if (name === "agreeToTerms" && regErrors.agreeToTerms) {
             setRegErrors((prev) => {
-                const { agreeToTerms: _removed, ...rest } = prev;
-                return rest;
+                const next = { ...prev };
+                delete next.agreeToTerms;
+                return next;
             });
         }
     };

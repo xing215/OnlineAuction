@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   PRIMARY_NAV_KEYS,
@@ -28,6 +28,9 @@ export const useLayout = () => {
   const [searchValue, setSearchValue] = useState("");
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarAnimating, setIsSidebarAnimating] = useState(false);
+  const sidebarAnimationTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const primaryNav = useMemo<LayoutNavItem[]>(
     () =>
@@ -67,9 +70,39 @@ export const useLayout = () => {
     setIsAccountOpen((prev) => !prev);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarAnimating(true);
+    setIsSidebarCollapsed((prev) => !prev);
+  };
+
   useEffect(() => {
     setActivePage(getPageKeyFromPath(location.pathname));
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isSidebarAnimating) {
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setIsSidebarAnimating(false);
+      sidebarAnimationTimer.current = undefined;
+    }, 320);
+
+    sidebarAnimationTimer.current = timeoutId;
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isSidebarAnimating]);
+
+  useEffect(() => {
+    return () => {
+      if (sidebarAnimationTimer.current !== undefined) {
+        clearTimeout(sidebarAnimationTimer.current);
+      }
+    };
+  }, []);
 
   return {
     activePage,
@@ -78,9 +111,12 @@ export const useLayout = () => {
     searchValue,
     isCategoryOpen,
     isAccountOpen,
+    isSidebarCollapsed,
+    isSidebarAnimating,
     handleNavigate,
     handleSearchChange,
     toggleCategory,
     toggleAccount,
+    toggleSidebar,
   };
 };

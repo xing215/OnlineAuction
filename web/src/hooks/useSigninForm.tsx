@@ -19,8 +19,9 @@ export const useLoginForm = () => {
         }));
         if (name === "email" && errors.email) {
             setErrors((prev) => {
-                const { email: _removed, ...rest } = prev;
-                return rest;
+                const next = { ...prev };
+                delete next.email;
+                return next;
             });
         }
     };
