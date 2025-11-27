@@ -115,16 +115,18 @@ export default function ProductListPage() {
 
   // 2. LOGIC FILTER & SORT
   const filteredProducts = useMemo(() => {
-    let result = mockProducts.filter((p) => {
-      const matchCat = activeCategory === 'Tất cả' || p.category === activeCategory;
-      const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchSearch;
+    const filtered = mockProducts.filter((product) => {
+      const matchCategory = activeCategory === 'Tất cả' || product.category === activeCategory;
+      const matchSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCategory && matchSearch;
     });
 
-    if (sortOption === 'price_asc') result.sort((a, b) => a.currentBid - b.currentBid);
-    if (sortOption === 'price_desc') result.sort((a, b) => b.currentBid - a.currentBid);
+    const sorted = [...filtered];
 
-    return result;
+    if (sortOption === 'price_asc') sorted.sort((a, b) => a.currentBid - b.currentBid);
+    if (sortOption === 'price_desc') sorted.sort((a, b) => b.currentBid - a.currentBid);
+
+    return sorted;
   }, [activeCategory, searchQuery, sortOption]);
   // 3. PAGINATION LOGIC
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);

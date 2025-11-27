@@ -1,5 +1,18 @@
 export interface Product {
   id: string;
+  title: string;
+  description: string;
+  currentBid: number;
+  buyNowPrice: number;
+  imageUrl: string;
+  endTime: Date;
+  bidCount: number;
+  seller?: string;
+  category?: string;
+}
+
+export interface ProductEntity {
+  id: string;
   name: string;
   category: string; // ObjectId ref to Category
   seller: string; // ObjectId ref to User
@@ -14,7 +27,7 @@ export interface Product {
   buy_now_price?: number;
   posted_at: Date;
   end_date: Date;
-  status: 'active' | 'sold' | 'expired';
+  status: "active" | "sold" | "expired";
   banned_bidders: string[]; // ObjectId refs to User
   createdAt: Date;
   updatedAt: Date;

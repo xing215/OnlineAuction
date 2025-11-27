@@ -18,7 +18,11 @@ export const useLoginForm = () => {
             [name]: type === "checkbox" ? checked : value,
         }));
         if (name === "email" && errors.email) {
-            setErrors((prev) => ({ ...prev, email: undefined }));
+            setErrors((prev) => {
+                const next = { ...prev };
+                delete next.email;
+                return next;
+            });
         }
     };
 
