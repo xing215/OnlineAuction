@@ -38,11 +38,11 @@ export default function ProductFilters({
       </div>
 
       {/* 2. Horizontal Filter Categories */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
-        <div className="flex items-center gap-2 overflow-x-auto w-full pb-2 scrollbar-hide">
+      <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div className="flex w-full items-center gap-2 overflow-x-auto pb-2">
           <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"/>
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke="currentColor" strokeLinecap="round" strokeWidth="2" d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4" />
             </svg>
           </span>
           <span className="text-sm font-medium text-gray-500 whitespace-nowrap mr-2">Danh mục:</span>

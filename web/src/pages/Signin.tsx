@@ -95,7 +95,7 @@ export default function SignInPage() {
                 {/* Login Button */}
                 <button
                     type="submit"
-                    className="w-full bg-linear-135 from-[#D5AD41] to-[#F4D483] text-white font-semibold py-3 rounded-full hover:from-amber-500 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
+                    className="w-full rounded-full bg-gradient-to-br from-[#D5AD41] to-[#F4D483] py-3 font-semibold text-white transition-all shadow-md hover:from-amber-500 hover:to-amber-600 hover:shadow-lg"
                 >
                     Đăng nhập
                 </button>
