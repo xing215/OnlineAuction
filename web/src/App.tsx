@@ -1,15 +1,20 @@
-// import { useState } from 'react'
-import { ProductCardExample } from './components/Product'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import SignInPage from "./pages/Signin";
+import SignUpPage from "./pages/Signup";
+import "./App.css";
 
 function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* Default: Signin */}
+                <Route path="/" element={<Navigate to="/signin" replace />} />
 
-
-  return (
-    <>
-      <ProductCardExample/>
-    </>
-  )
+                <Route path="/signin" element={<SignInPage />} />
+                <Route path="/signup" element={<SignUpPage />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
-export default App
+export default App;
