@@ -1,7 +1,9 @@
 import "./App.css";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import { WEB_PAGE } from "./constants/webPages";
 import ProductListPage from "./pages/ProductListPage";
+import MyProductsPage from "./pages/MyProductsPage";
 import SignInPage from "./pages/Signin";
 import SignUpPage from "./pages/Signup";
 
@@ -16,23 +18,28 @@ const PlaceholderPage = ({ title }: PlaceholderPageProps) => (
   </div>
 );
 
+const AUTH_ROUTES = {
+  SIGNIN: "/signin",
+  SIGNUP: "/signup",
+} as const;
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<ProductListPage />} />
-          <Route path="/categories" element={<PlaceholderPage title="Danh mục" />} />
-          <Route path="/favorites" element={<PlaceholderPage title="Yêu thích" />} />
-          <Route path="/bid-history" element={<PlaceholderPage title="Lịch sử đấu giá" />} />
-          <Route path="/my-products" element={<PlaceholderPage title="Sản phẩm của tôi" />} />
-          <Route path="/profile" element={<PlaceholderPage title="Hồ sơ" />} />
-          <Route path="/settings" element={<PlaceholderPage title="Cài đặt" />} />
-          <Route path="/logout" element={<Navigate to="/signin" replace />} />
+          <Route path={WEB_PAGE.HOME.path} element={<ProductListPage />} />
+          <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
+          <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
+          <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
+          <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />
+          <Route path={WEB_PAGE.PROFILE.path} element={<PlaceholderPage title={WEB_PAGE.PROFILE.label} />} />
+          <Route path={WEB_PAGE.SETTINGS.path} element={<PlaceholderPage title={WEB_PAGE.SETTINGS.label} />} />
+          <Route path={WEB_PAGE.LOGOUT.path} element={<Navigate to={AUTH_ROUTES.SIGNIN} replace />} />
         </Route>
-        <Route path="/signin" element={<SignInPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path={AUTH_ROUTES.SIGNIN} element={<SignInPage />} />
+        <Route path={AUTH_ROUTES.SIGNUP} element={<SignUpPage />} />
+        <Route path="*" element={<Navigate to={WEB_PAGE.HOME.path} replace />} />
       </Routes>
     </BrowserRouter>
   );
