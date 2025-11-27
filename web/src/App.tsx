@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SignInPage from "./pages/Signin";
 import SignUpPage from "./pages/Signup";
+import ProfilePage from "./pages/Profile";
 import "./App.css";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
 
                 <Route path="/signin" element={<SignInPage />} />
                 <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
             </Routes>
         </BrowserRouter>
     );
