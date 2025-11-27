@@ -1,15 +1,15 @@
-// import { useState } from 'react'
-import { ProductCardExample } from './components/Product'
-import './App.css'
+import "./App.css";
+import Layout from "./components/Layout";
+import { ProductCardExample } from "./components/Product";
 
 function App() {
-
-
   return (
-    <>
-      <ProductCardExample/>
-    </>
-  )
+    <Layout>
+      <div className="p-6">
+        <ProductCardExample />
+      </div>
+    </Layout>
+  );
 }
 
-export default App
+export default App;
