@@ -1,4 +1,5 @@
 import { Inventory2Rounded, VisibilityRounded } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { useMyProducts } from "../hooks/useMyProducts";
 import { formatCurrency } from "../utilities";
 import "./MyProductsPage.css";
@@ -16,6 +17,7 @@ const formatBidder = (value: string) =>
     .join(" ");
 
 export default function MyProductsPage() {
+  const navigate = useNavigate();
   const { activeTab, setActiveTab, stats, tabOptions, products } = useMyProducts();
 
   return (
@@ -33,6 +35,7 @@ export default function MyProductsPage() {
           </div>
           <button
             type="button"
+            onClick={() => navigate('/my-products/new')}
             className="my-products-page__cta rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
           >
             + Đăng sản phẩm mới

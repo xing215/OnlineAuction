@@ -27,6 +27,15 @@ BidSchema.virtual('masked_user_name').get(function() {
     return '****User';
 });
 
+// Lấy giá hiện tại của sản phẩm 
+BidSchema.statics.getCurrentPrice = async function(productId) {
+    const highestBid = await this.findOne({ product: productId })
+                                 .sort({ price: -1 }) 
+                                 .select('price');   
+
+    return highestBid ? highestBid.price : null;
+};
+
 // Lấy người đang thắng (Giá cao nhất hiện tại)
 BidSchema.statics.getHighestBid = function(productId) {
     return this.findOne({ product: productId })

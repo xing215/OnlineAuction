@@ -25,6 +25,7 @@ export const WEB_PAGE = {
   PROFILE: { path: "/profile", label: "Hồ sơ", Icon: AccountCircleRounded },
   SETTINGS: { path: "/settings", label: "Cài đặt", Icon: SettingsRounded },
   LOGOUT: { path: "/logout", label: "Đăng xuất", Icon: LogoutRounded },
+  CREATE_PRODUCT: { path: "/my-products/new", label: "Đăng sản phẩm", Icon: Inventory2Rounded },
 } as const satisfies Record<string, WebPageConfig>;
 
 export type WebPageKey = keyof typeof WEB_PAGE;

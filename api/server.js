@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+const path = require('path');
 const app = express();
 
 // Import configuration
@@ -11,11 +13,16 @@ const logger = require('./middleware/logger');
 
 // Import routes
 const exampleRoutes = require('./routes/exampleRoutes');
+const productRoutes = require('./routes/productRoutes');
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger);
+app.use(cors());
+
+// Serve uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.get('/', (req, res) => {
@@ -27,6 +34,9 @@ app.get('/', (req, res) => {
 
 // Example routes - use this pattern for your own routes
 app.use('/api/examples', exampleRoutes);
+
+// Product routes
+app.use('/api/products', productRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
