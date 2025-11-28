@@ -23,8 +23,8 @@ export const ProductList: React.FC<ProductListProps> = ({
   const { containerRef, extendedItems, scroll } = useInfiniteLoop(products, ITEM_WIDTH);
 
   return (
-    <section className="w-full bg-gray-50 ">
-      <div className="max-w-7xl mx-auto p-4">
+    <section className="w-full bg-gray-50">
+      <div className=" mx-auto p-4">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-6">
           <div>

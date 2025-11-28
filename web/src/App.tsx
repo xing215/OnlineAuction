@@ -1,15 +1,12 @@
-// import { useState } from 'react'
-import HomePage from './pages/HomePage/HomePage'
-import './App.css'
+import { Outlet } from "react-router-dom";
+import "./App.css";
 
 function App() {
-
-
   return (
     <>
-      <HomePage />
+      <Outlet />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
