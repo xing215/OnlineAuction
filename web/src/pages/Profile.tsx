@@ -5,6 +5,13 @@ import ProfileForm from "../components/Profile/ProfileForm";
 import { ProductCard } from "../components/Product/ProductCard"; // Đảm bảo đường dẫn đúng tới file bạn gửi
 import type { Product } from "../types/index";
 
+interface ProductGridProps {
+    products: Product[];
+    title: string;
+    onBid: (id: string) => void;
+    onView: (id: string) => void;
+}
+
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("info");
 
@@ -14,6 +21,7 @@ export default function ProfilePage() {
         {
             id: "1",
             title: "MacBook Pro 16-inch M3 Max",
+            description: "Mẫu laptop cấu hình cao dành cho nhà sáng tạo.",
             currentBid: 3200.0,
             buyNowPrice: 3500.0,
             imageUrl:
@@ -26,6 +34,7 @@ export default function ProfilePage() {
         {
             id: "2",
             title: "Đồng hồ cổ Rolex Submariner",
+            description: "Phiên bản sưu tầm hiếm với tình trạng như mới.",
             currentBid: 15750.0,
             buyNowPrice: 18000.0,
             imageUrl:
@@ -43,6 +52,7 @@ export default function ProfilePage() {
         {
             id: "3",
             title: "Bộ sưu tập sách Harry Potter",
+            description: "Trọn bộ 7 tập bản in tiếng Anh nguyên bản.",
             currentBid: 500.0,
             buyNowPrice: 800.0,
             imageUrl:
@@ -55,6 +65,7 @@ export default function ProfilePage() {
         {
             id: "4",
             title: "Guitar Gibson Les Paul 1959",
+            description: "Chiếc guitar vintage dành cho nhà sưu tầm âm nhạc.",
             currentBid: 12500.0,
             buyNowPrice: 15000.0,
             imageUrl:
@@ -109,7 +120,7 @@ export default function ProfilePage() {
 }
 
 // Component hiển thị Grid sản phẩm cho gọn code
-const ProductGrid = ({ products, title, onBid, onView }: any) => {
+const ProductGrid = ({ products, title, onBid, onView }: ProductGridProps) => {
     if (products.length === 0) {
         return (
             <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-300">
