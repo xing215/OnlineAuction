@@ -2,11 +2,12 @@ import "./App.css";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { WEB_PAGE } from "./constants/webPages";
-import ProductListPage from "./pages/ProductListPage";
+// import ProductListPage from "./pages/ProductListPage";
 import MyProductsPage from "./pages/MyProductsPage";
 import SignInPage from "./pages/Signin";
 import SignUpPage from "./pages/Signup";
 import Profile from "./pages/Profile";
+import HomePage from "./pages/HomePage/HomePage";
 
 interface PlaceholderPageProps {
   title: string;
@@ -30,7 +31,7 @@ function App() {
       <div className="app-container">
         <Routes>
           <Route element={<Layout />}>
-            <Route path={WEB_PAGE.HOME.path} element={<ProductListPage />} />
+            <Route path={WEB_PAGE.HOME.path} element={<HomePage />} />
             <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
             <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
             <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
