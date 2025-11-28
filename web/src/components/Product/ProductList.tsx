@@ -58,18 +58,14 @@ export const ProductList: React.FC<ProductListProps> = ({
         {/* Products Carousel */}
         <div
           ref={containerRef}
-          className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide hide-scrollbar"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
+          className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide"
         >
           {extendedItems.map((product, index) => (
             <ProductCard
-              key={`${product.id} - ${index}`}
+              key={`${product.id}-${index}`}
               product={product}
-              onBidClick={onBidClick}
-              onViewDetails={onViewDetails}
+              {...(onBidClick ? { onBidClick } : {})}
+              {...(onViewDetails ? { onViewDetails } : {})}
             />
           ))}
         </div>
@@ -78,6 +74,10 @@ export const ProductList: React.FC<ProductListProps> = ({
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
+        }
+        .scrollbar-hide {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
         }
       `}</style>
     </section>
