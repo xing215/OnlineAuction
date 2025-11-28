@@ -1,12 +1,8 @@
-import { useState } from "react";
+﻿import { useMemo, useState } from "react";
 import type { Product } from "../../types";
 import { formatCurrency } from "../../utilities/FormatCurrency";
-import {
-  AccessTime,
-  Favorite,
-  FavoriteBorder,
-  Gavel,
-} from "@mui/icons-material";
+import { AccessTime, Favorite, FavoriteBorder, Gavel } from "@mui/icons-material";
+
 export interface ProductCardProps {
   product: Product;
   onBidClick?: (productId: string) => void;
@@ -20,9 +16,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+
+  const endDate = useMemo(() => new Date(product.end_date), [product.end_date]);
+  const primaryImage = product.images[0] ?? "";
+  const currentPrice = product.current_price ?? product.start_price;
+  const buyNowPrice = product.buy_now_price ?? null;
+  const bidCount = product.bid_count ?? 0;
+  const highestBidder = product.highest_bidder_name ?? "Chưa có";
+  const isAuctionEnded = endDate.getTime() <= Date.now();
+  const statusLabel = isAuctionEnded ? "Đã kết thúc" : "Đang diễn ra";
+
   const getTimeRemaining = (): string => {
     const now = new Date();
-    const diff = product.endTime.getTime() - now.getTime();
+    const diff = endDate.getTime() - now.getTime();
 
     if (diff <= 0) return "Ended";
 
@@ -51,141 +57,98 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const isAuctionEnded = product.endTime.getTime() <= new Date().getTime();
-
   return (
-    <article className="group flex flex-col bg-white rounded-2xl hover:shadow-sm transition-all duration-300 w-[200px] sm:w-[280px] flex-shrink-0">
-      {/* Image Section */}
-      <div className="relative w-full h-[200px] sm:h-[280px] bg-gray-200 dark:bg-gray-700 overflow-hidden rounded-t-2xl flex-shrink-0">
-        {imageError ? (
+    <article className="group flex w-[200px] flex-col flex-shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
+      <div className="relative h-[200px] w-full flex-shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px]">
+        {imageError || !primaryImage ? (
           <div className="relative inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-            <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
               No Image Available
             </span>
           </div>
         ) : (
           <img
-            src={product.imageUrl}
-            alt={product.title}
-            className="relative inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            src={primaryImage}
+            alt={product.name}
+            className="relative inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={handleImageError}
             loading="lazy"
           />
         )}
 
-        {/* Timer Badge */}
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-sm">
-          <AccessTime
-            sx={{
-              color: "black",
-            }}
-          ></AccessTime>
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+          <AccessTime sx={{ color: "black" }} />
           <span className="text-xs font-semibold text-gray-800">
             {getTimeRemaining()}
           </span>
         </div>
 
-        {/* Favorite Button */}
         <button
-          className="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-          onClick={() => setIsLiked(!isLiked)}
+          type="button"
+          className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:bg-white backdrop-blur-sm"
+          onClick={() => setIsLiked((prev) => !prev)}
         >
-          {isLiked ? (
-            <Favorite
-              sx={{
-                color: "red",
-              }}
-            ></Favorite>
-          ) : (
-            <FavoriteBorder
-              sx={{
-                color: "black",
-              }}
-            ></FavoriteBorder>
-          )}
+          {isLiked ? <Favorite sx={{ color: "red" }} /> : <FavoriteBorder sx={{ color: "black" }} />}
         </button>
 
-        {/* Category Badge */}
         {product.category && (
-          <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm rounded-md px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
+          <div className="absolute bottom-3 left-3 rounded-md bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm">
             {product.category}
           </div>
         )}
       </div>
 
-      {/* Content Section */}
-      <div className="flex flex-col p-4 gap-2 flex-shrink-0">
-        {/* Title */}
-        <h3
-          className="text-base font-semibold text-gray-900 dark:text-white truncate leading-tight h-5"
-          title={product.title}
-        >
-          {product.title}
+      <div className="flex flex-col gap-2 p-4">
+        <h3 className="h-5 truncate text-base font-semibold text-gray-900 dark:text-white" title={product.name}>
+          {product.name}
         </h3>
 
-        {/* Price and Bid Count Row */}
         <div className="flex items-center justify-between">
-          <span className="text-lg sm:text-xl font-bold text-yellow-600 dark:text-yellow-500">
-            {formatCurrency(product.currentBid)}
+          <span className="text-lg font-bold text-yellow-600 dark:text-yellow-500 sm:text-xl">
+            {formatCurrency(currentPrice)}
           </span>
           <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-            <span className="text-xs sm:text-sm font-medium">
-              Lượt ra giá: {product.bidCount}
-            </span>
+            <span className="text-xs font-medium sm:text-sm">Lượt ra giá: {bidCount}</span>
           </div>
         </div>
 
-        {/* Seller */}
-        <p
-          className={`${
-            product.seller ? "" : "invisible"
-          } text-xs text-gray-600 dark:text-gray-400`}
-        >
-          Cao nhất: {product.seller ? product.seller : "..."}
+        <p className="text-xs text-gray-600 dark:text-gray-400">Cao nhất: {highestBidder}</p>
+
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-500">
+          Trạng thái: <span className="font-semibold text-gray-700 dark:text-gray-300">{statusLabel}</span>
         </p>
 
-        {/* Status Label */}
-        <p className="text-xs text-gray-500 dark:text-gray-500 font-medium">
-          Mở bán:{" "}
-          <span className="text-gray-700 dark:text-gray-300 font-semibold">
-            {isAuctionEnded ? "Đã kết thúc" : "Hôm qua"}
-          </span>
-        </p>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 mt-2">
+        <div className="mt-2 flex gap-2">
           <button
+            type="button"
             className={
               isAuctionEnded
-                ? "flex-1 px-4 py-2.5 bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all duration-200 text-sm shadow-md flex items-center justify-center"
-                : "flex-1 px-4 py-2.5 bg-[#D5AD41] hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all duration-200 text-sm shadow-md hover:shadow-lg flex items-center justify-between gap-2"
+                ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
+                : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg"
             }
             onClick={handleBidClick}
             disabled={isAuctionEnded}
           >
             <span>{isAuctionEnded ? "Đã kết thúc" : "Mua ngay"}</span>
-            {!isAuctionEnded && (
-              <span className="font-bold">
-                {formatCurrency(product.buyNowPrice)}
-              </span>
+            {!isAuctionEnded && buyNowPrice !== null && (
+              <span className="font-bold">{formatCurrency(buyNowPrice)}</span>
             )}
           </button>
         </div>
 
-        {/* Bid Button */}
-        {isAuctionEnded ? (
-          ""
-        ) : (
+        {!isAuctionEnded && (
           <button
-            className="w-full px-4 py-2.5 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-full transition-all duration-200 text-sm flex items-center justify-between gap-2"
+            type="button"
+            className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
             onClick={handleViewDetails}
           >
             <span>Đặt giá</span>
-            <Gavel></Gavel>
+            <Gavel />
           </button>
         )}
       </div>
     </article>
   );
 };
+
 export default ProductCard;
