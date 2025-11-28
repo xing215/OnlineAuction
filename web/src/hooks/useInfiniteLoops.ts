@@ -6,23 +6,26 @@ export function useInfiniteLoop<T>(items: T[], itemWidth: number) {
   
   const extendedItems = [...items, ...items];
 
-  const scroll = useCallback((direction: "left" | "right") => {
-    const container = containerRef.current;
-    if (!container) return;
+  const scroll = useCallback(
+    (direction: "left" | "right") => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    const scrollAmount = itemWidth; 
-    const currentScroll = container.scrollLeft;
+      const scrollAmount = itemWidth;
+      const currentScroll = container.scrollLeft;
 
-    let newScroll =
-      direction === "right"
-        ? currentScroll + scrollAmount
-        : currentScroll - scrollAmount;
+      const newScroll =
+        direction === "right"
+          ? currentScroll + scrollAmount
+          : currentScroll - scrollAmount;
 
-    container.scrollTo({
-      left: newScroll,
-      behavior: "smooth",
-    });
-  }, [itemWidth]);
+      container.scrollTo({
+        left: newScroll,
+        behavior: "smooth",
+      });
+    },
+    [itemWidth]
+  );
 
   const handleScrollReset = () => {
     const container = containerRef.current;
@@ -35,10 +38,8 @@ export function useInfiniteLoop<T>(items: T[], itemWidth: number) {
 
     if (scrollLeft >= singleSetWidth) {
       container.scrollLeft = scrollLeft - singleSetWidth;
-    }
-    
-    else if (scrollLeft <= 0) {
-      container.scrollLeft = singleSetWidth + scrollLeft; 
+    } else if (scrollLeft <= 0) {
+      container.scrollLeft = singleSetWidth + scrollLeft;
     }
   };
 
