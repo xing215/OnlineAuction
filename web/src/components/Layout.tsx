@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from "react";
-import { ExpandMoreRounded, MenuRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
+import { ExpandMoreRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
+import GavelIcon from '@mui/icons-material/Gavel';
 import { Outlet } from "react-router-dom";
 import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
@@ -94,7 +95,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
             aria-label={isSidebarCollapsed ? "Mở menu" : "Đóng menu"}
             className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
           >
-            <MenuRounded className="h-5 w-5" />
+            <GavelIcon className="h-5 w-5" />
           </button>
           <p className="text-lg font-semibold text-transparent bg-gradient-to-b from-[#d5ad41] to-[#f4d799] bg-clip-text pr-2">
             Golden Bid
@@ -121,7 +122,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                 aria-label={isSidebarCollapsed ? "Mở menu" : "Thu gọn menu"}
                 className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
             >
-                <MenuRounded className="h-5 w-5 text-[#3E3C31]" />
+                <GavelIcon className="h-5 w-5 text-[#3E3C31]" />
             </button>
             {!isSidebarCollapsed && (
               <div>
