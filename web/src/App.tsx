@@ -27,21 +27,23 @@ const AUTH_ROUTES = {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path={WEB_PAGE.HOME.path} element={<ProductListPage />} />
-          <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
-          <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
-          <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
-          <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />
-          <Route path={WEB_PAGE.PROFILE.path} element={<Profile />} />
-          <Route path={WEB_PAGE.SETTINGS.path} element={<PlaceholderPage title={WEB_PAGE.SETTINGS.label} />} />
-          <Route path={WEB_PAGE.LOGOUT.path} element={<Navigate to={AUTH_ROUTES.SIGNIN} replace />} />
-        </Route>
-        <Route path={AUTH_ROUTES.SIGNIN} element={<SignInPage />} />
-        <Route path={AUTH_ROUTES.SIGNUP} element={<SignUpPage />} />
-        <Route path="*" element={<Navigate to={WEB_PAGE.HOME.path} replace />} />
-      </Routes>
+      <div className="app-container">
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path={WEB_PAGE.HOME.path} element={<ProductListPage />} />
+            <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
+            <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
+            <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
+            <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />
+            <Route path={WEB_PAGE.PROFILE.path} element={<Profile />} />
+            <Route path={WEB_PAGE.SETTINGS.path} element={<PlaceholderPage title={WEB_PAGE.SETTINGS.label} />} />
+            <Route path={WEB_PAGE.LOGOUT.path} element={<Navigate to={AUTH_ROUTES.SIGNIN} replace />} />
+          </Route>
+          <Route path={AUTH_ROUTES.SIGNIN} element={<SignInPage />} />
+          <Route path={AUTH_ROUTES.SIGNUP} element={<SignUpPage />} />
+          <Route path="*" element={<Navigate to={WEB_PAGE.HOME.path} replace />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

@@ -96,7 +96,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
           >
             <MenuRounded className="h-5 w-5" />
           </button>
-          <p className="text-lg font-semibold text-transparent bg-gradient-to-b from-[#d5ad41] to-[#f4d799] bg-clip-text">
+          <p className="text-lg font-semibold text-transparent bg-gradient-to-b from-[#d5ad41] to-[#f4d799] bg-clip-text pr-2">
             Golden Bid
           </p>
         </header>
@@ -191,7 +191,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
           </div>
         )}
         </aside>
-        <main className={`flex-1 bg-transparent md:pt-0 ${isMobile ? "pt-16" : ""}`}>
+        <main className={`layout-main flex-1 bg-transparent md:pt-0 ${isMobile ? "pt-16" : ""}`}>
           {children ?? <Outlet />}
         </main>
       </div>
