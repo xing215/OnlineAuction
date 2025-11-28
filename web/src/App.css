@@ -1,0 +1,11 @@
+/* Container query foundations */
+.app-container {
+	min-height: 100vh;
+	container-type: inline-size;
+	container-name: app-shell;
+}
+
+.layout-main {
+	container-type: inline-size;
+	container-name: content-area;
+}

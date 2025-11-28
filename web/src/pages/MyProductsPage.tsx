@@ -1,6 +1,7 @@
 import { Inventory2Rounded, VisibilityRounded } from "@mui/icons-material";
 import { useMyProducts } from "../hooks/useMyProducts";
 import { formatCurrency } from "../ultilities/FormatCurrency";
+import "./MyProductsPage.css";
 
 const accentClasses: Record<string, string> = {
   blue: "bg-blue-50 text-blue-600",
@@ -18,10 +19,10 @@ export default function MyProductsPage() {
   const { activeTab, setActiveTab, stats, tabOptions, products } = useMyProducts();
 
   return (
-    <div className="min-h-screen bg-white px-6 py-8 text-[#3E3C31] md:px-16">
-      <div className="mx-auto w-full max-w-6xl space-y-8">
-        <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-          <div className="space-y-2">
+    <div className="my-products-page">
+      <div className="my-products-page__inner">
+        <div className="my-products-page__header">
+          <div className="my-products-page__title-block">
             <div className="flex items-center gap-3 text-base font-medium text-[#3E3C31]">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] text-[#3E3C31]">
                 <Inventory2Rounded />
@@ -32,13 +33,13 @@ export default function MyProductsPage() {
           </div>
           <button
             type="button"
-            className="w-full rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg md:w-auto"
+            className="my-products-page__cta rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
           >
             + Đăng sản phẩm mới
           </button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="my-products-page__stats">
           {stats.map((item) => (
             <div
               key={item.id}
@@ -73,7 +74,7 @@ export default function MyProductsPage() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="my-products-page__products">
           {products.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#3E3C31]/20 bg-white px-6 py-12 text-center text-sm text-[#6B6B6B]">
               Chưa có sản phẩm nào trong mục này.
@@ -82,7 +83,7 @@ export default function MyProductsPage() {
             products.map((product) => (
               <article
                 key={product.id}
-                className="flex flex-col gap-4 rounded-3xl border border-[#3E3C31]/15 bg-white p-4 shadow-sm md:flex-row md:items-center md:gap-6 md:p-6"
+                className="my-products-page__product-card rounded-3xl border border-[#3E3C31]/15 bg-white shadow-sm"
               >
                 <div className="h-24 w-24 overflow-hidden rounded-2xl bg-[#F5F5F5]">
                   <img
@@ -95,7 +96,7 @@ export default function MyProductsPage() {
                   <div>
                     <h2 className="text-base font-medium text-[#3E3C31]">{product.title}</h2>
                   </div>
-                  <div className="grid gap-2 text-sm text-[#6B6B6B] md:grid-cols-3">
+                  <div className="my-products-page__product-meta text-sm text-[#6B6B6B]">
                     <p>
                       Giá hiện tại: <span className="font-semibold text-[#D5AD41]">{formatCurrency(product.currentPrice)}</span>
                     </p>
@@ -107,7 +108,7 @@ export default function MyProductsPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-stretch justify-between gap-3 md:items-end">
+                <div className="my-products-page__product-actions">
                   <span className="inline-flex items-center rounded-2xl bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">
                     Đang đấu giá
                   </span>
