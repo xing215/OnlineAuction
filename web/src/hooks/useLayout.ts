@@ -14,8 +14,21 @@ export interface LayoutNavItem {
 }
 
 const getPageKeyFromPath = (path: string): WebPageKey => {
-  const keys = Object.keys(WEB_PAGE) as WebPageKey[];
-  const match = keys.find((key) => WEB_PAGE[key].path === path);
+  const visibleNavKeys = [...PRIMARY_NAV_KEYS, ...SECONDARY_NAV_KEYS];
+
+  const sortedKeys = visibleNavKeys.sort((a, b) => {
+    return WEB_PAGE[b].path.length - WEB_PAGE[a].path.length;
+  });
+
+  const match = sortedKeys.find((key) => {
+    const navPath = WEB_PAGE[key].path;
+
+    if (navPath === '/') {
+        return path === '/';
+    }
+
+    return path.startsWith(navPath);
+  });
 
   return match ?? "HOME";
 };

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
-// CẤU HÌNH GIẢ LẬP (SAU NÀY THAY BẰNG DỮ LIỆU THẬT TỪ DATABASE/AUTH) 
+// CẤU HÌNH GIẢ LẬP 
 // ID của Seller (Lấy từ User đang đăng nhập)
-const CURRENT_USER_ID = "6564e1234567890abcdef123"; // Thay bằng ObjectId thật của User trong DB của bạn
+const CURRENT_USER_ID = "6564e1234567890abcdef123"; 
 
-// Danh sách danh mục (Thực tế sẽ gọi API /api/categories để lấy)
+// Danh sách danh mục 
 const MOCK_CATEGORIES = [
     { _id: '6745d8a9e6b8a1234567890a', name: 'Đồng hồ' },
     { _id: '6745d8a9e6b8a1234567890b', name: 'Trang sức' },
@@ -75,9 +77,13 @@ const CreateProduct: React.FC = () => {
         });
     };
 
+    const handleDescriptionChange = (value: string) => {
+        setForm(prev => ({ ...prev, description: value }));
+    };
+
     // Xử lý chọn thời gian đấu giá
     const handleDurationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const val = e.target.value; // val sẽ là '1', '3', '7' hoặc 'custom'
+        const val = e.target.value; 
         setDurationSelect(val); 
 
         if (val === 'custom') {
@@ -151,22 +157,22 @@ const CreateProduct: React.FC = () => {
             // Append Text Fields
             fd.append('name', form.name.trim());
             fd.append('category', form.category); 
-            fd.append('seller', CURRENT_USER_ID); // <--- Tự động lấy ID user
+            fd.append('seller', CURRENT_USER_ID); 
             fd.append('description', form.description || '');
             fd.append('start_price', form.start_price);
             fd.append('step_price', form.step_price);
             if (form.buy_now_price) fd.append('buy_now_price', form.buy_now_price);
             fd.append('end_date', form.end_date);
             
-            // Lưu ý: Không gửi 'status', backend tự set 'active'
+            
 
             // Append Images
             images.forEach((it) => {
                 if (it.file) fd.append('images', it.file);
             });
 
-            // GỌI API (Lưu ý: Dùng /api/products nếu đã cấu hình Proxy chuẩn, hoặc full URL localhost:3000 nếu chưa)
-            // Khuyên dùng Full URL khi đang debug lỗi mạng:
+            // GỌI API 
+            
             const res = await fetch('http://127.0.0.1:3000/api/products', {
                 method: 'POST',
                 body: fd,
@@ -197,6 +203,18 @@ const CreateProduct: React.FC = () => {
         }
     };
 
+    // CONFIG TOOLBAR CHO QUILL 
+    const quillModules = {
+        toolbar: [
+           [{ 'header': [1, 2, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }], 
+            [{ 'list': 'ordered'}, {'list': 'bullet'}],
+            [{ 'align': [] }], 
+            ['clean']
+        ],
+    };
+
     // RENDER 
     return (
         <div className="min-h-screen bg-[#F9FAFB] py-10 px-4 font-sans text-gray-700">
@@ -211,7 +229,7 @@ const CreateProduct: React.FC = () => {
                     
                     {/* SECTION 1: HÌNH ẢNH */}
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 className="font-semibold text-gray-900 mb-1">Hình ảnh sản phẩm</h3>
+                        <h3 className="font-semibold text-gray-900 mb-1">Hình ảnh sản phẩm <span className="text-red-500">*</span></h3>
                         <p className="text-xs text-gray-500 mb-6">Tải lên tối đa 10 ảnh. Ảnh đầu tiên sẽ là ảnh đại diện.</p>
                         
                         <div
@@ -256,7 +274,7 @@ const CreateProduct: React.FC = () => {
                         
                         <div className="space-y-5">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Tên sản phẩm *</label>
+                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Tên sản phẩm <span className="text-red-500">*</span></label>
                                 <input 
                                     name="name" 
                                     value={form.name} 
@@ -269,7 +287,7 @@ const CreateProduct: React.FC = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Danh mục *</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Danh mục <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <select 
                                             name="category" 
@@ -304,6 +322,21 @@ const CreateProduct: React.FC = () => {
                             </div>
 
                             <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Mô tả chi tiết <span className="text-red-500">*</span></label>
+                                {/* Wrapper div để chỉnh CSS bo góc cho editor */}
+                                <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200 focus-within:ring-2 focus-within:ring-yellow-200 focus-within:border-yellow-400 transition">
+                                    <ReactQuill 
+                                        theme="snow"
+                                        value={form.description}
+                                        onChange={handleDescriptionChange}
+                                        modules={quillModules}
+                                        placeholder="Mô tả chi tiết về sản phẩm, tình trạng, nguồn gốc..."
+                                        className="h-48 mb-12" 
+                                    />
+                                </div>
+                            </div>
+
+                            {/* <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Mô tả chi tiết *</label>
                                 <textarea 
                                     name="description" 
@@ -313,7 +346,7 @@ const CreateProduct: React.FC = () => {
                                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none transition placeholder-gray-400 resize-none" 
                                     placeholder="Mô tả chi tiết về sản phẩm, tình trạng, nguồn gốc..."
                                 ></textarea>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
@@ -364,7 +397,7 @@ const CreateProduct: React.FC = () => {
                                 />
                                 {priceError ? (
                                     <p className="text-xs text-red-500 mt-2 ml-1 flex items-center gap-1">
-                                        ⚠️ {priceError}
+                                        {priceError}
                                     </p>
                                 ) : (
                                     <p className="text-xs text-gray-400 mt-2 ml-1">Người mua có thể mua ngay với giá này mà không cần đấu giá</p>
@@ -377,7 +410,7 @@ const CreateProduct: React.FC = () => {
                                     <select 
                                         value={durationSelect} // Bind vào state '1', '3', '7'
                                         onChange={handleDurationChange} 
-                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 outline-none appearance-none cursor-pointer font-medium"
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-500 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 outline-none appearance-none cursor-pointer font-medium"
                                         required
                                     >
                                         <option value="">Chọn thời gian</option>
@@ -396,7 +429,7 @@ const CreateProduct: React.FC = () => {
                                 {/* Input chọn ngày giờ tùy chỉnh chỉ hiện khi chọn 'custom' */}
                                 {durationSelect === 'custom' && (
                                     <div className="mt-4 animate-fadeIn">
-                                        <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Chọn ngày giờ kết thúc:</label>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1 ml-1">Chọn ngày giờ kết thúc <span className="text-red-500">*</span></label>
                                         <input 
                                             type="datetime-local" 
                                             onChange={(e) => {
