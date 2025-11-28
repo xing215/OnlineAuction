@@ -23,7 +23,6 @@ export const useProfileForm = () => {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-        reset,
     } = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
         defaultValues: {

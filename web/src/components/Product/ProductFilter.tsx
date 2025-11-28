@@ -72,6 +72,7 @@ export default function ProductFilters({
             className="bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             value={sortOption}
             onChange={(e) => onSortChange(e.target.value)}
+            aria-label="Sắp xếp theo"
           >
             <option value="newest">Mới nhất</option>
             <option value="price_asc">Giá tăng dần</option>
