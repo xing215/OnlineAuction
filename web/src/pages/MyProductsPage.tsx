@@ -1,6 +1,6 @@
 import { Inventory2Rounded, VisibilityRounded } from "@mui/icons-material";
 import { useMyProducts } from "../hooks/useMyProducts";
-import { formatCurrency } from "../ultilities/FormatCurrency";
+import { formatCurrency } from "../utilities";
 import "./MyProductsPage.css";
 
 const accentClasses: Record<string, string> = {
