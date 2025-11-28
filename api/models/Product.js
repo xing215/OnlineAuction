@@ -5,7 +5,7 @@ const ProductSchema = new Schema({
     name: { 
       type: String,
       required: true, 
-      index: 'text', 
+      // index: 'text', 
       trim: true 
     },
     category: { type: Schema.Types.ObjectId, ref: 'Category', required: true }, 
@@ -26,8 +26,8 @@ const ProductSchema = new Schema({
     step_price: { type: Number, required: true }, 
     buy_now_price: { type: Number, default: null }, 
     
-    current_price: { type: Number, default: 0 }, 
-    current_bidder: { type: Schema.Types.ObjectId, ref: 'User', default: null }, 
+    // current_price: { type: Number, default: 0 }, 
+    // current_bidder: { type: Schema.Types.ObjectId, ref: 'User', default: null }, 
     bid_count: { type: Number, default: 0 }, 
 
     posted_at: { type: Date, default: Date.now }, 
@@ -51,7 +51,7 @@ const ProductSchema = new Schema({
 ProductSchema.index({ name: 'text' }); 
 ProductSchema.index({ status: 1, end_date: 1 }); 
 ProductSchema.index({ status: 1, bid_count: -1 }); 
-ProductSchema.index({ status: 1, current_price: -1 }); 
+// ProductSchema.index({ status: 1, current_price: -1 }); 
 
 // Virtual properties
 ProductSchema.virtual('time_remaining').get(function() {
@@ -92,11 +92,11 @@ ProductSchema.statics.findTopBidding = function(limit = 5) {
 };
 
 // Lấy Top 5 sản phẩm giá cao nhất
-ProductSchema.statics.findTopPrice = function(limit = 5) {
-    return this.find({ status: 'active' })
-               .sort({ current_price: -1 })
-               .limit(limit)
-               .populate('category', 'name');
-};
+// ProductSchema.statics.findTopPrice = function(limit = 5) {
+//     return this.find({ status: 'active' })
+//                .sort({ current_price: -1 })
+//                .limit(limit)
+//                .populate('category', 'name');
+// };
 
 module.exports = mongoose.model('Product', ProductSchema);

@@ -8,6 +8,7 @@ import SignInPage from "./pages/Signin";
 import SignUpPage from "./pages/Signup";
 import Profile from "./pages/Profile";
 import HomePage from "./pages/HomePage/HomePage";
+import CreateProduct from "./components/Product/CreateProduct";
 
 interface PlaceholderPageProps {
   title: string;
@@ -36,6 +37,7 @@ function App() {
             <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
             <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
             <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />
+            <Route path={WEB_PAGE.CREATE_PRODUCT.path} element={<CreateProduct />} />
             <Route path={WEB_PAGE.PROFILE.path} element={<Profile />} />
             <Route path={WEB_PAGE.SETTINGS.path} element={<PlaceholderPage title={WEB_PAGE.SETTINGS.label} />} />
             <Route path={WEB_PAGE.LOGOUT.path} element={<Navigate to={AUTH_ROUTES.SIGNIN} replace />} />
