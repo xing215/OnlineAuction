@@ -15,91 +15,152 @@ const HomePage = () => {
     const mockProducts: Product[] = [
       {
         id: "1",
-        title: "Giày Sneaker phiên bản giới hạn",
-        description: "High quality sneakers",
-        currentBid: 850,
-        buyNowPrice: 1200,
-        imageUrl:
-          "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&q=80",
-        endTime: new Date(Date.now() + 3 * 60 * 1000 + 6 * 1000), // 3:06 minutes
-        bidCount: 45,
-        seller: "sneaker_head",
+        name: "Giày Sneaker phiên bản giới hạn",
         category: "Fashion",
+        seller: "sneaker_head",
+        images: [
+          "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&q=80",
+        ],
+        description: "High quality sneakers",
+        description_updates: [],
+        start_price: 600,
+        step_price: 25,
+        buy_now_price: 1200,
+        posted_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        end_date: new Date(Date.now() + 3 * 60 * 1000 + 6 * 1000),
+        status: "active",
+        banned_bidders: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        current_price: 850,
+        bid_count: 45,
+        highest_bidder_name: "limited_lover",
       },
       {
         id: "2",
-        title: "Túi xách Louis Vuitton",
-        description: "Authentic designer bag",
-        currentBid: 980,
-        buyNowPrice: 1500,
-        imageUrl:
-          "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&q=80",
-        endTime: new Date(Date.now() + 3 * 60 * 1000 + 36 * 1000), // 3:36 minutes
-        bidCount: 62,
-        seller: "fashion_queen",
+        name: "Túi xách Louis Vuitton",
         category: "Luxury",
+        seller: "fashion_queen",
+        images: [
+          "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&q=80",
+        ],
+        description: "Authentic designer bag",
+        description_updates: [],
+        start_price: 750,
+        step_price: 30,
+        buy_now_price: 1800,
+        posted_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        end_date: new Date(Date.now() + 3 * 60 * 1000 + 36 * 1000),
+        status: "active",
+        banned_bidders: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        current_price: 980,
+        bid_count: 62,
+        highest_bidder_name: "style_icon",
       },
       {
         id: "3",
-        title: "Đồng hồ Thụy Sĩ cao cấp",
-        description: "Swiss luxury watch",
-        currentBid: 2450,
-        buyNowPrice: 3500,
-        imageUrl:
-          "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&q=80",
-        endTime: new Date(
-          Date.now() + 1 * 60 * 60 * 1000 + 59 * 60 * 1000 + 36 * 1000
-        ), // 1:59:36
-        bidCount: 89,
-        seller: "john_doe",
+        name: "Đồng hồ Thụy Sĩ cao cấp",
         category: "Watches",
+        seller: "john_doe",
+        images: [
+          "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&q=80",
+        ],
+        description: "Swiss luxury watch",
+        description_updates: [],
+        start_price: 2000,
+        step_price: 100,
+        buy_now_price: 3500,
+        posted_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        end_date: new Date(
+          Date.now() + 1 * 60 * 60 * 1000 + 59 * 60 * 1000 + 36 * 1000
+        ),
+        status: "active",
+        banned_bidders: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        current_price: 2450,
+        bid_count: 89,
+        highest_bidder_name: "watch_addict",
       },
       {
         id: "4",
-        title: "Laptop Gaming RTX 4090",
-        description: "High performance gaming laptop",
-        currentBid: 1899,
-        buyNowPrice: 2500,
-        imageUrl:
-          "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&q=80",
-        endTime: new Date(Date.now() + 5 * 60 * 60 * 1000 + 59 * 60 * 1000), // 5:59:00
-        bidCount: 134,
-        seller: "gamer_pro",
+        name: "Laptop Gaming RTX 4090",
         category: "Electronics",
+        seller: "gamer_pro",
+        images: [
+          "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&q=80",
+        ],
+        description: "High performance gaming laptop",
+        description_updates: [],
+        start_price: 1500,
+        step_price: 75,
+        buy_now_price: 2700,
+        posted_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        end_date: new Date(Date.now() + 5 * 60 * 60 * 1000 + 59 * 60 * 1000),
+        status: "active",
+        banned_bidders: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        current_price: 1899,
+        bid_count: 134,
+        highest_bidder_name: "esports_team",
       },
       {
         id: "5",
-        title: "Camera Canon EOS R5",
-        description: "Professional mirrorless camera",
-        currentBid: 1650,
-        buyNowPrice: 2200,
-        imageUrl:
-          "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2:00:00
-        bidCount: 78,
-        seller: "photo_expert",
+        name: "Camera Canon EOS R5",
         category: "Electronics",
+        seller: "photo_expert",
+        images: [
+          "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
+        ],
+        description: "Professional mirrorless camera",
+        description_updates: [],
+        start_price: 1400,
+        step_price: 50,
+        buy_now_price: 2300,
+        posted_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+        end_date: new Date(Date.now() + 2 * 60 * 60 * 1000),
+        status: "active",
+        banned_bidders: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        current_price: 1650,
+        bid_count: 78,
+        highest_bidder_name: "lens_master",
       },
       {
         id: "6",
-        title: "Áo khoác da thật",
-        description: "Genuine leather jacket",
-        currentBid: 450,
-        buyNowPrice: 650,
-        imageUrl:
-          "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80",
-        endTime: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4:00:00
-        bidCount: 23,
-        seller: "fashion_store",
+        name: "Áo khoác da thật",
         category: "Fashion",
+        seller: "fashion_store",
+        images: [
+          "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80",
+        ],
+        description: "Genuine leather jacket",
+        description_updates: [],
+        start_price: 300,
+        step_price: 15,
+        buy_now_price: 650,
+        posted_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        end_date: new Date(Date.now() + 4 * 60 * 60 * 1000),
+        status: "active",
+        banned_bidders: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        current_price: 450,
+        bid_count: 23,
+        highest_bidder_name: "street_style",
       },
     ];
 
     // Set different products for each section
     setTopExpiring([...mockProducts].slice(0, 5));
     setTopBidding([...mockProducts].reverse().slice(0, 5));
+    const valueOf = (item: Product) => item.current_price ?? item.start_price;
     setTopPrice(
-      [...mockProducts].sort((a, b) => b.currentBid - a.currentBid).slice(0, 5)
+      [...mockProducts].sort((a, b) => valueOf(b) - valueOf(a)).slice(0, 5)
     );
   }, []);
 
