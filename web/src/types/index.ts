@@ -1,18 +1,5 @@
 export interface Product {
   id: string;
-  title: string;
-  description: string;
-  currentBid: number;
-  buyNowPrice: number;
-  imageUrl: string;
-  endTime: Date;
-  bidCount: number;
-  seller?: string;
-  category?: string;
-}
-
-export interface ProductEntity {
-  id: string;
   name: string;
   category: string; // ObjectId ref to Category
   seller: string; // ObjectId ref to User
@@ -32,6 +19,9 @@ export interface ProductEntity {
   createdAt: Date;
   updatedAt: Date;
   time_remaining?: number; // virtual
+  current_price?: number;
+  bid_count?: number;
+  highest_bidder_name?: string;
 }
 
 export interface Bid {
