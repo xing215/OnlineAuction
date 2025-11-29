@@ -2,18 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-// CẤU HÌNH GIẢ LẬP 
-// ID của Seller (Lấy từ User đang đăng nhập)
-const CURRENT_USER_ID = "6564e1234567890abcdef123"; 
-
-// Danh sách danh mục 
-const MOCK_CATEGORIES = [
-    { _id: '6745d8a9e6b8a1234567890a', name: 'Đồng hồ' },
-    { _id: '6745d8a9e6b8a1234567890b', name: 'Trang sức' },
-    { _id: '6745d8a9e6b8a1234567890c', name: 'Đồ điện tử' },
-    { _id: '6745d8a9e6b8a1234567890d', name: 'Nghệ thuật' },
-];
-
 // TYPES
 type ProductForm = {
     name: string;
@@ -26,6 +14,9 @@ type ProductForm = {
 };
 
 const CreateProduct: React.FC = () => {
+    // State lưu danh mục
+    const [categories, setCategories] = useState<{_id: string, name: string}[]>([]);
+
     // STATE
     const [form, setForm] = useState<ProductForm>({
         name: '',
@@ -98,7 +89,7 @@ const CreateProduct: React.FC = () => {
         }
     };
 
-    // Xử lý File (Chung cho cả Input và Drop)
+    // Xử lý File 
     const processFiles = (files: FileList | null) => {
         if (!files || files.length === 0) return;
 
@@ -139,6 +130,27 @@ const CreateProduct: React.FC = () => {
         });
     };
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('http://localhost:3000/api/categories/roots');
+                
+                if (!res.ok) throw new Error('Failed to fetch categories');
+                
+                const responseData = await res.json();
+
+                if (responseData.success) {
+                    setCategories(responseData.data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy danh mục:", error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+
     // SUBMIT FORM
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -152,12 +164,23 @@ const CreateProduct: React.FC = () => {
         setSubmitting(true);
 
         try {
+            // Lấy thông tin user hiện tại từ localStorage
+            const userStr = localStorage.getItem('user');
+            const currentUser = userStr ? JSON.parse(userStr) : null;
+
+            // Lấy ID 
+            const id = currentUser?._id || currentUser?.id || "";
+
+            if (!id) {
+                alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!");
+                return; 
+            }
             const fd = new FormData();
             
             // Append Text Fields
             fd.append('name', form.name.trim());
             fd.append('category', form.category); 
-            fd.append('seller', CURRENT_USER_ID); 
+            fd.append('seller', id); 
             fd.append('description', form.description || '');
             fd.append('start_price', form.start_price);
             fd.append('step_price', form.step_price);
@@ -297,8 +320,10 @@ const CreateProduct: React.FC = () => {
                                             required
                                         >
                                             <option value="">Chọn danh mục</option>
-                                            {MOCK_CATEGORIES.map(cat => (
-                                                <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                            {categories.map((cat) => (
+                                                <option key={cat._id} value={cat._id}>
+                                                    {cat.name}
+                                                </option>
                                             ))}
                                         </select>
                                         <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
