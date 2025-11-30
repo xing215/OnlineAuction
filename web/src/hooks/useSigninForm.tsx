@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useUser } from "../context/useUser";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -8,6 +9,7 @@ export const useLoginForm = () => {
         password: "",
         rememberMe: false,
     });
+    const { login } = useUser();
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -26,10 +28,9 @@ export const useLoginForm = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate email
         if (!emailRegex.test(formData.email)) {
             setErrors({ email: "Vui lòng nhập email hợp lệ!" });
             return;
@@ -37,59 +38,18 @@ export const useLoginForm = () => {
 
         setErrors({});
 
-        // Call API
-        (async () => {
-            try {
-                const res = await fetch('http://127.0.0.1:3000/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: formData.email, password: formData.password })
-                });
-
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.message || 'Đăng nhập thất bại');
-                }
-
-                // Store token
-                if (data.token) {
-                    if (formData.rememberMe) {
-                        localStorage.setItem('token', data.token);
-                    } else {
-                        sessionStorage.setItem('token', data.token);
-                    }
-                }
-
-                // Fetch latest profile
-                try {
-                    const token = data.token;
-                    const resMe = await fetch('http://127.0.0.1:3000/api/auth/me', {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    if (resMe.ok) {
-                        const payload = await resMe.json();
-                        if (payload && payload.user) {
-                            try { localStorage.setItem('user', JSON.stringify(payload.user)); } catch(e) {}
-                        }
-                    } else {
-                        // fallback to server-returned user if fails
-                        if (data.user) {
-                            try { localStorage.setItem('user', JSON.stringify(data.user)); } catch(e) {}
-                        }
-                    }
-                } catch (e) {
-                    if (data.user) {
-                        try { localStorage.setItem('user', JSON.stringify(data.user)); } catch(e) {}
-                    }
-                }
-
-                // Redirect to home
-                window.location.href = '/';
-            } catch (err: any) {
-                console.error('Login error:', err);
-                alert(err.message || 'Lỗi đăng nhập');
-            }
-        })();
+        try {
+            await login({
+                email: formData.email,
+                password: formData.password,
+                rememberMe: formData.rememberMe,
+            });
+            window.location.href = "/";
+        } catch (err) {
+            console.error("Login error:", err);
+            const message = err instanceof Error ? err.message : "Lỗi đăng nhập";
+            alert(message);
+        }
     };
 
     return {
