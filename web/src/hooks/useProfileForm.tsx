@@ -3,8 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect } from "react";
 import { formatDate, capitalizeFirstLetter } from "../utilities";
-
-const API_ME = 'http://127.0.0.1:3000/api/auth/me';
+import { useUser } from "../context/useUser";
+import type { AuthUser } from "../context/UserContext.types";
 
 // 1. Định nghĩa Schema (Giữ nguyên)
 const profileSchema = z.object({
@@ -39,15 +39,16 @@ export const useProfileForm = () => {
             role: "",
         },
     });
+    const { user, token, loading, refreshUser } = useUser();
 
     // Load profile 
     useEffect(() => {
         let mounted = true;
 
-        const setDefaultsFromProfile = (raw: any) => {
-            if (!raw) return;
-            // Map API fields to form fields
-            const profile = raw.user || raw;
+        const setDefaultsFromProfile = (profile: AuthUser | null) => {
+            if (!profile || !mounted) {
+                return;
+            }
 
             const values: Partial<ProfileFormData> = {
                 fullName: profile.full_name || profile.fullName || "",
@@ -58,40 +59,32 @@ export const useProfileForm = () => {
                 role: capitalizeFirstLetter(profile.role) || "",
             };
 
-            // If any field is invalid (not a string), set to empty 
             Object.keys(values).forEach((k) => {
                 const key = k as keyof ProfileFormData;
-                if (typeof values[key] !== 'string') values[key] = '';
+                if (typeof values[key] !== "string") values[key] = "";
             });
 
             reset(values as ProfileFormData);
         };
 
-        (async () => {
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (token) {
-                    const res = await fetch(API_ME, { headers: { Authorization: `Bearer ${token}` } });
-                    if (res.ok) {
-                        const payload = await res.json();
-                        if (mounted) setDefaultsFromProfile(payload);
-                        return;
+        if (user) {
+            setDefaultsFromProfile(user);
+        } else if (!loading && token) {
+            refreshUser()
+                .then((profile) => {
+                    if (profile) {
+                        setDefaultsFromProfile(profile);
                     }
-                }
+                })
+                .catch((error) => {
+                    console.warn("Failed to refresh profile defaults", error);
+                });
+        }
 
-                // Fallback to localStorage-stored user
-                const raw = localStorage.getItem('user');
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (mounted) setDefaultsFromProfile(parsed);
-                }
-            } catch (e) {
-                console.error('Failed to load profile for form defaults', e);
-            }
-        })();
-
-        return () => { mounted = false; };
-    }, [reset]);
+        return () => {
+            mounted = false;
+        };
+    }, [loading, refreshUser, reset, token, user]);
 
     // 3. Hàm xử lý Submit
     const onSubmit = async (data: ProfileFormData) => {

@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import HomePage from "./pages/HomePage/HomePage";
 import CreateProduct from "./components/Product/CreateProduct";
 import Logout from "./pages/Logout";
+import { UserProvider } from "./context/UserContext";
 
 interface PlaceholderPageProps {
   title: string;
