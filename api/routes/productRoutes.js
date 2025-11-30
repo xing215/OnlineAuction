@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const { createProduct } = require('../controllers/productController');
+const productController = require('../controllers/productController');
 
 // Multer setup - store in api/uploads
 const storage = multer.diskStorage({
@@ -22,5 +23,6 @@ const upload = multer({
 
 // POST /api/products - accept multipart/form-data with up to 10 images
 router.post('/', upload.array('images', 10), createProduct);
+router.get('/', productController.getProducts);
 
 module.exports = router;

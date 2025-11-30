@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { WEB_PAGE } from "./constants/webPages";
-// import ProductListPage from "./pages/ProductListPage";
+import ProductListPage from "./pages/ProductListPage";
 import MyProductsPage from "./pages/MyProductsPage";
 import SignInPage from "./pages/Signin";
 import SignUpPage from "./pages/Signup";
@@ -37,7 +37,7 @@ function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path={WEB_PAGE.HOME.path} element={<HomePage />} />
-              <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
+              <Route path={WEB_PAGE.CATEGORIES.path} element={<ProductListPage />} />
               <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
               <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
               <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />

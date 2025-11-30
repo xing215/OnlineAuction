@@ -66,3 +66,71 @@ exports.createProduct = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+exports.getProducts = async (req, res) => {
+  try {
+    const { page = 1, limit = 8, search, category, sort } = req.query;
+
+    // 1. Xây dựng bộ lọc
+    const filter = { status: 'active' };
+
+    // Tìm kiếm (Regex)
+    if (search) {
+      filter.name = { $regex: search, $options: 'i' };
+    }
+
+    // Lọc Category (Nếu khác 'all' và có giá trị)
+    if (category && category !== 'all' && category !== 'undefined') {
+      filter.category = category;
+    }
+
+    // 2. Sắp xếp
+    let sortOption = {};
+    switch (sort) {
+      case 'price_asc':
+        sortOption = { current_price: 1, start_price: 1 }; 
+        break;
+      case 'price_desc':
+        sortOption = { current_price: -1, start_price: -1 };
+        break;
+      case 'end_date_asc': 
+        sortOption = { end_date: 1 }; 
+        break;
+      case 'end_date_desc': 
+        sortOption = { end_date: -1 }; 
+        break;
+      case 'newest':
+      default:
+        sortOption = { posted_at: -1 }; // Mới đăng lên đầu
+        break;
+    }
+
+    // 3. Phân trang
+    const limitNum = parseInt(limit);
+    const pageNum = parseInt(page);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 4. Query DB
+    const [products, totalDocs] = await Promise.all([
+      Product.find(filter)
+        .populate('category', 'name')
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limitNum),
+      Product.countDocuments(filter)
+    ]);
+
+    // 5. Trả về Response
+    res.json({
+      success: true,
+      data: products,
+      total_items: totalDocs,
+      total_pages: Math.ceil(totalDocs / limitNum),
+      current_page: pageNum
+    });
+
+  } catch (error) {
+    console.error("Lỗi Controller:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
