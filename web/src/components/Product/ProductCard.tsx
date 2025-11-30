@@ -9,6 +9,8 @@ export interface ProductCardProps {
   onViewDetails?: (productId: string) => void;
 }
 
+const NEW_THRESHOLD_MINUTES = 120;
+
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onBidClick,
@@ -16,7 +18,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  
+
   const [, setTick] = useState(0);
 
   const endDate = useMemo(() => new Date(product.end_date), [product.end_date]);
@@ -25,6 +27,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     product.category && typeof product.category === 'object' 
       ? (product.category as any).name  // Nếu là object (API trả về), lấy .name
       : product.category;               // Nếu là string (Mock data), giữ nguyên
+
+const isNew = useMemo(() => {
+    if (!product.posted_at) return false;
+    const postedTime = new Date(product.posted_at).getTime();
+    const now = Date.now();
+    const diffMinutes = (now - postedTime) / (1000 * 60);
+    return diffMinutes <= NEW_THRESHOLD_MINUTES;
+  }, [product.posted_at]);
 
   const primaryImage = product.images && product.images.length > 0 ? product.images[0] : "";
   const currentPrice = product.current_price ?? product.start_price;
@@ -89,6 +99,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onError={handleImageError}
             loading="lazy"
           />
+        )}
+        {isNew && (
+          <div className="absolute top-3 right-12 z-10 rounded-md bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+            NEW
+          </div>
         )}
 
         <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">

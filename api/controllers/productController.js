@@ -87,9 +87,22 @@ exports.getProducts = async (req, res) => {
     // 2. Sắp xếp
     let sortOption = {};
     switch (sort) {
-      case 'price_asc': sortOption.start_price = 1; break;
-      case 'price_desc': sortOption.start_price = -1; break;
-      case 'newest': default: sortOption.createdAt = -1; break;
+      case 'price_asc':
+        sortOption = { current_price: 1, start_price: 1 }; 
+        break;
+      case 'price_desc':
+        sortOption = { current_price: -1, start_price: -1 };
+        break;
+      case 'end_date_asc': 
+        sortOption = { end_date: 1 }; 
+        break;
+      case 'end_date_desc': 
+        sortOption = { end_date: -1 }; 
+        break;
+      case 'newest':
+      default:
+        sortOption = { posted_at: -1 }; // Mới đăng lên đầu
+        break;
     }
 
     // 3. Phân trang
@@ -100,14 +113,14 @@ exports.getProducts = async (req, res) => {
     // 4. Query DB
     const [products, totalDocs] = await Promise.all([
       Product.find(filter)
-        .populate('category', 'name') // Lấy tên danh mục
+        .populate('category', 'name')
         .sort(sortOption)
         .skip(skip)
         .limit(limitNum),
       Product.countDocuments(filter)
     ]);
 
-    // 5. Trả về Response (Cấu trúc phẳng khớp với Frontend)
+    // 5. Trả về Response
     res.json({
       success: true,
       data: products,

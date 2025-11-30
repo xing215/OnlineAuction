@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import type { Category } from '../types';
+import { apiUrl } from "../config/api";
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/categories')
+    fetch(apiUrl('/api/categories/roots'))
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          // Thêm mục "Tất cả" có _id là 'all'
           setCategories([{ _id: 'all', name: 'Tất cả' }, ...data.data]);
         }
       })

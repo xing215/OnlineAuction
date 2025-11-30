@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '../types';
 import { useDebounce } from './useDebounce';
+import { apiUrl } from "../config/api";
 
-// Cấu hình URL API trực tiếp tại đây
-// Lưu ý: Port 3000 là port của Backend Node.js bạn đã cài đặt
-const API_URL = 'http://localhost:3000/api/products';
+const API_URL = apiUrl('/api/products');
+
 const ITEMS_PER_PAGE = 8;
 
 export const useProductFiltering = () => {
   // --- 1. STATE UI (Bộ lọc) ---
-  // Lưu ý: activeCategory ban đầu nên là 'all' để khớp với logic Backend
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('newest');
@@ -44,7 +43,7 @@ export const useProductFiltering = () => {
         }
 
         // Chỉ gửi category nếu khác 'all'
-        // (activeCategory lúc này đang chứa _id của danh mục)
+        // Lưu ý: activeCategory phải là ID
         if (activeCategory && activeCategory !== 'all') {
           params.append('category', activeCategory);
         }
@@ -53,7 +52,7 @@ export const useProductFiltering = () => {
         const response = await fetch(`${API_URL}?${params.toString()}`);
         
         if (!response.ok) {
-          throw new Error('Lỗi kết nối đến Server');
+          throw new Error(`Lỗi kết nối: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -61,17 +60,17 @@ export const useProductFiltering = () => {
         // C. Cập nhật State dựa trên phản hồi từ Server
         if (data.success) {
           setProducts(data.data);
-          // Lưu ý: Đảm bảo Backend trả về đúng tên trường này (xem lại productController.js)
           setTotalResults(data.total_items); 
           setTotalPages(data.total_pages);
         } else {
           setProducts([]);
           setTotalResults(0);
+          setError(data.message || 'Lỗi không xác định từ server');
         }
 
       } catch (err: any) {
         console.error("Fetch error:", err);
-        setError(err.message || 'Không tải được dữ liệu');
+        setError(err.message || 'Không thể tải dữ liệu sản phẩm');
         setProducts([]);
       } finally {
         setIsLoading(false);

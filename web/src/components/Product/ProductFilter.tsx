@@ -76,9 +76,11 @@ export default function ProductFilters({
             onChange={(e) => onSortChange(e.target.value)}
             aria-label="Sắp xếp theo"
           >
-            <option value="newest">Mới nhất</option>
+            <option value="newest">Mới đăng</option>
             <option value="price_asc">Giá tăng dần</option>
             <option value="price_desc">Giá giảm dần</option>
+            <option value="end_date_asc">Thời gian kết thúc giảm dần</option>
+            <option value="end_date_desc">Thời gian kết thúc tăng dần</option>
           </select>
         </div>
       </div>
