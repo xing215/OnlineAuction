@@ -12,6 +12,9 @@ import CreateProduct from "./components/Product/CreateProduct";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
 import { UserProvider } from "./context/UserContext";
+import Logout from "./pages/Logout";
+import ChangePassword from "./pages/ChangePassword";
+import { UserProvider } from "./context/UserContext";
 
 interface PlaceholderPageProps {
   title: string;
