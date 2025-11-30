@@ -45,14 +45,14 @@ export default function ProfileForm() {
                 {/* Row 4 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputGroup
-                        label="Thành phố"
-                        error={errors.city?.message}
-                        {...register("city")}
+                        label="Date of birth"
+                        error={errors.dob?.message}
+                        {...register("dob")}
                     />
                     <InputGroup
-                        label="Mã bưu điện"
-                        error={errors.zipCode?.message}
-                        {...register("zipCode")}
+                        label="Role"
+                        error={errors.role?.message}
+                        {...register("role")}
                     />
                 </div>
 

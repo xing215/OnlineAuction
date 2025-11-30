@@ -1,10 +1,11 @@
 const Category = require('../models/Category');
 
-exports.getAllCategories = async (req, res) => {
+// GET /api/categories/roots
+exports.getRoots = async (req, res, next) => {
   try {
-    const categories = await Category.find({ is_active: true });
-    res.json({ success: true, data: categories });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const roots = await Category.getRoots();
+    return res.json({ success: true, data: roots });
+  } catch (err) {
+    next(err);
   }
 };

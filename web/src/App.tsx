@@ -9,6 +9,7 @@ import SignUpPage from "./pages/Signup";
 import Profile from "./pages/Profile";
 import HomePage from "./pages/HomePage/HomePage";
 import CreateProduct from "./components/Product/CreateProduct";
+import Logout from "./pages/Logout";
 
 interface PlaceholderPageProps {
   title: string;
@@ -40,8 +41,8 @@ function App() {
             <Route path={WEB_PAGE.CREATE_PRODUCT.path} element={<CreateProduct />} />
             <Route path={WEB_PAGE.PROFILE.path} element={<Profile />} />
             <Route path={WEB_PAGE.SETTINGS.path} element={<PlaceholderPage title={WEB_PAGE.SETTINGS.label} />} />
-            <Route path={WEB_PAGE.LOGOUT.path} element={<Navigate to={AUTH_ROUTES.SIGNIN} replace />} />
           </Route>
+          <Route path={WEB_PAGE.LOGOUT.path} element={<Logout />} />
           <Route path={AUTH_ROUTES.SIGNIN} element={<SignInPage />} />
           <Route path={AUTH_ROUTES.SIGNUP} element={<SignUpPage />} />
           <Route path="*" element={<Navigate to={WEB_PAGE.HOME.path} replace />} />

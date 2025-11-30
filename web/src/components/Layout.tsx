@@ -1,4 +1,5 @@
 import type { PropsWithChildren } from "react";
+import { useEffect, useState } from "react";
 import { ExpandMoreRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
 import GavelIcon from '@mui/icons-material/Gavel';
 import { Outlet } from "react-router-dom";
@@ -24,6 +25,21 @@ export const Layout = ({ children }: PropsWithChildren) => {
     toggleAccount,
     toggleSidebar,
   } = useLayout();
+
+  const [accountName, setAccountName] = useState<string>('');
+
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const profile = parsed.user || parsed;
+      const name = profile?.full_name || profile?.fullName || profile?.name || '';
+      setAccountName(name);
+    } catch (e) {
+      // ignore
+    }
+  }, []);
 
   const renderPrimaryButton = (key: WebPageKey, label: string) => {
     const isActive = activePage === key;
@@ -181,7 +197,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
             >
               <span className="flex items-center gap-2">
                 <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
-                Nguyễn Văn A
+                {accountName || 'Tài khoản'}
               </span>
               <ExpandMoreRounded
                 className={`h-4 w-4 text-[#3E3C31] transition-transform ${
