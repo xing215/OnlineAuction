@@ -1,41 +1,21 @@
 import { Star, TrendingUp, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
-
-const API_ME = 'http://127.0.0.1:3000/api/auth/me';
+import { useEffect } from "react";
+import { useUser } from "../../context/useUser";
 
 export default function ProfileHeader() {
-    const [profile, setProfile] = useState<{ full_name?: string; email?: string; avatar?: string } | null>(null);
+    const { user, token, loading, refreshUser } = useUser();
 
     useEffect(() => {
-        let mounted = true;
+        if (loading || user || !token) {
+            return;
+        }
 
-        (async () => {
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (token) {
-                    const res = await fetch(API_ME, { headers: { Authorization: `Bearer ${token}` } });
-                    if (res.ok) {
-                        const payload = await res.json();
-                        if (mounted && payload && payload.user) setProfile(payload.user);
-                        return;
-                    }
-                    else {
-                        console.error('Failed to fetch profile:', res.statusText);
-                    }
-                }
+        refreshUser().catch((error) => {
+            console.warn('Failed to refresh profile header user', error);
+        });
+    }, [loading, refreshUser, token, user]);
 
-                const raw = localStorage.getItem('user');
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (mounted) setProfile(parsed.user || parsed);
-                }
-            } catch (e) {
-                console.error('Failed to load profile for header', e);
-            }
-        })();
-
-        return () => { mounted = false; };
-    }, []);
+    const profile = user;
 
     return (
         <div className="bg-white border border-gray-200 rounded-3xl p-8 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
@@ -53,7 +33,7 @@ export default function ProfileHeader() {
                 {/* User Info */}
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800">
-                        {profile?.full_name || 'Người dùng'}
+                        {profile?.full_name || profile?.fullName || 'Người dùng'}
                     </h2>
                     <p className="text-gray-500 mb-2">{profile?.email ? `✉ ${profile.email}` : ''}</p>
                     <div className="flex items-center gap-2">

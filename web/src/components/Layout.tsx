@@ -1,10 +1,10 @@
 import type { PropsWithChildren } from "react";
-import { useEffect, useState } from "react";
 import { ExpandMoreRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
 import GavelIcon from '@mui/icons-material/Gavel';
 import { Outlet } from "react-router-dom";
 import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
+import { useUser } from "../context/useUser";
 
 const sectionTitleStyles = "text-xs uppercase tracking-[0.2em] text-white/60";
 
@@ -26,20 +26,8 @@ export const Layout = ({ children }: PropsWithChildren) => {
     toggleSidebar,
   } = useLayout();
 
-  const [accountName, setAccountName] = useState<string>('');
-
-  useEffect(() => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      const profile = parsed.user || parsed;
-      const name = profile?.full_name || profile?.fullName || profile?.name || '';
-      setAccountName(name);
-    } catch (e) {
-      // ignore
-    }
-  }, []);
+  const { user } = useUser();
+  const accountName = user?.full_name || user?.fullName || user?.name || "";
 
   const renderPrimaryButton = (key: WebPageKey, label: string) => {
     const isActive = activePage === key;
