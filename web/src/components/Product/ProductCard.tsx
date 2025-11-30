@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+﻿import { useMemo, useState, useEffect } from "react";
 import type { Product } from "../../types";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { AccessTime, Favorite, FavoriteBorder, Gavel } from "@mui/icons-material";
@@ -16,9 +16,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  
+  const [, setTick] = useState(0);
 
   const endDate = useMemo(() => new Date(product.end_date), [product.end_date]);
-  const primaryImage = product.images[0] ?? "";
+  
+  const categoryName = 
+    product.category && typeof product.category === 'object' 
+      ? (product.category as any).name  // Nếu là object (API trả về), lấy .name
+      : product.category;               // Nếu là string (Mock data), giữ nguyên
+
+  const primaryImage = product.images && product.images.length > 0 ? product.images[0] : "";
   const currentPrice = product.current_price ?? product.start_price;
   const buyNowPrice = product.buy_now_price ?? null;
   const bidCount = product.bid_count ?? 0;
@@ -41,13 +49,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     return `${minutes}m`;
   };
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick(t => t + 1);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleImageError = () => {
     setImageError(true);
   };
 
   const handleBidClick = () => {
     if (onBidClick) {
-      onBidClick(product.id);
+      onBidClick(product.id); 
     }
   };
 
@@ -91,9 +106,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {isLiked ? <Favorite sx={{ color: "red" }} /> : <FavoriteBorder sx={{ color: "black" }} />}
         </button>
 
-        {product.category && (
+        {categoryName && (
           <div className="absolute bottom-3 left-3 rounded-md bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm">
-            {product.category}
+            {categoryName}
           </div>
         )}
       </div>

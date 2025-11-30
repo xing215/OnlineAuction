@@ -1,7 +1,9 @@
+import type { Category } from '../../types';
+
 interface ProductFiltersProps {
-  categories: string[];
+  categories: Category[];
   activeCategory: string;
-  onCategoryChange: (category: string) => void;
+  onCategoryChange: (categoryID: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   sortOption: string;
@@ -46,17 +48,17 @@ export default function ProductFilters({
             </svg>
           </span>
           <span className="text-sm font-medium text-gray-500 whitespace-nowrap mr-2">Danh mục:</span>
-          {categories.map((cat) => (
+          {categories.map((cat, index) => (
             <button
-              key={cat}
-              onClick={() => onCategoryChange(cat)}
+              key={cat.id || (cat as any)._id || index}
+              onClick={() => onCategoryChange(cat.id || (cat as any)._id || index)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === cat
+                activeCategory === (cat.id || (cat as any)._id)
                   ? 'bg-gray-900 text-white shadow-lg'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              {cat}
+              {cat.name}
             </button>
           ))}
         </div>

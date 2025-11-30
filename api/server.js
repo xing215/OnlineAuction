@@ -14,6 +14,7 @@ const logger = require('./middleware/logger');
 // Import routes
 const exampleRoutes = require('./routes/exampleRoutes');
 const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // Middleware
 app.use(express.json());
@@ -37,6 +38,8 @@ app.use('/api/examples', exampleRoutes);
 
 // Product routes
 app.use('/api/products', productRoutes);
+// Category routes
+app.use('/api/categories', categoryRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
