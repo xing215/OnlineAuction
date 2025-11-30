@@ -5,9 +5,9 @@ import {
   HistoryRounded,
   HomeRounded,
   Inventory2Rounded,
+  LockResetRounded,
   LogoutRounded,
   MenuRounded,
-  SettingsRounded,
 } from "@mui/icons-material";
 
 export interface WebPageConfig {
@@ -23,7 +23,7 @@ export const WEB_PAGE = {
   BID_HISTORY: { path: "/bid-history", label: "Lịch sử đấu giá", Icon: HistoryRounded },
   MY_PRODUCTS: { path: "/my-products", label: "Sản phẩm của tôi", Icon: Inventory2Rounded },
   PROFILE: { path: "/profile", label: "Hồ sơ", Icon: AccountCircleRounded },
-  SETTINGS: { path: "/settings", label: "Cài đặt", Icon: SettingsRounded },
+  CHANGE_PASSWORD: { path: "/change-password", label: "Đổi mật khẩu", Icon: LockResetRounded },
   LOGOUT: { path: "/logout", label: "Đăng xuất", Icon: LogoutRounded },
   CREATE_PRODUCT: { path: "/my-products/new", label: "Đăng sản phẩm", Icon: Inventory2Rounded },
 } as const satisfies Record<string, WebPageConfig>;
@@ -40,6 +40,6 @@ export const PRIMARY_NAV_KEYS: WebPageKey[] = [
 
 export const SECONDARY_NAV_KEYS: WebPageKey[] = [
   "PROFILE",
-  "SETTINGS",
+  "CHANGE_PASSWORD",
   "LOGOUT",
 ];
