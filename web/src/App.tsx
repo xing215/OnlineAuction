@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import HomePage from "./pages/HomePage/HomePage";
 import CreateProduct from "./components/Product/CreateProduct";
 import Logout from "./pages/Logout";
+import ChangePassword from "./pages/ChangePassword";
 import { UserProvider } from "./context/UserContext";
 
 interface PlaceholderPageProps {
@@ -30,26 +31,28 @@ const AUTH_ROUTES = {
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="app-container">
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path={WEB_PAGE.HOME.path} element={<ProductListPage />} />
-            <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
-            <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
-            <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
-            <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />
-            <Route path={WEB_PAGE.CREATE_PRODUCT.path} element={<CreateProduct />} />
-            <Route path={WEB_PAGE.PROFILE.path} element={<Profile />} />
-            <Route path={WEB_PAGE.SETTINGS.path} element={<PlaceholderPage title={WEB_PAGE.SETTINGS.label} />} />
-          </Route>
-          <Route path={WEB_PAGE.LOGOUT.path} element={<Logout />} />
-          <Route path={AUTH_ROUTES.SIGNIN} element={<SignInPage />} />
-          <Route path={AUTH_ROUTES.SIGNUP} element={<SignUpPage />} />
-          <Route path="*" element={<Navigate to={WEB_PAGE.HOME.path} replace />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <UserProvider>
+      <BrowserRouter>
+        <div className="app-container">
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path={WEB_PAGE.HOME.path} element={<HomePage />} />
+              <Route path={WEB_PAGE.CATEGORIES.path} element={<PlaceholderPage title={WEB_PAGE.CATEGORIES.label} />} />
+              <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
+              <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />
+              <Route path={WEB_PAGE.MY_PRODUCTS.path} element={<MyProductsPage />} />
+              <Route path={WEB_PAGE.CREATE_PRODUCT.path} element={<CreateProduct />} />
+              <Route path={WEB_PAGE.PROFILE.path} element={<Profile />} />
+              <Route path={WEB_PAGE.CHANGE_PASSWORD.path} element={<ChangePassword />} />
+            </Route>
+            <Route path={WEB_PAGE.LOGOUT.path} element={<Logout />} />
+            <Route path={AUTH_ROUTES.SIGNIN} element={<SignInPage />} />
+            <Route path={AUTH_ROUTES.SIGNUP} element={<SignUpPage />} />
+            <Route path="*" element={<Navigate to={WEB_PAGE.HOME.path} replace />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </UserProvider>
   );
 }
 

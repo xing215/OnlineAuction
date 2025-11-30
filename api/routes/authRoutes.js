@@ -11,4 +11,7 @@ router.get('/me', authMiddleware, (req, res) => {
 	return res.json({ success: true, user: req.user });
 });
 
+// Protected: change password
+router.post('/change-password', authMiddleware, authController.changePassword);
+
 module.exports = router;

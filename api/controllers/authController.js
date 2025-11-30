@@ -51,3 +51,57 @@ exports.login = async (req, res, next) => {
     next(err);
   }
 };
+
+// POST /api/auth/change-password
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Mật khẩu hiện tại và mật khẩu mới là bắt buộc' 
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Mật khẩu mới phải có ít nhất 6 ký tự' 
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Mật khẩu mới phải khác mật khẩu hiện tại' 
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
+    }
+
+    // Verify current password
+    const isValidPassword = await user.verifyPassword(currentPassword);
+    if (!isValidPassword) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Mật khẩu hiện tại không chính xác' 
+      });
+    }
+
+    // Update password (will be hashed by pre-save hook)
+    user.password = newPassword;
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: 'Đổi mật khẩu thành công'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
