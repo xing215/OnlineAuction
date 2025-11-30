@@ -1,13 +1,13 @@
 import { useLayoutEffect } from "react";
+import { useUser } from "../context/useUser";
 
 export default function Logout() {
+  const { logout } = useUser();
+
   useLayoutEffect(() => {
-    // Remove data in LocalStorage & SessionStorage
-    localStorage.clear();
-    sessionStorage.clear();
-    
+    logout();
     window.location.replace("/signin"); 
-  }, []);
+  }, [logout]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-white">
