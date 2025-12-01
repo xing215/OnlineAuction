@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ProductList } from "../../components/Product";
 import type { Product } from "../../types";
 import { useNavigate } from "react-router-dom";
+import bgImg from "../../../public/hero_bg_home.png";
 
 const HomePage = () => {
   const [topExpiring, setTopExpiring] = useState<Product[]>([]);
@@ -177,7 +178,15 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
-      <section className="relative h-[50vh] sm:h-[75vh] bg-gradient-to-r from-pink-200 via-purple-200 to-blue-200 dark:from-pink-900 dark:via-purple-900 dark:to-blue-900 py-20 px-4">
+      <section
+        className="relative h-[25vh] py-20 px-4 mb-4"
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          height: "100%",
+        }}
+      >
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-4">
             Chào mừng đến với BiddenBid
@@ -197,10 +206,10 @@ const HomePage = () => {
       </section>
 
       {/* Product Lists Sections */}
-      <div className="space-y-8 pb-12">
+      <div className="">
         <ProductList
           title="Top 5 gần kết thúc"
-          subtitle="Đừng bỏ lỡ cơ hội đấu giá những sản phẩm này"
+          subtitle="Đừng bỏ lỡ cơ hội đấu giá"
           products={topExpiring}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
