@@ -40,7 +40,6 @@ export const useProfileForm = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [email, setEmail] = useState("");
     const [role, setRole] = useState("");
-    const [dobValue, setDobValue] = useState("");
 
     // Load profile
     useEffect(() => {
@@ -54,7 +53,7 @@ export const useProfileForm = () => {
             setEmail(profile.email || "");
             setRole(capitalizeFirstLetter(profile.role) || "");
 
-            // Convert dob to YYYY-MM-DD format for date picker
+            // Convert dob to YYYY-MM-DD format for HTML date input
             let dobValue = "";
             if (profile.dob) {
                 try {
@@ -64,14 +63,13 @@ export const useProfileForm = () => {
                             : (profile.dob as any)?.toISOString()
                     );
                     if (!isNaN(dobDate.getTime())) {
-                        // Format as YYYY-MM-DD
+                        // Format as YYYY-MM-DD for HTML date input
                         dobValue = dobDate.toISOString().split("T")[0];
                     }
                 } catch (error) {
                     console.warn("Failed to parse dob:", error);
                 }
             }
-            setDobValue(dobValue);
 
             const values: Partial<ProfileFormData> = {
                 fullName: profile.full_name || profile.fullName || "",
@@ -124,7 +122,7 @@ export const useProfileForm = () => {
                     full_name: data.fullName,
                     phone: data.phone,
                     address: data.address,
-                    dob: dobValue ? new Date(dobValue).toISOString() : null,
+                    dob: data.dob ? new Date(data.dob).toISOString() : null,
                 }),
             });
 
@@ -163,7 +161,5 @@ export const useProfileForm = () => {
         setIsEditMode,
         email,
         role,
-        dobValue,
-        setDobValue,
     };
 };
