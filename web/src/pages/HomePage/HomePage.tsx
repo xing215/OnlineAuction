@@ -48,7 +48,7 @@ const HomePage = () => {
 
   // Navigate to product details page
   const handleViewDetails = (productId: string) => {
-    console.log("View details for product:", productId);
+    navigate(`/product/${productId}`);
   };
 
   return (

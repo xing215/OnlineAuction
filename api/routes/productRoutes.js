@@ -33,4 +33,7 @@ router.get('/top-bidding', productController.getTopBidding);
 // GET /api/products - must be last to avoid route conflicts
 router.get('/', productController.getProducts);
 
+// GET /api/products/:id - get product by ID
+router.get('/:id', productController.getProductById);
+
 module.exports = router;

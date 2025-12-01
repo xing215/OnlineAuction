@@ -12,6 +12,7 @@ import CreateProduct from "./components/Product/CreateProduct";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
 import { UserProvider } from "./context/UserContext";
+import { ProductDetail } from "./pages/ProductDetail/ProductDetail";
 
 interface PlaceholderPageProps {
   title: string;
@@ -37,6 +38,7 @@ function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path={WEB_PAGE.HOME.path} element={<HomePage />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
               <Route path={WEB_PAGE.CATEGORIES.path} element={<ProductListPage />} />
               <Route path={WEB_PAGE.FAVORITES.path} element={<PlaceholderPage title={WEB_PAGE.FAVORITES.label} />} />
               <Route path={WEB_PAGE.BID_HISTORY.path} element={<PlaceholderPage title={WEB_PAGE.BID_HISTORY.label} />} />

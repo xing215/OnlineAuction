@@ -99,4 +99,10 @@ ProductSchema.statics.findTopBidding = function(limit = 5) {
 //                .populate('category', 'name');
 // };
 
+ProductSchema.statics.getProductById = function(productId) {
+    return this.findById(productId)
+               .populate('category', 'name')
+               .populate('seller', 'username email');
+}
+
 module.exports = mongoose.model('Product', ProductSchema);
