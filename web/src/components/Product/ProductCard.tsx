@@ -86,7 +86,7 @@ const isNew = useMemo(() => {
     <article className="group flex w-[200px] flex-col flex-shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
       <div className="relative h-[200px] w-full flex-shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px]">
         {imageError || !primaryImage ? (
-          <div className="relative inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
               No Image Available
             </span>

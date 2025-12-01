@@ -23,6 +23,14 @@ const upload = multer({
 
 // POST /api/products - accept multipart/form-data with up to 10 images
 router.post('/', upload.array('images', 10), createProduct);
+
+// GET /api/products/top-expiring - get products expiring soon
+router.get('/top-expiring', productController.getTopExpiring);
+
+// GET /api/products/top-bidding - get products with most bids
+router.get('/top-bidding', productController.getTopBidding);
+
+// GET /api/products - must be last to avoid route conflicts
 router.get('/', productController.getProducts);
 
 module.exports = router;
