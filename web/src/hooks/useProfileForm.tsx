@@ -1,15 +1,15 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatDate, capitalizeFirstLetter } from "../utilities";
 import { useUser } from "../context/useUser";
+import { apiUrl } from "../config/api";
 import type { AuthUser } from "../context/UserContext.types";
 
 // 1. Định nghĩa Schema (Giữ nguyên)
 const profileSchema = z.object({
     fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
-    email: z.string().email("Email không hợp lệ"),
     phone: z
         .string()
         .regex(/^[0-9+\s]+$/, "Số điện thoại không hợp lệ")
@@ -32,7 +32,6 @@ export const useProfileForm = () => {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             fullName: "",
-            email: "",
             phone: "",
             address: "",
             dob: "",
@@ -40,8 +39,9 @@ export const useProfileForm = () => {
         },
     });
     const { user, token, loading, refreshUser } = useUser();
+    const [isEditMode, setIsEditMode] = useState(false);
 
-    // Load profile 
+    // Load profile
     useEffect(() => {
         let mounted = true;
 
@@ -52,10 +52,9 @@ export const useProfileForm = () => {
 
             const values: Partial<ProfileFormData> = {
                 fullName: profile.full_name || profile.fullName || "",
-                email: profile.email || "",
                 phone: profile.phone || "",
                 address: profile.address || "",
-                dob: formatDate(profile.dob) || "",
+                dob: formatDate(profile.dob?.toISOString()) || "",
                 role: capitalizeFirstLetter(profile.role) || "",
             };
 
@@ -88,11 +87,52 @@ export const useProfileForm = () => {
 
     // 3. Hàm xử lý Submit
     const onSubmit = async (data: ProfileFormData) => {
-        // Giả lập gọi API (đợi 1s)
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        try {
+            if (!token) {
+                throw new Error("Không tìm thấy token xác thực");
+            }
 
-        console.log("Dữ liệu đã chuẩn hóa:", data);
-        alert("Cập nhật thành công!");
+            const response = await fetch(apiUrl("/api/auth/me"), {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    full_name: data.fullName,
+                    phone: data.phone,
+                    address: data.address,
+                    dob: data.dob ? new Date(data.dob).toISOString() : null,
+                    role: data.role?.toLowerCase(),
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    typeof errorData?.message === "string"
+                        ? errorData.message
+                        : "Cập nhật thông tin thất bại"
+                );
+            }
+
+            const result = await response.json();
+            const updatedUser = result.user || result.data?.user;
+
+            if (updatedUser) {
+                // User will be refreshed after API call
+                await refreshUser();
+            }
+
+            console.log("Cập nhật thành công:", result);
+            alert("Cập nhật thông tin thành công!");
+            setIsEditMode(false);
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Có lỗi xảy ra";
+            console.error("Lỗi cập nhật:", message);
+            alert(`Lỗi: ${message}`);
+        }
     };
 
     return {
@@ -101,5 +141,7 @@ export const useProfileForm = () => {
         errors,
         isSubmitting,
         onSubmit,
+        isEditMode,
+        setIsEditMode,
     };
 };
