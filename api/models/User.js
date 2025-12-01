@@ -82,7 +82,7 @@ const userSchema = new mongoose.Schema(
 // ============================================================
 // INDEXES
 // ============================================================
-userSchema.index({ email: 1 }); // Unique search
+// userSchema.index({ email: 1 }); // Unique search
 userSchema.index({ role: 1 });  // Filter by role
 userSchema.index({ "seller_details.expiry_date": 1 }); // Tìm seller hết hạn
 

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
+const User = require('../models/User');
 
 // Authentication middleware
 const authMiddleware = async (req, res, next) => {
@@ -16,10 +17,16 @@ const authMiddleware = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, config.jwt.secret);
-    
-    // Attach user to request object
-    req.user = decoded;
-    
+
+    // Load latest user from database
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'User not found' });
+    }
+
+    // Attach profile to request object
+    req.user = user.toProfileJSON();
+
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -28,7 +35,7 @@ const authMiddleware = async (req, res, next) => {
         message: 'Invalid token'
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,

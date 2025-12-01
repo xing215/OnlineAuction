@@ -1,18 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-
-// CẤU HÌNH GIẢ LẬP 
-// ID của Seller (Lấy từ User đang đăng nhập)
-const CURRENT_USER_ID = "6564e1234567890abcdef123"; 
-
-// Danh sách danh mục 
-const MOCK_CATEGORIES = [
-    { _id: '6745d8a9e6b8a1234567890a', name: 'Đồng hồ' },
-    { _id: '6745d8a9e6b8a1234567890b', name: 'Trang sức' },
-    { _id: '6745d8a9e6b8a1234567890c', name: 'Đồ điện tử' },
-    { _id: '6745d8a9e6b8a1234567890d', name: 'Nghệ thuật' },
-];
+import { useUser } from "../../context/useUser";
+import { apiUrl } from "../../config/api";
 
 // TYPES
 type ProductForm = {
@@ -26,6 +16,10 @@ type ProductForm = {
 };
 
 const CreateProduct: React.FC = () => {
+    // State lưu danh mục
+    const [categories, setCategories] = useState<{_id: string, name: string}[]>([]);
+    const { user, token } = useUser();
+
     // STATE
     const [form, setForm] = useState<ProductForm>({
         name: '',
@@ -98,7 +92,7 @@ const CreateProduct: React.FC = () => {
         }
     };
 
-    // Xử lý File (Chung cho cả Input và Drop)
+    // Xử lý File 
     const processFiles = (files: FileList | null) => {
         if (!files || files.length === 0) return;
 
@@ -139,6 +133,27 @@ const CreateProduct: React.FC = () => {
         });
     };
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch(apiUrl('/api/categories/roots'));
+                
+                if (!res.ok) throw new Error('Failed to fetch categories');
+                
+                const responseData = await res.json();
+
+                if (responseData.success) {
+                    setCategories(responseData.data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy danh mục:", error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+
     // SUBMIT FORM
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -152,12 +167,18 @@ const CreateProduct: React.FC = () => {
         setSubmitting(true);
 
         try {
+            const id = user?._id || user?.id || "";
+
+            if (!id) {
+                alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!");
+                return; 
+            }
             const fd = new FormData();
             
             // Append Text Fields
             fd.append('name', form.name.trim());
             fd.append('category', form.category); 
-            fd.append('seller', CURRENT_USER_ID); 
+            fd.append('seller', id); 
             fd.append('description', form.description || '');
             fd.append('start_price', form.start_price);
             fd.append('step_price', form.step_price);
@@ -173,10 +194,16 @@ const CreateProduct: React.FC = () => {
 
             // GỌI API 
             
-            const res = await fetch('http://127.0.0.1:3000/api/products', {
+            const requestOptions: RequestInit = {
                 method: 'POST',
                 body: fd,
-            });
+            };
+
+            if (token) {
+                requestOptions.headers = { Authorization: `Bearer ${token}` };
+            }
+
+            const res = await fetch(apiUrl('/api/products'), requestOptions);
 
             const text = await res.text();
             try {
@@ -190,14 +217,19 @@ const CreateProduct: React.FC = () => {
                 setImages([]);
                 setDurationSelect('');
                 
-            } catch (jsonError) {
-                console.error("Server response not JSON:", text);
+            } catch (parseError) {
+                console.error("Server response not JSON:", text, parseError);
                 throw new Error("Lỗi phản hồi từ server (Check console)");
             }
 
-        } catch (err: any) {
-            console.error(err);
-            alert('Lỗi: ' + err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err);
+                alert('Lỗi: ' + err.message);
+            } else {
+                console.error('Unexpected error during product creation', err);
+                alert('Đã xảy ra lỗi không xác định');
+            }
         } finally {
             setSubmitting(false);
         }
@@ -247,7 +279,16 @@ const CreateProduct: React.FC = () => {
                             <p className="font-medium text-gray-600">Kéo thả ảnh hoặc click để chọn</p>
                             <p className="text-xs text-gray-400 mt-2">PNG, JPG lên tới 10MB mỗi ảnh</p>
                         </div>
-                        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
+                        <input
+                            ref={fileInputRef}
+                            id="product-image-upload"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleFiles}
+                            className="hidden"
+                            aria-label="Chọn ảnh sản phẩm"
+                        />
 
                         {/* Preview Grid */}
                         {images.length > 0 && (
@@ -259,6 +300,7 @@ const CreateProduct: React.FC = () => {
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); removeImageAt(i); }}
                                             className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-gray-500 hover:text-red-500 hover:bg-white shadow-sm transition"
+                                            aria-label="Xóa ảnh"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
@@ -287,18 +329,21 @@ const CreateProduct: React.FC = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Danh mục <span className="text-red-500">*</span></label>
+                                    <label htmlFor="product-category" className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Danh mục <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <select 
+                                            id="product-category"
                                             name="category" 
                                             value={form.category} 
-                                            onChange={handleChange as any} 
+                                            onChange={handleChange} 
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none appearance-none cursor-pointer" 
                                             required
                                         >
                                             <option value="">Chọn danh mục</option>
-                                            {MOCK_CATEGORIES.map(cat => (
-                                                <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                            {categories.map((cat) => (
+                                                <option key={cat._id} value={cat._id}>
+                                                    {cat.name}
+                                                </option>
                                             ))}
                                         </select>
                                         <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
@@ -405,9 +450,10 @@ const CreateProduct: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Thời gian đấu giá <span className="text-red-500">*</span></label>
+                                <label htmlFor="product-duration" className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Thời gian đấu giá <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <select 
+                                        id="product-duration"
                                         value={durationSelect} // Bind vào state '1', '3', '7'
                                         onChange={handleDurationChange} 
                                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-500 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 outline-none appearance-none cursor-pointer font-medium"
@@ -429,9 +475,10 @@ const CreateProduct: React.FC = () => {
                                 {/* Input chọn ngày giờ tùy chỉnh chỉ hiện khi chọn 'custom' */}
                                 {durationSelect === 'custom' && (
                                     <div className="mt-4 animate-fadeIn">
-                                        <label className="block text-xs font-bold text-gray-700 mb-1 ml-1">Chọn ngày giờ kết thúc <span className="text-red-500">*</span></label>
+                                        <label htmlFor="product-custom-end" className="block text-xs font-bold text-gray-700 mb-1 ml-1">Chọn ngày giờ kết thúc <span className="text-red-500">*</span></label>
                                         <input 
                                             type="datetime-local" 
+                                            id="product-custom-end"
                                             onChange={(e) => {
                                                 const date = new Date(e.target.value);
                                                 if(!isNaN(date.getTime())) setForm(prev => ({ ...prev, end_date: date.toISOString() }));

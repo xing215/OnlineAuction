@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useUser } from "../context/useUser";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -8,6 +9,7 @@ export const useLoginForm = () => {
         password: "",
         rememberMe: false,
     });
+    const { login } = useUser();
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -26,18 +28,28 @@ export const useLoginForm = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate email
         if (!emailRegex.test(formData.email)) {
             setErrors({ email: "Vui lòng nhập email hợp lệ!" });
             return;
         }
 
         setErrors({});
-        console.log("Login submitted:", formData);
-        // Add your login logic here
+
+        try {
+            await login({
+                email: formData.email,
+                password: formData.password,
+                rememberMe: formData.rememberMe,
+            });
+            window.location.href = "/";
+        } catch (err) {
+            console.error("Login error:", err);
+            const message = err instanceof Error ? err.message : "Lỗi đăng nhập";
+            alert(message);
+        }
     };
 
     return {

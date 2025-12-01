@@ -4,6 +4,7 @@ import GavelIcon from '@mui/icons-material/Gavel';
 import { Outlet } from "react-router-dom";
 import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
+import { useUser } from "../context/useUser";
 
 const sectionTitleStyles = "text-xs uppercase tracking-[0.2em] text-white/60";
 
@@ -24,6 +25,9 @@ export const Layout = ({ children }: PropsWithChildren) => {
     toggleAccount,
     toggleSidebar,
   } = useLayout();
+
+  const { user } = useUser();
+  const accountName = user?.full_name || user?.fullName || user?.name || "";
 
   const renderPrimaryButton = (key: WebPageKey, label: string) => {
     const isActive = activePage === key;
@@ -181,7 +185,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
             >
               <span className="flex items-center gap-2">
                 <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
-                Nguyễn Văn A
+                {accountName || 'Tài khoản'}
               </span>
               <ExpandMoreRounded
                 className={`h-4 w-4 text-[#3E3C31] transition-transform ${
