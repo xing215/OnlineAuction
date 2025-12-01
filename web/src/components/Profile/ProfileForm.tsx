@@ -10,6 +10,7 @@ export default function ProfileForm() {
         isEditMode,
         setIsEditMode,
         email,
+        role,
     } = useProfileForm();
 
     return (
@@ -86,15 +87,16 @@ export default function ProfileForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputGroup
                         label="Date of birth"
+                        type="date"
                         error={errors.dob?.message}
                         {...register("dob")}
                         disabled={!isEditMode}
                     />
                     <InputGroup
                         label="Role"
-                        error={errors.role?.message}
-                        {...register("role")}
-                        disabled={!isEditMode}
+                        disabled={true}
+                        value={role}
+                        readOnly
                     />
                 </div>
 
