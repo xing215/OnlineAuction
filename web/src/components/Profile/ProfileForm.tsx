@@ -9,6 +9,7 @@ export default function ProfileForm() {
         onSubmit,
         isEditMode,
         setIsEditMode,
+        email,
     } = useProfileForm();
 
     return (
@@ -56,7 +57,12 @@ export default function ProfileForm() {
                         {...register("fullName")}
                         disabled={!isEditMode}
                     />
-                    <InputGroup label="Email" disabled={true} />
+                    <InputGroup
+                        label="Email"
+                        disabled={true}
+                        value={email}
+                        readOnly
+                    />
                 </div>
 
                 {/* Row 2 */}

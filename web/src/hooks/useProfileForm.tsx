@@ -40,6 +40,7 @@ export const useProfileForm = () => {
     });
     const { user, token, loading, refreshUser } = useUser();
     const [isEditMode, setIsEditMode] = useState(false);
+    const [email, setEmail] = useState("");
 
     // Load profile
     useEffect(() => {
@@ -50,11 +51,21 @@ export const useProfileForm = () => {
                 return;
             }
 
+            setEmail(profile.email || "");
+
+            const dobValue = profile.dob
+                ? formatDate(
+                      typeof profile.dob === "string"
+                          ? profile.dob
+                          : (profile.dob as any)?.toISOString()
+                  )
+                : "";
+
             const values: Partial<ProfileFormData> = {
                 fullName: profile.full_name || profile.fullName || "",
                 phone: profile.phone || "",
                 address: profile.address || "",
-                dob: formatDate(profile.dob?.toISOString()) || "",
+                dob: dobValue,
                 role: capitalizeFirstLetter(profile.role) || "",
             };
 
@@ -143,5 +154,6 @@ export const useProfileForm = () => {
         onSubmit,
         isEditMode,
         setIsEditMode,
+        email,
     };
 };
