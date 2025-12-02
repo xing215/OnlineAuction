@@ -1,6 +1,6 @@
 ﻿import { useMemo, useState, useEffect } from "react";
 import type { Product } from "../../types";
-import { formatCurrency, getTimeRemaining } from "../../utilities";
+import { formatCurrency, formatDate, getTimeRemaining } from "../../utilities";
 import {
   AccessTime,
   Favorite,
@@ -50,6 +50,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isAuctionEnded = endDate.getTime() <= Date.now();
   const statusLabel = isAuctionEnded ? "Đã kết thúc" : "Đang diễn ra";
   const timeRemaining = getTimeRemaining(endDate);
+  const startedAt = new Date(product.posted_at);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -151,6 +152,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           Trạng thái:{" "}
           <span className="font-semibold text-gray-700 dark:text-gray-300">
             {statusLabel}
+          </span>
+        </p>
+
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-500">
+          Ngày đăng:{" "}
+          <span className="font-semibold text-gray-700 dark:text-gray-300">
+            {formatDate(startedAt.toISOString())}
           </span>
         </p>
 
