@@ -134,3 +134,62 @@ exports.getProducts = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Get top expiring products (sắp kết thúc)
+exports.getTopExpiring = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    const products = await Product.findTopExpiring(parseInt(limit));
+    
+    res.json({
+      success: true,
+      data: products
+    });
+  } catch (error) {
+    console.error("Error in getTopExpiring:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get top bidding products (nhiều lượt ra giá nhất)
+exports.getTopBidding = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    const products = await Product.findTopBidding(parseInt(limit));
+    
+    res.json({
+      success: true,
+      data: products
+    });
+  } catch (error) {
+    console.error("Error in getTopBidding:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get product by ID with populated fields
+exports.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.getProductById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error("Error in getProductById:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get seller rating summary by user ID
+exports.getSellerRatingSummary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ratingSummary = await Product.getSellerRatingSummary(id);
+    res.json({ success: true, data: ratingSummary });
+  } catch (error) {
+    console.error("Error in getSellerRatingSummary:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

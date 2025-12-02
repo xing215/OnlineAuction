@@ -99,4 +99,23 @@ ProductSchema.statics.findTopBidding = function(limit = 5) {
 //                .populate('category', 'name');
 // };
 
+ProductSchema.statics.getProductById = function(productId) {
+    return this.findById(productId)
+               .populate('category', 'name')
+               .populate('seller', 'username email');
+}
+
+ProductSchema.statics.getSellerRatingSummary = function(sellerId) {
+    return this.aggregate([
+        { $match: { seller: mongoose.Types.ObjectId(sellerId) } },
+        {
+            $group: {
+                _id: "$seller",
+                averageRating: { $avg: "$rating" }, // Assuming there's a rating field
+                totalRatings: { $sum: 1 }
+            }
+        }
+    ]);
+};
+
 module.exports = mongoose.model('Product', ProductSchema);
