@@ -7,22 +7,18 @@ exports.login = async (req, res, next) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Email và mật khẩu là bắt buộc",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Email và mật khẩu là bắt buộc",
+            });
         }
 
         const user = await User.findByEmail(email);
         if (!user) {
-            return res
-                .status(401)
-                .json({
-                    success: false,
-                    message: "Email hoặc mật khẩu không chính xác",
-                });
+            return res.status(401).json({
+                success: false,
+                message: "Email hoặc mật khẩu không chính xác",
+            });
         }
 
         // First try bcrypt compare
@@ -42,12 +38,10 @@ exports.login = async (req, res, next) => {
         }
 
         if (!valid) {
-            return res
-                .status(401)
-                .json({
-                    success: false,
-                    message: "Email hoặc mật khẩu không chính xác",
-                });
+            return res.status(401).json({
+                success: false,
+                message: "Email hoặc mật khẩu không chính xác",
+            });
         }
 
         // Build token payload
@@ -129,7 +123,7 @@ exports.changePassword = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const { full_name, phone, address, dob, role } = req.body;
+        const { full_name, email, phone, address, dob, role } = req.body;
 
         // Find user
         const user = await User.findById(userId);
@@ -149,6 +143,32 @@ exports.updateProfile = async (req, res, next) => {
                 });
             }
             user.full_name = full_name.trim();
+        }
+
+        // Validate and update email
+        if (email !== undefined) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email không hợp lệ",
+                });
+            }
+
+            // Check if email already exists (excluding current user)
+            const existingEmail = await User.findOne({
+                email: email.toLowerCase().trim(),
+                _id: { $ne: userId },
+            });
+
+            if (existingEmail) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email này đã được sử dụng",
+                });
+            }
+
+            user.email = email.toLowerCase().trim();
         }
 
         // Validate phone

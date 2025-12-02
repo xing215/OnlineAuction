@@ -9,7 +9,6 @@ export default function ProfileForm() {
         onSubmit,
         isEditMode,
         setIsEditMode,
-        email,
         role,
     } = useProfileForm();
 
@@ -46,9 +45,7 @@ export default function ProfileForm() {
             {/* handleSubmit bọc lấy onSubmit của mình */}
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className={`space-y-6 transition-all duration-200 ${
-                    !isEditMode ? "opacity-60 pointer-events-none" : ""
-                }`}
+                className="space-y-6 transition-all duration-200"
             >
                 {/* Row 1 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -60,9 +57,10 @@ export default function ProfileForm() {
                     />
                     <InputGroup
                         label="Email"
-                        disabled={true}
-                        value={email}
-                        readOnly
+                        type="email"
+                        error={errors.email?.message}
+                        {...register("email")}
+                        disabled={!isEditMode}
                     />
                 </div>
 
@@ -161,7 +159,7 @@ const InputGroup = forwardRef<HTMLInputElement, InputGroupProps>(
                     disabled={disabled}
                     className={`w-full px-5 py-3.5 bg-gray-50 border rounded-2xl text-gray-700 outline-none transition-all duration-200 ${
                         disabled
-                            ? "bg-slate-50 opacity-20 cursor-not-allowed text-gray-400 border-gray-100"
+                            ? "bg-slate-50 opacity-60 cursor-not-allowed text-gray-400 border-gray-100"
                             : "focus:bg-white focus:ring-2 focus:ring-[#D5AD41]/50 border-gray-200 hover:border-gray-300"
                     } ${
                         error

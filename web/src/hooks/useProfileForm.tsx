@@ -10,6 +10,7 @@ import type { AuthUser } from "../context/UserContext.types";
 // 1. Định nghĩa Schema (Giữ nguyên)
 const profileSchema = z.object({
     fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
+    email: z.string().email("Email không hợp lệ"),
     phone: z
         .string()
         .regex(/^[0-9+\s]+$/, "Số điện thoại không hợp lệ")
@@ -31,6 +32,7 @@ export const useProfileForm = () => {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             fullName: "",
+            email: "",
             phone: "",
             address: "",
             dob: "",
@@ -38,7 +40,6 @@ export const useProfileForm = () => {
     });
     const { user, token, loading, refreshUser } = useUser();
     const [isEditMode, setIsEditMode] = useState(false);
-    const [email, setEmail] = useState("");
     const [role, setRole] = useState("");
 
     // Load profile
@@ -50,7 +51,6 @@ export const useProfileForm = () => {
                 return;
             }
 
-            setEmail(profile.email || "");
             setRole(capitalizeFirstLetter(profile.role) || "");
 
             // Convert dob to YYYY-MM-DD format for HTML date input
@@ -73,6 +73,7 @@ export const useProfileForm = () => {
 
             const values: Partial<ProfileFormData> = {
                 fullName: profile.full_name || profile.fullName || "",
+                email: profile.email || "",
                 phone: profile.phone || "",
                 address: profile.address || "",
                 dob: dobValue,
@@ -120,6 +121,7 @@ export const useProfileForm = () => {
                 },
                 body: JSON.stringify({
                     full_name: data.fullName,
+                    email: data.email,
                     phone: data.phone,
                     address: data.address,
                     dob: data.dob ? new Date(data.dob).toISOString() : null,
@@ -159,7 +161,6 @@ export const useProfileForm = () => {
         onSubmit,
         isEditMode,
         setIsEditMode,
-        email,
         role,
     };
 };
