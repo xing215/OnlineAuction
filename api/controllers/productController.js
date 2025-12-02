@@ -181,3 +181,15 @@ exports.getProductById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Get seller rating summary by user ID
+exports.getSellerRatingSummary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ratingSummary = await Product.getSellerRatingSummary(id);
+    res.json({ success: true, data: ratingSummary });
+  } catch (error) {
+    console.error("Error in getSellerRatingSummary:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

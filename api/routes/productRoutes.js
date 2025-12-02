@@ -36,4 +36,8 @@ router.get('/', productController.getProducts);
 // GET /api/products/:id - get product by ID
 router.get('/:id', productController.getProductById);
 
+// GET /api/products/seller/:id - get ratingSummary by user ID
+router.get('/seller/:id', productController.getSellerRatingSummary);
+
+
 module.exports = router;
