@@ -92,19 +92,20 @@ ProductSchema.statics.findTopBidding = function(limit = 5) {
 };
 
 // Lấy Top 5 sản phẩm giá cao nhất
-// ProductSchema.statics.findTopPrice = function(limit = 5) {
-//     return this.find({ status: 'active' })
-//                .sort({ current_price: -1 })
-//                .limit(limit)
-//                .populate('category', 'name');
-// };
-
+ProductSchema.statics.findTopPrice = function(limit = 5) {
+    return this.find({ status: 'active' })
+               .sort({ current_price: -1 })
+               .limit(limit)
+               .populate('category', 'name');
+};
+// Lấy sản phẩm theo ID
 ProductSchema.statics.getProductById = function(productId) {
     return this.findById(productId)
                .populate('category', 'name')
                .populate('seller', 'username email');
 }
 
+// Lấy đánh giá người bán theo user ID
 ProductSchema.statics.getSellerRatingSummary = function(sellerId) {
     return this.aggregate([
         { $match: { seller: mongoose.Types.ObjectId(sellerId) } },
@@ -117,5 +118,11 @@ ProductSchema.statics.getSellerRatingSummary = function(sellerId) {
         }
     ]);
 };
+
+// Lấy sản phẩm theo danh mục
+ProductSchema.statics.getProductsByCategory = function(categoryId) {
+    return this.find({ category: categoryId })
+               .populate('category', 'name');
+}
 
 module.exports = mongoose.model('Product', ProductSchema);
