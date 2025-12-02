@@ -20,7 +20,10 @@ export const ProductList: React.FC<ProductListProps> = ({
 }) => {
   const ITEM_WIDTH = 300;
 
-  const { containerRef, extendedItems, scroll } = useInfiniteLoop(products, ITEM_WIDTH);
+  const { containerRef, extendedItems, scroll } = useInfiniteLoop(
+    products,
+    ITEM_WIDTH
+  );
 
   return (
     <section className="w-full bg-gray-50">
@@ -37,40 +40,54 @@ export const ProductList: React.FC<ProductListProps> = ({
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => scroll("left")}
-              className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-              aria-label="Previous products"
-            >
-              <ChevronLeft className="text-gray-700 dark:text-gray-300" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-              aria-label="Next products"
-            >
-              <ChevronRight className="text-gray-700 dark:text-gray-300" />
-            </button>
-          </div>
+          {products.length >= 5 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => scroll("left")}
+                className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                aria-label="Previous products"
+              >
+                <ChevronLeft className="text-gray-700 dark:text-gray-300" />
+              </button>
+              <button
+                onClick={() => scroll("right")}
+                className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                aria-label="Next products"
+              >
+                <ChevronRight className="text-gray-700 dark:text-gray-300" />
+              </button>
+            </div>
+          )}
         </div>
-
         {/* Products Carousel */}
-        <div
-          ref={containerRef}
-          className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide"
-        >
-          {extendedItems.map((product, index) => (
-            <ProductCard
-              key={`${product.id}-${index}`}
-              product={product}
-              {...(onBidClick ? { onBidClick } : {})}
-              {...(onViewDetails ? { onViewDetails } : {})}
-            />
-          ))}
-        </div>
-      </div>
 
+        {products.length < 5 ? (
+          <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                {...(onBidClick ? { onBidClick } : {})}
+                {...(onViewDetails ? { onViewDetails } : {})}
+              />
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide"
+          >
+            {extendedItems.map((product, index) => (
+              <ProductCard
+                key={`${product.id}-${index}`}
+                product={product}
+                {...(onBidClick ? { onBidClick } : {})}
+                {...(onViewDetails ? { onViewDetails } : {})}
+              />
+            ))}
+          </div>
+        )}
+      </div>
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
