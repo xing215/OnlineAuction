@@ -6,7 +6,7 @@ export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    fetch(apiUrl('/api/categories/roots'))
+    fetch(apiUrl('/api/categories'))
       .then(res => res.json())
       .then(data => {
         if (data.success) {

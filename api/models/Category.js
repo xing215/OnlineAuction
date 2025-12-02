@@ -32,4 +32,9 @@ CategorySchema.statics.getChildren = function(parentId) {
     }).sort({ name: 1 });
 };
 
+//Lấy danh sách tất cả danh mục
+CategorySchema.statics.getAllCategories = function() {
+    return this.find({ is_active: true }).sort({ name: 1 });
+};
+
 module.exports = mongoose.model('Category', CategorySchema);
