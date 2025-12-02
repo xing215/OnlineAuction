@@ -5,9 +5,9 @@ import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { formatDate } from "../../utilities/FormatDate";
 import type { Product } from "../../types";
-import { ProductCard } from "../../components/Product/ProductCard";
 import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
+import { ProductList } from "../../components/Product";
 
 export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +53,10 @@ export const ProductDetail: React.FC = () => {
   // Fetch related products
   useEffect(() => {
     const fetchRelatedProducts = async () => {
-      if (!product?.category) return;
+      if (!product?.category) {
+        console.warn("Product category is undefined");
+        return;
+      }
 
       try {
         const categoryId =
@@ -62,12 +65,13 @@ export const ProductDetail: React.FC = () => {
             : product.category;
 
         const response = await fetch(
-          apiUrl(`/api/products?category=${categoryId}&limit=3`)
+          apiUrl(`/api/products?category=${categoryId}&limit=5`)
         );
         if (response.ok) {
           const data = await response.json();
+          console.log("Related products data:", data);
           setRelatedProducts(
-            data.products?.filter((p: Product) => p.id !== product.id) || []
+            data.data?.filter((p: Product) => p.id !== product.id) || []
           );
         }
       } catch (err) {
@@ -110,15 +114,15 @@ export const ProductDetail: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleBid = () => {
-    // TODO: Implement bid logic
-    console.log("Placing bid:", bidAmount);
+  // Implement bid logic
+  const handleBidClick = (productId: string) => {
+    console.log("Bid clicked for product:", productId);
   };
 
-  // const handleBuyNow = () => {
-  //   // TODO: Implement buy now logic
-  //   console.log("Buy now clicked");
-  // };
+  // Navigate to product details page
+  const handleViewDetails = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
 
   const timeRemaining = useMemo(() => {
     if (!product?.end_date) return "00:00:00";
@@ -276,14 +280,14 @@ export const ProductDetail: React.FC = () => {
                   type="text"
                   className="p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-black text-base"
                   onChange={(e) => setBidAmount(e.target.value)}
-                  placeholder={`Tối thiểu: ${formatCurrency(
+                  placeholder={`Bước giá: ${bidAmount}, tối thiểu: ${formatCurrency(
                     currentPrice + product.step_price
                   )}`}
                 />
               </div>
               <button
                 className="flex justify-between items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                onClick={handleBid}
+                onClick={() => handleBidClick(product.id)}
               >
                 <span>Đặt giá</span>
                 <Gavel />
@@ -374,24 +378,13 @@ export const ProductDetail: React.FC = () => {
         </div>
 
         {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold mb-5 text-gray-800">
-              Sản phẩm cùng chuyên mục
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {relatedProducts.map((relatedProduct) => (
-                <ProductCard
-                  key={relatedProduct.id}
-                  product={relatedProduct}
-                  onViewDetails={(productId) =>
-                    navigate(`/product/${productId}`)
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <ProductList
+          title="Top 5 giá cao nhất"
+          subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
+          products={relatedProducts}
+          onBidClick={handleBidClick}
+          onViewDetails={handleViewDetails}
+        />
       </div>
     </div>
   );
