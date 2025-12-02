@@ -76,7 +76,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <article className="group flex w-[200px] flex-col flex-shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
+    <article
+      onClick={handleViewDetails}
+      className="group flex w-[200px] flex-col flex-shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]"
+    >
       <div className="relative h-[200px] w-full flex-shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px]">
         {imageError || !primaryImage ? (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
@@ -184,7 +187,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             type="button"
             className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-            onClick={handleViewDetails}
           >
             <span>Đặt giá</span>
             <Gavel />
