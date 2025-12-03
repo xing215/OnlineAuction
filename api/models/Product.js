@@ -125,4 +125,9 @@ ProductSchema.statics.getProductsByCategory = function(categoryId) {
                .populate('category', 'name');
 }
 
+// Lấy tên người bán theo seller ID
+ProductSchema.statics.getSellerById = function(sellerId) {
+    return this.model('User').findById(sellerId);
+};
+
 module.exports = mongoose.model('Product', ProductSchema);

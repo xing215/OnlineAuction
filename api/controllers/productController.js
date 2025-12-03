@@ -222,3 +222,15 @@ exports.getProductsByCategory = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+// Get seller name, ratting by seller ID
+exports.getSellerById = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const seller = await Product.getSellerById(sellerId);
+    res.json({ success: true, data: seller });
+  } catch (error) {
+    console.error("Error in getSellerNameById:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
