@@ -136,7 +136,7 @@ const CreateProduct: React.FC = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch(apiUrl('/api/categories/roots'));
+                const res = await fetch(apiUrl('/api/categories'));
                 
                 if (!res.ok) throw new Error('Failed to fetch categories');
                 
