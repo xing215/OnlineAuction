@@ -4,7 +4,7 @@ import { AccessTime, Star } from "@mui/icons-material";
 import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { formatDate } from "../../utilities/FormatDate";
-import type { Product } from "../../types";
+import { type User, type Product } from "../../types";
 import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
 import { ProductList } from "../../components/Product";
@@ -13,7 +13,7 @@ export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
-  const [ratingSummary, setRatingSummary] = useState<any>(null);
+  const [seller, setSeller] = useState<User | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,21 +25,62 @@ export const ProductDetail: React.FC = () => {
   );
   const [, setTick] = useState(0);
 
-  // Fetch product details
   useEffect(() => {
-    const fetchProductDetails = async () => {
+    const loadAllData = async () => {
       if (!id) return;
 
+      setLoading(true);
+      setRelatedProducts([]);
+      setError(null);
+
       try {
-        setLoading(true);
-        const response = await fetch(apiUrl(`/api/products/${id}`));
-        if (!response.ok) {
-          throw new Error("Failed to fetch product");
+        const productRes = await fetch(apiUrl(`/api/products/${id}`));
+        if (!productRes.ok) throw new Error("Failed to fetch product");
+
+        const productData = await productRes.json();
+        const currentProduct = productData.data;
+
+        console.log(currentProduct);
+
+        setProduct(currentProduct);
+        setBidAmount(currentProduct.step_price?.toString() || "");
+
+        const categoryId = currentProduct.category?._id;
+        const sellerId = currentProduct.seller?._id;
+
+        const relatedPromise = categoryId
+          ? fetch(apiUrl(`/api/products?category=${categoryId}&limit=6`)).then(
+              (res) =>
+                res.ok ? res.json() : Promise.reject("Related fetch failed")
+            )
+          : Promise.reject("No category");
+
+        const sellerPromise = sellerId
+          ? fetch(apiUrl(`/api/products/seller/${sellerId}`)).then((res) =>
+              res.ok ? res.json() : Promise.reject("Seller fetch failed")
+            )
+          : Promise.reject("No seller");
+
+        const [relatedResult, sellerResult] = await Promise.allSettled([
+          relatedPromise,
+          sellerPromise,
+        ]);
+
+        if (relatedResult.status === "fulfilled") {
+          const res = relatedResult.value;
+          setRelatedProducts(
+            res.data?.filter((p: any) => p.id !== currentProduct.id) || []
+          );
+        } else {
+          console.warn("Lỗi tải sản phẩm liên quan:", relatedResult.reason);
         }
-        const data = await response.json();
-        console.log(data);
-        setProduct(data.data);
-        setBidAmount(data.data.step_price?.toString() || "");
+
+        if (sellerResult.status === "fulfilled") {
+          const res = sellerResult.value;
+          setSeller(res.data);
+        } else {
+          console.warn("Lỗi tải tên người bán:", sellerResult.reason);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -47,63 +88,8 @@ export const ProductDetail: React.FC = () => {
       }
     };
 
-    fetchProductDetails();
+    loadAllData();
   }, [id]);
-
-  // Fetch related products
-  useEffect(() => {
-    const fetchRelatedProducts = async () => {
-      if (!product?.category) {
-        console.warn("Product category is undefined");
-        return;
-      }
-
-      try {
-        const categoryId =
-          typeof product.category === "object"
-            ? (product.category as any).id || (product.category as any)._id
-            : product.category;
-
-        const response = await fetch(
-          apiUrl(`/api/products?category=${categoryId}&limit=5`)
-        );
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Related products data:", data);
-          setRelatedProducts(
-            data.data?.filter((p: Product) => p.id !== product.id) || []
-          );
-        }
-      } catch (err) {
-        console.error("Failed to fetch related products:", err);
-      }
-    };
-
-    if (product) {
-      fetchRelatedProducts();
-    }
-  }, [product]);
-
-  useEffect(() => {
-    const fetchRatingSummary = async () => {
-      if (!product?.seller) return;
-
-      try {
-        const response = await fetch(apiUrl(`/api/seller/${product.seller}`));
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data);
-          setRatingSummary(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch seller ratting sumary:", err);
-      }
-    };
-
-    if (product) {
-      fetchRatingSummary();
-    }
-  }, [product]);
 
   // Timer for countdown
   useEffect(() => {
@@ -114,14 +100,9 @@ export const ProductDetail: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Implement bid logic
-  const handleBidClick = (productId: string) => {
-    console.log("Bid clicked for product:", productId);
-  };
-
-  // Navigate to product details page
-  const handleViewDetails = (productId: string) => {
-    navigate(`/product/${productId}`);
+  const handleBidClick = () => {
+    // TODO: Implement bid logic
+    console.log("Placing bid:", bidAmount);
   };
 
   const timeRemaining = useMemo(() => {
@@ -137,6 +118,10 @@ export const ProductDetail: React.FC = () => {
   }, [product?.category]);
 
   const currentPrice = product?.current_price ?? product?.start_price ?? 0;
+
+  const handleViewDetails = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
 
   if (loading) {
     return (
@@ -171,7 +156,7 @@ export const ProductDetail: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-5">
       <div className="max-w-7xl mx-auto px-5">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 mb-5 text-sm text-gray-600">
+        <div className="flex items-center gap-2 mb-5 text-xs sm:text-sm text-gray-600">
           <span
             className="cursor-pointer hover:text-blue-600 transition-colors"
             onClick={() => navigate("/")}
@@ -222,23 +207,32 @@ export const ProductDetail: React.FC = () => {
           </div>
 
           {/* Right: Product Info */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <div className="border-b border-gray-200 pb-4">
               <h1 className="text-2xl font-semibold mb-2 text-gray-800">
                 {product.name}
               </h1>
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600">Người bán:</span>
-                <span className="text-blue-600 font-medium">
-                  {product?.seller}
-                </span>
-                <span className="text-orange-400">
-                  {" "}
+                <div className="flex gap-0.5">
+                  <span className="text-gray-600">Người bán:</span>
+                  <span className="text-blue-600 font-medium">
+                    {seller?.full_name}
+                  </span>
+                </div>
+                <span className="flex justify-center items-center text-orange-400">
                   <Star></Star>
+                  {seller?.rating_percentage || 0}%
                 </span>
+                <div className="flex gap-0.5">
+                  <span className="text-gray-600 hidden sm:inline">
+                    Ngày đăng:
+                  </span>
+                  <span className="text-gray-600">
+                    {formatDate(product.createdAt)}
+                  </span>
+                </div>
               </div>
             </div>
-
             {/* Timer */}
             <div className="bg-gray-100 p-4 rounded-xl">
               <span className="block text-sm text-gray-600 mb-2">
@@ -280,14 +274,14 @@ export const ProductDetail: React.FC = () => {
                   type="text"
                   className="p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-black text-base"
                   onChange={(e) => setBidAmount(e.target.value)}
-                  placeholder={`Bước giá: ${bidAmount}, tối thiểu: ${formatCurrency(
+                  placeholder={`Tối thiểu: ${formatCurrency(
                     currentPrice + product.step_price
                   )}`}
                 />
               </div>
               <button
                 className="flex justify-between items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                onClick={() => handleBidClick(product.id)}
+                onClick={handleBidClick}
               >
                 <span>Đặt giá</span>
                 <Gavel />
@@ -330,7 +324,7 @@ export const ProductDetail: React.FC = () => {
               }`}
               onClick={() => setActiveTab("bidHistory")}
             >
-              Lịch sử đấu giá
+              Hỏi đáp
               {activeTab === "bidHistory" && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
               )}
@@ -369,9 +363,9 @@ export const ProductDetail: React.FC = () => {
             {activeTab === "bidHistory" && (
               <div>
                 <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                  Lịch sử đấu giá
+                  Hỏi đáp
                 </h3>
-                <p className="text-gray-400 italic">Chưa có lịch sử đấu giá</p>
+                <p className="text-gray-400 italic">Chưa có cuộc hỏi đáp nào</p>
               </div>
             )}
           </div>
@@ -379,7 +373,7 @@ export const ProductDetail: React.FC = () => {
 
         {/* Related Products */}
         <ProductList
-          title="Top 5 giá cao nhất"
+          title="Sản phẩm cùng chuyên mục"
           subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
           products={relatedProducts}
           onBidClick={handleBidClick}
