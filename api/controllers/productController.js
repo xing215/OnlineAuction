@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const { uploadMultipleToCloudinary } = require('../utils/cloudinary');
+const Category = require("../models/Category");
 
 // Create product handler supporting multipart uploads (req.files)
 exports.createProduct = async (req, res) => {
@@ -77,6 +78,23 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+async function getAllSubcategories(categoryId) {
+  const ids = [categoryId];
+  const queue = [categoryId];
+  while (queue.length > 0) {
+    const current = queue.shift();
+
+    const children = await Category.getChildren(current);
+
+    for (let child of children) {
+      ids.push(child._id);
+      queue.push(child._id);
+    }
+  }
+
+  return ids;
+}
+
 exports.getProducts = async (req, res) => {
   try {
     const { page = 1, limit = 8, search, category, sort } = req.query;
@@ -91,7 +109,8 @@ exports.getProducts = async (req, res) => {
 
     // Lọc Category (Nếu khác 'all' và có giá trị)
     if (category && category !== 'all' && category !== 'undefined') {
-      filter.category = category;
+      const categoryIds = await getAllSubcategories(category);
+      filter.category = { $in: categoryIds };
     }
 
     // 2. Sắp xếp
