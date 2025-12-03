@@ -1,4 +1,5 @@
 ﻿import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Product } from "../../types";
 import { formatCurrency, formatDate, getTimeRemaining } from "../../utilities";
 import {
@@ -23,6 +24,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onBidClick,
     onViewDetails,
 }) => {
+    const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
     const { user, token, refreshUser } = useUser();
 
@@ -75,12 +77,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleBidClick = () => {
+        if (!user || !token) {
+            navigate("/signin");
+            return;
+        }
         if (onBidClick) {
             onBidClick(product.id);
         }
     };
 
     const handleViewDetails = () => {
+        if (!user || !token) {
+            navigate("/signin");
+            return;
+        }
         if (onViewDetails) {
             onViewDetails(product.id);
         }
