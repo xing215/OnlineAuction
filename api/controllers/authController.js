@@ -123,7 +123,8 @@ exports.changePassword = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const { full_name, email, phone, address, dob, role } = req.body;
+        const { full_name, email, phone, address, dob, role, watch_list } =
+            req.body;
 
         // Find user
         const user = await User.findById(userId);
@@ -132,6 +133,17 @@ exports.updateProfile = async (req, res, next) => {
                 success: false,
                 message: "Người dùng không tồn tại",
             });
+        }
+
+        // Update watch_list if provided
+        if (watch_list !== undefined) {
+            if (!Array.isArray(watch_list)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Danh sách yêu thích không hợp lệ",
+                });
+            }
+            user.watch_list = watch_list;
         }
 
         // Validate full_name
