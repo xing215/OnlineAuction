@@ -2,6 +2,7 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useRegisterForm } from "../hooks/useSignupForm";
 import AuthLayout from "../components/AuthLayout";
 import SocialButtons from "../components/SocialButtons";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SignUpPage() {
     const {
@@ -13,6 +14,8 @@ export default function SignUpPage() {
         setShowRegConfirm,
         handleRegisterInputChange,
         handleRegisterSubmit,
+        recaptchaRef,
+        recaptchaSiteKey,
     } = useRegisterForm();
 
     return (
@@ -22,6 +25,32 @@ export default function SignUpPage() {
                 noValidate
                 className="p-8 space-y-6"
             >
+                {/* Full Name Input */}
+                <div className="space-y-2 text-left">
+                    <label className="block text-sm font-medium text-gray-800">
+                        Họ tên
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            name="full_name"
+                            value={registerData.full_name}
+                            onChange={handleRegisterInputChange}
+                            placeholder="Nhập họ tên đầy đủ"
+                            className={`w-full pl-4 pr-4 py-2 bg-gray-50 border rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                                regErrors.full_name
+                                    ? "border-red-400 focus:ring-red-400"
+                                    : "border-gray-200 focus:ring-amber-400"
+                            }`}
+                        />
+                    </div>
+                    {regErrors.full_name && (
+                        <p className="text-sm text-red-500">
+                            {regErrors.full_name}
+                        </p>
+                    )}
+                </div>
+
                 {/* Email Input */}
                 <div className="space-y-2 text-left">
                     <label className="block text-sm font-medium text-gray-800">
@@ -152,6 +181,24 @@ export default function SignUpPage() {
                         </p>
                     )}
                 </div>
+
+                {/* reCAPTCHA */}
+                <div className="flex justify-center">
+                    {recaptchaSiteKey ? (
+                        <ReCAPTCHA
+                            ref={recaptchaRef}
+                            sitekey={recaptchaSiteKey}
+                            size="invisible"
+                        />
+                    ) : (
+                        <div className="text-sm text-red-500 text-center">
+                            reCAPTCHA chưa được cấu hình. Vui lòng liên hệ quản trị viên.
+                        </div>
+                    )}
+                </div>
+                {regErrors.recaptcha && (
+                    <p className="text-sm text-red-500 text-center">{regErrors.recaptcha}</p>
+                )}
 
                 {/* Register Button */}
                 <button
