@@ -8,16 +8,17 @@ import bgImg from "../../assets/hero_bg_home.png"
 const HomePage = () => {
   const [topExpiring, setTopExpiring] = useState<Product[]>([]);
   const [topBidding, setTopBidding] = useState<Product[]>([]);
-  // const [topPrice, setTopPrice] = useState<Product[]>([]);
+  const [topPrice, setTopPrice] = useState<Product[]>([]);
   const navigate = useNavigate();
 
   // Fetch top products data
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const [expiringRes, biddingRes] = await Promise.allSettled([
+        const [expiringRes, biddingRes, priceRes] = await Promise.allSettled([
           fetch(apiUrl('/api/products/top-expiring?limit=5')),
-          fetch(apiUrl('/api/products/top-bidding?limit=5'))
+          fetch(apiUrl('/api/products/top-bidding?limit=5')),
+          fetch(apiUrl('/api/products/top-price?limit=5')),
         ]);
 
         if (expiringRes.status === "fulfilled") {
@@ -31,6 +32,13 @@ const HomePage = () => {
           const biddingData = await biddingRes.value.json();
           if (biddingData.success) {
             setTopBidding(biddingData.data);
+          }
+        }
+
+        if (priceRes.status === "fulfilled") {
+          const priceData = await priceRes.value.json();
+          if (priceData.success) {
+            setTopPrice(priceData.data);
           }
         }
       } catch (error) {
@@ -101,13 +109,13 @@ const HomePage = () => {
           />
         </div>
 
-        {/* <ProductList
+        <ProductList
           title="Top 5 giá cao nhất"
           subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
           products={topPrice}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
-        /> */}
+        />
       </div>
     </div>
   );
