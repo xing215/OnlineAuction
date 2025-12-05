@@ -35,6 +35,12 @@ export interface Bid {
   masked_user_name?: string; // virtual
 }
 
+export interface CategoryTree {
+  id: string;
+  name: string;
+  child: CategoryTree[];
+}
+
 export interface Category {
   id: string;
   name: string;

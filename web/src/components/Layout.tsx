@@ -1,10 +1,13 @@
 import type { PropsWithChildren } from "react";
-import { ExpandMoreRounded, PersonOutlineRounded, SearchRounded } from "@mui/icons-material";
+import { ExpandMoreRounded, PersonOutlineRounded, SearchRounded, ChevronRightRounded } from "@mui/icons-material";
 import GavelIcon from '@mui/icons-material/Gavel';
 import { Outlet } from "react-router-dom";
 import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
 import { useUser } from "../context/useUser";
+import { useCategories } from "../hooks/useCategories";
+import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 
 const sectionTitleStyles = "text-xs uppercase tracking-[0.2em] text-white/60";
 
@@ -14,19 +17,22 @@ export const Layout = ({ children }: PropsWithChildren) => {
     primaryNav,
     secondaryNav,
     searchValue,
-    isCategoryOpen,
     isAccountOpen,
     isSidebarCollapsed,
     isSidebarAnimating,
     isMobile,
     handleNavigate,
     handleSearchChange,
-    toggleCategory,
     toggleAccount,
     toggleSidebar,
   } = useLayout();
 
   const { user } = useUser();
+  const { categoriesTree } = useCategories();
+  const navigate = useNavigate();
+  const [isCategoriesHover, setIsCategoriesHover] = useState(false);
+  const [categoryClicked, setCategoryClicked] = useState(false);
+  const hoverTimeoutRef = useRef<number | null>(null);
   const accountName = user?.full_name || user?.fullName || user?.name || "";
 
   const renderPrimaryButton = (key: WebPageKey, label: string) => {
@@ -44,14 +50,31 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
     const handleClick = () => {
       if (isCategoryButton) {
-        toggleCategory();
-        handleNavigate(key);
+        setCategoryClicked(!categoryClicked);
         return;
       }
       handleNavigate(key);
     };
 
-    return (
+    const handleMouseEnter = () => {
+      if (isCategoryButton && !isMobile && !categoryClicked) {
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+          hoverTimeoutRef.current = null;
+        }
+        setIsCategoriesHover(true);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (isCategoryButton && !isMobile && !categoryClicked) {
+        hoverTimeoutRef.current = setTimeout(() => {
+          setIsCategoriesHover(false);
+        }, 100);
+      }
+    };
+
+    const buttonElement = (
       <button
         key={key}
         type="button"
@@ -69,18 +92,30 @@ export const Layout = ({ children }: PropsWithChildren) => {
           )}
         </span>
         {isCategoryButton && !isSidebarCollapsed && (
-          <ExpandMoreRounded
-            className={`h-5 w-5 transition-transform ${
-              isCategoryOpen ? "rotate-180" : ""
-            }`}
+          <ChevronRightRounded
+            className="h-5 w-5"
             style={{ color: isActive ? "#3E3C31" : "rgba(255,255,255,0.7)" }}
           />
         )}
       </button>
     );
+
+    if (isCategoryButton && !isMobile) {
+      return (
+        <div
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className="relative"
+        >
+          {buttonElement}
+        </div>
+      );
+    }
+
+    return buttonElement;
   };
 
-  const desktopWidthClasses = isSidebarCollapsed ? "w-[80px] px-4" : "w-[256px] min-w-[256px] px-6";
+  const desktopWidthClasses = isSidebarCollapsed ? "w-[80px] px-2" : "w-[256px] min-w-[256px] px-3";
   const sidebarClasses = isMobile
     ? `fixed top-0 left-0 z-40 flex h-screen w-[256px] flex-col bg-[#3E3C31] px-6 py-6 transition-transform duration-300 ease-in-out ${
         isSidebarCollapsed ? "-translate-x-full" : "translate-x-0"
@@ -196,6 +231,93 @@ export const Layout = ({ children }: PropsWithChildren) => {
           </div>
         )}
         </aside>
+
+        {/* Categories Hover Panel */}
+        {(isCategoriesHover || categoryClicked) && !isSidebarCollapsed && (
+          <div
+            className="absolute top-0 left-[256px] z-50 bg-white shadow-lg rounded-r-lg p-4 min-w-[200px] h-screen overflow-y-auto"
+            onMouseEnter={() => {
+              if (!categoryClicked) {
+                if (hoverTimeoutRef.current) {
+                  clearTimeout(hoverTimeoutRef.current);
+                  hoverTimeoutRef.current = null;
+                }
+              }
+            }}
+            onMouseLeave={() => {
+              if (!categoryClicked) {
+                hoverTimeoutRef.current = setTimeout(() => {
+                  setIsCategoriesHover(false);
+                }, 100);
+              }
+            }}
+          >
+            <button
+              onClick={() => {
+                navigate(WEB_PAGE.CATEGORIES.path);
+                setIsCategoriesHover(false);
+                setCategoryClicked(false);
+              }}
+              className="w-full text-left px-5 py-3 mb-2 bg-gradient-to-b from-[#d5ad41] to-[#f4d799] hover:from-[#f4d799] hover:to-[#d5ad41] rounded-xl font-semibold text-[#3E3C31] shadow-md cursor-pointer"
+            >
+              Xem tất cả sản phẩm
+            </button>
+            <h3 className="text-lg font-semibold mb-2 text-gray-800">Danh mục</h3>
+            <ul className="space-y-1">
+              {categoriesTree.map((cat) => (
+                <li key={cat.id}>
+                  <button
+                    onClick={() => {
+                      navigate(`${WEB_PAGE.CATEGORIES.path}?category=${cat.id}`);
+                      setIsCategoriesHover(false);
+                      setCategoryClicked(false);
+                    }}
+                    className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-700 cursor-pointer"
+                  >
+                    {cat.name}
+                  </button>
+                  {cat.child.length > 0 && (
+                    <ul className="ml-4 space-y-1">
+                      {cat.child.map((sub) => (
+                        <li key={sub.id}>
+                          <button
+                            onClick={() => {
+                              navigate(`${WEB_PAGE.CATEGORIES.path}?category=${sub.id}`);
+                              setIsCategoriesHover(false);
+                              setCategoryClicked(false);
+                            }}
+                            className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-600 text-sm cursor-pointer"
+                          >
+                            {sub.name}
+                          </button>
+                          {sub.child.length > 0 && (
+                            <ul className="ml-4 space-y-1">
+                              {sub.child.map((grand) => (
+                                <li key={grand.id}>
+                                  <button
+                                    onClick={() => {
+                                      navigate(`${WEB_PAGE.CATEGORIES.path}?category=${grand.id}`);
+                                      setIsCategoriesHover(false);
+                                      setCategoryClicked(false);
+                                    }}
+                                    className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-500 text-xs"
+                                  >
+                                    {grand.name}
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <main className={`layout-main flex-1 bg-transparent md:pt-0 ${isMobile ? "pt-16" : ""}`}>
           {children ?? <Outlet />}
         </main>

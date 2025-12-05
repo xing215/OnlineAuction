@@ -60,7 +60,7 @@ export const useProfileForm = () => {
                     const dobDate = new Date(
                         typeof profile.dob === "string"
                             ? profile.dob
-                            : (profile.dob as any)?.toISOString()
+                            : (profile.dob as Date).toISOString()
                     );
                     if (!isNaN(dobDate.getTime())) {
                         // Format as YYYY-MM-DD for HTML date input

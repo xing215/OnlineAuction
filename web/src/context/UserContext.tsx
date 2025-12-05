@@ -222,13 +222,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUserWithToken]);
 
   const login = useCallback(
-    async ({ email, password, rememberMe = false }: LoginPayload) => {
+    async ({ email, password, recaptchaToken }: LoginPayload) => {
       const response = await fetch(apiUrl("/api/auth/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaToken }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -259,7 +259,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Không thể tải thông tin người dùng");
       }
 
-      const targetStorage: StorageKey = rememberMe ? "local" : "session";
+      const targetStorage: StorageKey = "session";
 
       setToken(receivedToken);
       setUser(finalUser);

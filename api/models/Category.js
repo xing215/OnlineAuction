@@ -32,6 +32,34 @@ CategorySchema.statics.getChildren = function(parentId) {
     }).sort({ name: 1 });
 };
 
+// Lấy cấu trúc cây danh mục
+CategorySchema.statics.getTree = async function() {
+    const roots = await this.getRoots();
+    const tree = [];
+
+    for (const root of roots) {
+        const children = await this.getChildren(root._id);
+        const childTree = [];
+
+        for (const child of children) {
+            const grandChildren = await this.getChildren(child._id);
+            childTree.push({
+                id: child._id,
+                name: child.name,
+                child: grandChildren.map(gc => ({ id: gc._id, name: gc.name, child: [] }))
+            });
+        }
+
+        tree.push({
+            id: root._id,
+            name: root.name,
+            child: childTree
+        });
+    }
+
+    return tree;
+};
+
 //Lấy danh sách tất cả danh mục
 CategorySchema.statics.getAllCategories = function() {
     return this.find({ is_active: true }).sort({ name: 1 });
