@@ -10,6 +10,15 @@ exports.getRoots = async (req, res, next) => {
   }
 };
 
+// GET /api/categories/tree
+exports.getTree = async (req, res, next) => {
+  try {
+    const tree = await Category.getTree();
+    return res.json({ success: true, data: tree });
+  } catch (err) {
+    next(err);
+  }
+};
 // GET /api/categories
 exports.getAllCategories = async (req, res, next) => {
   try {

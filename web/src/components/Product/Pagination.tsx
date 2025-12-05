@@ -16,7 +16,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     
     // Tính toán trang kết thúc
-    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
     // Nếu trang kết thúc chạm trần, phải lùi trang bắt đầu lại để đủ số lượng nút
     if (endPage - startPage + 1 < maxVisible) {

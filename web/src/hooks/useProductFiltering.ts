@@ -68,9 +68,9 @@ export const useProductFiltering = () => {
           setError(data.message || 'Lỗi không xác định từ server');
         }
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Fetch error:", err);
-        setError(err.message || 'Không thể tải dữ liệu sản phẩm');
+        setError((err as Error).message || 'Không thể tải dữ liệu sản phẩm');
         setProducts([]);
       } finally {
         setIsLoading(false);

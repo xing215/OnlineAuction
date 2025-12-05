@@ -112,7 +112,7 @@ export const ProductDetail: React.FC = () => {
   const categoryName = useMemo(() => {
     if (!product?.category) return "";
     return typeof product.category === "object"
-      ? (product.category as any).name
+      ? (product.category as { name: string }).name
       : product.category;
   }, [product?.category]);
 
@@ -351,7 +351,7 @@ export const ProductDetail: React.FC = () => {
                         >
                           <p className="mb-1 text-gray-700">{update.content}</p>
                           <span className="text-xs text-gray-400">
-                            {formatDate(update.created_at as any)}
+                            {formatDate(update.created_at.toISOString())}
                           </span>
                         </div>
                       ))}
