@@ -9,6 +9,7 @@ export const useCategories = () => {
   useEffect(() => {
     // Fetch roots for flat list
     fetch(apiUrl('/api/categories/roots'))
+    fetch(apiUrl('/api/categories'))
       .then(res => res.json())
       .then(data => {
         if (data.success) {

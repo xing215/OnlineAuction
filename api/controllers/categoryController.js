@@ -19,3 +19,12 @@ exports.getTree = async (req, res, next) => {
     next(err);
   }
 };
+// GET /api/categories
+exports.getAllCategories = async (req, res, next) => {
+  try {
+    const categories = await Category.getAllCategories();
+    return res.json({ success: true, data: categories });
+  } catch (err) {
+    next(err);
+  }
+};
