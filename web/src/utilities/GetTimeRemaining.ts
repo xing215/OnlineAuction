@@ -1,5 +1,3 @@
-import { formatDate } from "./FormatDate";
-
 export const getTimeRemaining = (endDate: Date): string => {
     const now = new Date();
     const diff = endDate.getTime() - now.getTime();
@@ -11,7 +9,7 @@ export const getTimeRemaining = (endDate: Date): string => {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
     if (days > 3) {
-        return formatDate(endDate.toISOString());
+        return `${days} ngày ${hours} giờ ${minutes} phút`;
     }
     if (days > 0) {
         return `${days} ngày nữa`;
