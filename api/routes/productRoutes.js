@@ -5,20 +5,23 @@ const path = require('path');
 const { createProduct } = require('../controllers/productController');
 const productController = require('../controllers/productController');
 
-// Multer setup - store in api/uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '..', 'uploads'));
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Multer setup - use memory storage for Cloudinary upload
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { files: 10 }
+  limits: { 
+    files: 10,
+    fileSize: 10 * 1024 * 1024 // 10MB per file
+  },
+  fileFilter: (req, file, cb) => {
+    // Only accept image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
 });
 
 // POST /api/products - accept multipart/form-data with up to 10 images

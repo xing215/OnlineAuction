@@ -1,14 +1,25 @@
 const Product = require('../models/Product');
+const { uploadMultipleToCloudinary } = require('../utils/cloudinary');
+const Category = require("../models/Category");
 
 // Create product handler supporting multipart uploads (req.files)
 exports.createProduct = async (req, res) => {
   try {
-    // If files uploaded via multer, build images array as accessible URLs
+    // Upload images to Cloudinary if files are present
     let images = [];
     if (req.files && req.files.length) {
-      const host = req.get('host');
-      const protocol = req.protocol;
-      images = req.files.map(f => `${protocol}://${host}/uploads/${f.filename}`);
+      try {
+        // Upload all images to Cloudinary and get URLs
+        images = await uploadMultipleToCloudinary(req.files);
+        console.log('Successfully uploaded images to Cloudinary:', images);
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to upload images to Cloudinary',
+          error: uploadError.message 
+        });
+      }
     }
 
     // Other fields come from req.body
@@ -67,6 +78,23 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+async function getAllSubcategories(categoryId) {
+  const ids = [categoryId];
+  const queue = [categoryId];
+  while (queue.length > 0) {
+    const current = queue.shift();
+
+    const children = await Category.getChildren(current);
+
+    for (let child of children) {
+      ids.push(child._id);
+      queue.push(child._id);
+    }
+  }
+
+  return ids;
+}
+
 exports.getProducts = async (req, res) => {
   try {
     const { page = 1, limit = 8, search, category, sort } = req.query;
@@ -81,7 +109,8 @@ exports.getProducts = async (req, res) => {
 
     // Lọc Category (Nếu khác 'all' và có giá trị)
     if (category && category !== 'all' && category !== 'undefined') {
-      filter.category = category;
+      const categoryIds = await getAllSubcategories(category);
+      filter.category = { $in: categoryIds };
     }
 
     // 2. Sắp xếp

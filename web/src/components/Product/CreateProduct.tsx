@@ -136,7 +136,7 @@ const CreateProduct: React.FC = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch(apiUrl('/api/categories/roots'));
+                const res = await fetch(apiUrl('/api/categories'));
                 
                 if (!res.ok) throw new Error('Failed to fetch categories');
                 
@@ -402,7 +402,7 @@ const CreateProduct: React.FC = () => {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Giá khởi điểm ($) <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Giá khởi điểm <span className="text-red-500">*</span></label>
                                     <input 
                                         type="number" 
                                         name="start_price" 
@@ -415,7 +415,7 @@ const CreateProduct: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Bước giá ($) <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Bước giá <span className="text-red-500">*</span></label>
                                     <input 
                                         type="number" 
                                         name="step_price" 
@@ -430,7 +430,7 @@ const CreateProduct: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Giá mua ngay ($)</label>
+                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Giá mua ngay </label>
                                 <input 
                                     type="number" 
                                     name="buy_now_price" 
