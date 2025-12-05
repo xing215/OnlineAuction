@@ -196,6 +196,22 @@ exports.getTopBidding = async (req, res) => {
   }
 };
 
+// Get top price products (giá cao nhất)
+exports.getTopPrice = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    const products = await Product.findTopPrice(parseInt(limit));
+    
+    res.json({
+      success: true,
+      data: products
+    });
+  } catch (error) {
+    console.error("Error in getTopPrice:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Get product by ID with populated fields
 exports.getProductById = async (req, res) => {
   try {
@@ -219,6 +235,31 @@ exports.getSellerRatingSummary = async (req, res) => {
     res.json({ success: true, data: ratingSummary });
   } catch (error) {
     console.error("Error in getSellerRatingSummary:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+// Get products by category ID
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const products = await Product.find({ category: categoryId, status: 'active' })
+                                  .populate('category', 'name');
+    res.json({ success: true, data: products });
+  } catch (error) {
+    console.error("Error in getProductsByCategory:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+// Get seller name, ratting by seller ID
+exports.getSellerById = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const seller = await Product.getSellerById(sellerId);
+    res.json({ success: true, data: seller });
+  } catch (error) {
+    console.error("Error in getSellerNameById:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 }

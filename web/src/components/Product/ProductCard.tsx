@@ -88,10 +88,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleViewDetails = () => {
-        if (!user || !token) {
-            navigate("/signin");
-            return;
-        }
         if (onViewDetails) {
             onViewDetails(product.id);
         }
@@ -150,8 +146,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     return (
-        <article className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
-            <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px]">
+        <article onClick={handleViewDetails} className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
+            <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px] cursor-pointer">
                 {imageError || !primaryImage ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -249,7 +245,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         className={
                             isAuctionEnded
                                 ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
-                                : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg"
+                                : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
                         }
                         onClick={handleBidClick}
                         disabled={isAuctionEnded}
@@ -268,7 +264,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 {!isAuctionEnded && (
                     <button
                         type="button"
-                        className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                        className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 cursor-pointer"
                         onClick={handleViewDetails}
                     >
                         <span>Đặt giá</span>

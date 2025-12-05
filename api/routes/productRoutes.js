@@ -33,14 +33,23 @@ router.get('/top-expiring', productController.getTopExpiring);
 // GET /api/products/top-bidding - get products with most bids
 router.get('/top-bidding', productController.getTopBidding);
 
+// GET /api/products/top-price - get products with highest current price
+router.get('/top-price', productController.getTopPrice);
+
 // GET /api/products - must be last to avoid route conflicts
 router.get('/', productController.getProducts);
 
 // GET /api/products/:id - get product by ID
 router.get('/:id', productController.getProductById);
 
-// GET /api/products/seller/:id - get ratingSummary by user ID
-router.get('/seller/:id', productController.getSellerRatingSummary);
+// GET /api/products/seller/rating/:id - get ratingSummary by user ID
+router.get('/seller/rating/:id', productController.getSellerRatingSummary);
+
+// GET /api/products/seller/:sellerId - get seller name by seller ID
+router.get('/seller/:sellerId', productController.getSellerById);
+
+// GET /api/products/category/:categoryId - get products by category
+router.get('/category/:categoryId', productController.getProductsByCategory);
 
 
 module.exports = router;

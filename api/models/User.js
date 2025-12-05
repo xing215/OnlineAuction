@@ -161,6 +161,10 @@ userSchema.statics.findExpiredSellers = function() {
   });
 };
 
+userSchema.statics.findById = function(userId) {
+  return this.findOne({ _id: userId });
+};
+
 // ============================================================
 // MIDDLEWARE (HOOKS)
 // ============================================================
