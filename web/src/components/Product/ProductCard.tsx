@@ -24,6 +24,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onBidClick,
     onViewDetails,
 }) => {
+
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
     const { user, token, refreshUser } = useUser();
