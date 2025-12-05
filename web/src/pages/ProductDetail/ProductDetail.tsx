@@ -18,7 +18,6 @@ export const ProductDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  //   const [isLiked, setIsLiked] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [activeTab, setActiveTab] = useState<"description" | "bidHistory">(
     "description"
