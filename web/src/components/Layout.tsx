@@ -216,7 +216,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
               onClick={() => {
                 toggleAccount();
               }}
-              className="flex items-center justify-between rounded-2xl bg-[#d5ad41] px-4 py-3 text-sm font-semibold text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer"
+              className="w-full flex items-center justify-between rounded-2xl bg-[#d5ad41] px-4 py-3 text-sm font-semibold text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
