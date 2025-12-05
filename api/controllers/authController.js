@@ -1,16 +1,34 @@
 const User = require("../models/User");
 const jwtHelper = require("../utils/jwtHelper");
+const { verifyRecaptcha } = require("../utils/recaptchaHelper");
 
 // POST /api/auth/login
 exports.login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, recaptchaToken } = req.body;
 
-        if (!email || !password) {
+        const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+        const requiresRecaptcha = !!recaptchaSecret;
+
+        if (!email || !password || (requiresRecaptcha && !recaptchaToken)) {
+            const message = requiresRecaptcha 
+                ? "Email, mật khẩu và reCAPTCHA là bắt buộc"
+                : "Email và mật khẩu là bắt buộc";
             return res.status(400).json({
                 success: false,
-                message: "Email và mật khẩu là bắt buộc",
+                message,
             });
+        }
+
+        // Verify reCAPTCHA if configured
+        if (requiresRecaptcha) {
+            const recaptchaResult = await verifyRecaptcha(recaptchaToken, recaptchaSecret);
+            if (!recaptchaResult.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Xác minh reCAPTCHA thất bại",
+                });
+            }
         }
 
         const user = await User.findByEmail(email);
@@ -59,6 +77,79 @@ exports.login = async (req, res, next) => {
             user: user.toProfileJSON(),
         });
     } catch (err) {
+        next(err);
+    }
+};
+
+// POST /api/auth/register
+exports.register = async (req, res, next) => {
+    try {
+        const { email, password, full_name, recaptchaToken } = req.body;
+
+        const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+        const requiresRecaptcha = !!recaptchaSecret;
+
+        if (!email || !password || !full_name || (requiresRecaptcha && !recaptchaToken)) {
+            const message = requiresRecaptcha 
+                ? "Email, mật khẩu, họ tên và reCAPTCHA là bắt buộc"
+                : "Email, mật khẩu và họ tên là bắt buộc";
+            return res.status(400).json({
+                success: false,
+                message,
+            });
+        }
+
+        // Verify reCAPTCHA if configured
+        if (requiresRecaptcha) {
+            const recaptchaResult = await verifyRecaptcha(recaptchaToken, recaptchaSecret);
+            if (!recaptchaResult.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Xác minh reCAPTCHA thất bại",
+                });
+            }
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findByEmail(email);
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "Email đã được sử dụng",
+            });
+        }
+
+        // Create new user
+        const user = new User({
+            email,
+            password,
+            full_name,
+        });
+
+        await user.save();
+
+        // Generate token
+        const payload = {
+            id: user._id.toString(),
+            email: user.email,
+            role: user.role,
+        };
+
+        const token = jwtHelper.generateToken(payload);
+
+        return res.status(201).json({
+            success: true,
+            message: "Đăng ký thành công",
+            token,
+            user: user.toProfileJSON(),
+        });
+    } catch (err) {
+        if (err.name === "ValidationError") {
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
         next(err);
     }
 };

@@ -1,15 +1,19 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useUser } from "../context/useUser";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState<{ email?: string }>({});
+    const [errors, setErrors] = useState<{ email?: string; recaptcha?: string }>({});
     const [formData, setFormData] = useState({
         email: "",
         password: "",
-        rememberMe: false,
     });
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
     const { login } = useUser();
+
+    const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -39,16 +43,28 @@ export const useLoginForm = () => {
         setErrors({});
 
         try {
+            let recaptchaToken: string | undefined;
+            if (recaptchaSiteKey) {
+                // Get reCAPTCHA token
+                recaptchaToken = await recaptchaRef.current?.executeAsync();
+                if (!recaptchaToken) {
+                    setErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
+                    return;
+                }
+            }
+
             await login({
                 email: formData.email,
                 password: formData.password,
-                rememberMe: formData.rememberMe,
+                ...(recaptchaToken && { recaptchaToken }),
             });
             window.location.href = "/";
         } catch (err) {
             console.error("Login error:", err);
             const message = err instanceof Error ? err.message : "Lỗi đăng nhập";
             alert(message);
+            // Reset reCAPTCHA on error
+            recaptchaRef.current?.reset();
         }
     };
 
@@ -59,5 +75,7 @@ export const useLoginForm = () => {
         setShowPassword,
         handleInputChange,
         handleSubmit,
+        recaptchaRef,
+        recaptchaSiteKey,
     };
 };

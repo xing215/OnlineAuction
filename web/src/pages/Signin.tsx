@@ -2,6 +2,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useLoginForm } from "../hooks/useSigninForm";
 import AuthLayout from "../components/AuthLayout";
 import SocialButtons from "../components/SocialButtons";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SignInPage() {
     const {
@@ -11,6 +12,8 @@ export default function SignInPage() {
         setShowPassword,
         handleInputChange,
         handleSubmit,
+        recaptchaRef,
+        recaptchaSiteKey,
     } = useLoginForm();
 
     return (
@@ -70,20 +73,8 @@ export default function SignInPage() {
                     </div>
                 </div>
 
-                {/* Remember & Forgot Password */}
-                <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            name="rememberMe"
-                            checked={formData.rememberMe}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400 cursor-pointer"
-                        />
-                        <span className="text-sm text-gray-600">
-                            Ghi nhớ đăng nhập
-                        </span>
-                    </label>
+                {/* Forgot Password */}
+                <div className="flex items-center justify-end">
                     <a
                         href="#!"
                         className="text-sm font-medium text-[#D5AD41] hover:underline"
@@ -91,6 +82,24 @@ export default function SignInPage() {
                         Quên mật khẩu?
                     </a>
                 </div>
+
+                {/* reCAPTCHA */}
+                <div className="flex justify-center">
+                    {recaptchaSiteKey ? (
+                        <ReCAPTCHA
+                            ref={recaptchaRef}
+                            sitekey={recaptchaSiteKey}
+                            size="invisible"
+                        />
+                    ) : (
+                        <div className="text-sm text-red-500 text-center">
+                            reCAPTCHA chưa được cấu hình. Vui lòng liên hệ quản trị viên.
+                        </div>
+                    )}
+                </div>
+                {errors.recaptcha && (
+                    <p className="text-sm text-red-500 text-center">{errors.recaptcha}</p>
+                )}
 
                 {/* Login Button */}
                 <button

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { apiUrl } from "../config/api";
 
 export const useRegisterForm = () => {
     const [showRegPassword, setShowRegPassword] = useState(false);
@@ -7,15 +9,23 @@ export const useRegisterForm = () => {
         email?: string;
         password?: string;
         confirmPassword?: string;
+        full_name?: string;
         agreeToTerms?: string;
+        recaptcha?: string;
     }>({});
 
     const [registerData, setRegisterData] = useState({
         email: "",
         password: "",
         confirmPassword: "",
+        full_name: "",
         agreeToTerms: false,
     });
+
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+    const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -53,9 +63,16 @@ export const useRegisterForm = () => {
                 return next;
             });
         }
+        if (name === "full_name" && regErrors.full_name) {
+            setRegErrors((prev) => {
+                const next = { ...prev };
+                delete next.full_name;
+                return next;
+            });
+        }
     };
 
-    const handleRegisterSubmit = (e: React.FormEvent) => {
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const newErrors: typeof regErrors = {};
@@ -72,6 +89,10 @@ export const useRegisterForm = () => {
             newErrors.confirmPassword = "Mật khẩu không khớp";
         }
 
+        if (!registerData.full_name.trim()) {
+            newErrors.full_name = "Họ tên là bắt buộc";
+        }
+
         if (!registerData.agreeToTerms) {
             newErrors.agreeToTerms = "Bạn phải đồng ý với điều khoản";
         }
@@ -79,8 +100,51 @@ export const useRegisterForm = () => {
         setRegErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            console.log("Register submitted:", registerData);
-            // Add registration logic here
+            try {
+                let recaptchaToken: string | undefined;
+                if (recaptchaSiteKey) {
+                    // Get reCAPTCHA token
+                    recaptchaToken = await recaptchaRef.current?.executeAsync();
+                    if (!recaptchaToken) {
+                        setRegErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
+                        return;
+                    }
+                }
+
+                const response = await fetch(apiUrl("/api/auth/register"), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email: registerData.email,
+                        password: registerData.password,
+                        full_name: registerData.full_name,
+                        ...(recaptchaToken && { recaptchaToken }),
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const message = data.message || "Đăng ký thất bại";
+                    alert(message);
+                    // Reset reCAPTCHA on error
+                    setRecaptchaToken(null);
+                    recaptchaRef.current?.reset();
+                    return;
+                }
+
+                // Success - redirect to login or home
+                alert("Đăng ký thành công! Vui lòng đăng nhập.");
+                window.location.href = "/signin";
+            } catch (error) {
+                console.error("Register error:", error);
+                alert("Lỗi đăng ký. Vui lòng thử lại.");
+                // Reset reCAPTCHA on error
+                setRecaptchaToken(null);
+                recaptchaRef.current?.reset();
+            }
         }
     };
 
@@ -93,5 +157,7 @@ export const useRegisterForm = () => {
         setShowRegConfirm,
         handleRegisterInputChange,
         handleRegisterSubmit,
+        recaptchaRef,
+        recaptchaSiteKey,
     };
 };
