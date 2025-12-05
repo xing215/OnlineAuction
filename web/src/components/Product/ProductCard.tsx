@@ -30,7 +30,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const categoryName =
     product.category && typeof product.category === "object"
-      ? (product.category as any).name // Nếu là object (API trả về), lấy .name
+      ? (product.category as { name: string }).name // Nếu là object (API trả về), lấy .name
       : product.category; // Nếu là string (Mock data), giữ nguyên
 
   const isNew = useMemo(() => {

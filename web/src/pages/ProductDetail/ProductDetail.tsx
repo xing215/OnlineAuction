@@ -13,7 +13,6 @@ export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
-  const [ratingSummary, setRatingSummary] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +57,7 @@ export const ProductDetail: React.FC = () => {
       try {
         const categoryId =
           typeof product.category === "object"
-            ? (product.category as any).id || (product.category as any)._id
+            ? (product.category as { id: string; _id?: string }).id || (product.category as { id: string; _id?: string })._id
             : product.category;
 
         const response = await fetch(
@@ -77,27 +76,6 @@ export const ProductDetail: React.FC = () => {
 
     if (product) {
       fetchRelatedProducts();
-    }
-  }, [product]);
-
-  useEffect(() => {
-    const fetchRatingSummary = async () => {
-      if (!product?.seller) return;
-
-      try {
-        const response = await fetch(apiUrl(`/api/seller/${product.seller}`));
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data);
-          setRatingSummary(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch seller ratting sumary:", err);
-      }
-    };
-
-    if (product) {
-      fetchRatingSummary();
     }
   }, [product]);
 
@@ -128,7 +106,7 @@ export const ProductDetail: React.FC = () => {
   const categoryName = useMemo(() => {
     if (!product?.category) return "";
     return typeof product.category === "object"
-      ? (product.category as any).name
+      ? (product.category as { name: string }).name
       : product.category;
   }, [product?.category]);
 
@@ -354,7 +332,7 @@ export const ProductDetail: React.FC = () => {
                         >
                           <p className="mb-1 text-gray-700">{update.content}</p>
                           <span className="text-xs text-gray-400">
-                            {formatDate(update.created_at as any)}
+                            {formatDate(update.created_at.toISOString())}
                           </span>
                         </div>
                       ))}
