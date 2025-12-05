@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: function() { return this.social_auth.length === 0; },
-      minlength: [6, 'Password must be at least 6 characters']
+      minlength: [8, 'Password must be at least 8 characters']
     },
     phone: {
       type: String,
