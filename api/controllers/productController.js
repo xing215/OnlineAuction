@@ -99,39 +99,57 @@ exports.getProducts = async (req, res) => {
   try {
     const { page = 1, limit = 8, search, category, sort } = req.query;
 
-    // 1. Xây dựng bộ lọc
-    const filter = { status: 'active' };
+    // 1. Khởi tạo bộ lọc cơ bản
+    // Dùng $and để đảm bảo kết hợp được nhiều điều kiện (Status + Category Filter + Search)
+    const filter = { 
+      status: 'active',
+      $and: [] 
+    };
 
-    // Tìm kiếm (Regex)
+    // --- LOGIC: XỬ LÝ SEARCH (NAME + CATEGORY NAME) ---
     if (search) {
-      filter.name = { $regex: search, $options: 'i' };
+      // Tìm các Category có tên khớp với từ khóa tìm kiếm
+      const matchingCategories = await Category.find({ 
+        name: { $regex: search, $options: 'i' } 
+      }).select('_id');
+
+      const matchingCategoryIds = matchingCategories.map(cat => cat._id);
+
+      // Tạo điều kiện tìm kiếm tổng hợp (Product Name HOẶC Category Name)
+      const searchCondition = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } }, // Khớp tên sản phẩm
+          { category: { $in: matchingCategoryIds } }   // Hoặc thuộc danh mục có tên khớp
+        ]
+      };
+
+      // Đẩy điều kiện này vào mảng $and
+      filter.$and.push(searchCondition);
+    }
+    // -----------------------------------------------------
+
+    // Lọc Category cụ thể (Dropdown filter)
+    if (category && category !== 'all' && category !== 'undefined') {
+      // Giả sử bạn có hàm getAllSubcategories để lấy cả danh mục con
+      const categoryIds = await getAllSubcategories(category);
+      
+      // Đẩy điều kiện category vào mảng $and
+      filter.$and.push({ category: { $in: categoryIds } });
     }
 
-    // Lọc Category (Nếu khác 'all' và có giá trị)
-    if (category && category !== 'all' && category !== 'undefined') {
-      const categoryIds = await getAllSubcategories(category);
-      filter.category = { $in: categoryIds };
+    // *Dọn dẹp*: Nếu mảng $and rỗng (không search, không filter category), xóa nó đi để tránh lỗi query
+    if (filter.$and.length === 0) {
+      delete filter.$and;
     }
 
     // 2. Sắp xếp
     let sortOption = {};
     switch (sort) {
-      case 'price_asc':
-        sortOption = { current_price: 1, start_price: 1 }; 
-        break;
-      case 'price_desc':
-        sortOption = { current_price: -1, start_price: -1 };
-        break;
-      case 'end_date_asc': 
-        sortOption = { end_date: 1 }; 
-        break;
-      case 'end_date_desc': 
-        sortOption = { end_date: -1 }; 
-        break;
-      case 'newest':
-      default:
-        sortOption = { posted_at: -1 }; // Mới đăng lên đầu
-        break;
+      case 'price_asc': sortOption = { current_price: 1, start_price: 1 }; break;
+      case 'price_desc': sortOption = { current_price: -1, start_price: -1 }; break;
+      case 'end_date_asc': sortOption = { end_date: 1 }; break;
+      case 'end_date_desc': sortOption = { end_date: -1 }; break;
+      case 'newest': default: sortOption = { posted_at: -1 }; break;
     }
 
     // 3. Phân trang
