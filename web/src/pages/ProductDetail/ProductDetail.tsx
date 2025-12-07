@@ -4,6 +4,8 @@ import { getTimeRemaining } from "../../utilities";
 import { ProductList } from "../../components/Product";
 import { useProductDetail } from "../../hooks/useProductDetail";
 import { useCountdown } from "../../hooks/useCountdown";
+import { useUser } from "../../context/useUser";
+import { placeBid } from "../../services/bidService";
 import {
     ProductBreadcrumb,
     ProductImageGallery,
@@ -13,6 +15,7 @@ import {
     ProductBidForm,
     ProductBuyNow,
     ProductTabs,
+    PlaceBidModal,
 } from "../../components/ProductDetail";
 
 type TabType = "description" | "bidHistory" | "questions";
@@ -22,15 +25,47 @@ export const ProductDetail: React.FC = () => {
     const navigate = useNavigate();
     const { product, seller, relatedProducts, loading, error } =
         useProductDetail(id);
-    const [bidAmount, setBidAmount] = useState("");
     const [activeTab, setActiveTab] = useState<TabType>("description");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isBidLoading, setIsBidLoading] = useState(false);
+    const { user, token } = useUser();
 
     // Trigger countdown re-render
     useCountdown(1000);
 
     const handleBidClick = () => {
-        // TODO: Implement bid logic
-        console.log("Placing bid:", bidAmount);
+        if (!user || !token) {
+            navigate("/signin");
+            return;
+        }
+        setIsModalOpen(true);
+    };
+
+    const handlePlaceBid = async (bidAmountNum: number) => {
+        if (!user || !token || !id) return;
+
+        setIsBidLoading(true);
+        try {
+            const response = await placeBid(id, bidAmountNum, token);
+
+            if (response.success) {
+                alert("Đặt giá thành công!");
+                setIsModalOpen(false);
+                // Reload page to show updated data
+                window.location.reload();
+            } else {
+                alert(response.message || "Đặt giá thất bại");
+            }
+        } catch (error) {
+            console.error("Place bid error:", error);
+            alert(
+                error instanceof Error
+                    ? error.message
+                    : "Có lỗi xảy ra khi đặt giá"
+            );
+        } finally {
+            setIsBidLoading(false);
+        }
     };
 
     const timeRemaining = useMemo(() => {
@@ -106,8 +141,8 @@ export const ProductDetail: React.FC = () => {
                         />
 
                         <ProductBidForm
-                            bidAmount={bidAmount}
-                            onBidAmountChange={setBidAmount}
+                            bidAmount=""
+                            onBidAmountChange={() => {}}
                             onBidClick={handleBidClick}
                             minimumBid={currentPrice + product.step_price}
                         />
@@ -133,6 +168,17 @@ export const ProductDetail: React.FC = () => {
                     products={relatedProducts}
                     onBidClick={handleBidClick}
                     onViewDetails={handleViewDetails}
+                />
+
+                {/* Bid Modal */}
+                <PlaceBidModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onConfirm={handlePlaceBid}
+                    currentPrice={currentPrice}
+                    stepPrice={product?.step_price ?? 0}
+                    minimumBid={currentPrice + (product?.step_price ?? 0)}
+                    isLoading={isBidLoading}
                 />
             </div>
         </div>

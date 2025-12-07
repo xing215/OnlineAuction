@@ -6,3 +6,4 @@ export { ProductPriceInfo } from "./ProductPriceInfo";
 export { ProductBidForm } from "./ProductBidForm";
 export { ProductBuyNow } from "./ProductBuyNow";
 export { ProductTabs } from "./ProductTabs";
+export { PlaceBidModal } from "./PlaceBidModal";

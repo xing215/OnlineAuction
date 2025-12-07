@@ -220,7 +220,14 @@ exports.getProductById = async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, data: product });
+
+    // Ensure current_price is set (fallback to start_price if not set)
+    const productData = product.toObject ? product.toObject() : product;
+    if (!productData.current_price || productData.current_price === 0) {
+      productData.current_price = productData.start_price;
+    }
+
+    res.json({ success: true, data: productData });
   } catch (error) {
     console.error("Error in getProductById:", error);
     res.status(500).json({ success: false, message: error.message });

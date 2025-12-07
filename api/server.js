@@ -16,6 +16,7 @@ const exampleRoutes = require('./routes/exampleRoutes');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const bidRoutes = require('./routes/bidRoutes');
 
 // Middleware
 app.use(express.json());
@@ -45,6 +46,9 @@ app.use('/api/auth', authRoutes);
 
 // Category routes
 app.use('/api/categories', categoryRoutes);
+
+// Bid routes
+app.use('/api/bids', bidRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
