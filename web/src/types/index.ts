@@ -96,15 +96,15 @@ export interface Otp {
 
 export interface ProductQuestion {
   id: string;
-  product: string; // ObjectId ref to Product
-  asker: string; // ObjectId ref to User
+  product: string | { _id: string; name: string; images?: string[] }; // ObjectId ref to Product
+  asker: string | { _id: string; full_name: string }; // ObjectId ref to User
   question: string;
-  asked_at: Date;
-  answer?: string;
-  answered_at?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  masked_asker_name?: string; // virtual
+  asked_at: Date | string;
+  answer?: string | null;
+  answered_at?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  masked_asker_name?: string;
 }
 
 export interface UpgradeRequest {
