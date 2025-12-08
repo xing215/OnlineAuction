@@ -1,15 +1,38 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { useFavorites } from "../hooks/useFavorites";
 import ProductCardGrid from "../components/Product/ProductCardGrid";
+import Pagination from "../components/Product/Pagination";
 import {
     FavListHeader,
     FavListEmptyState,
     FavListLoginPrompt,
 } from "../components/Favorites";
 
+const PRODUCTS_PER_PAGE = 8;
+
 export default function FavList() {
     const navigate = useNavigate();
     const { favorites, isLoading, error, hasUser } = useFavorites();
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Calculate pagination
+    const totalPages = useMemo(
+        () => Math.ceil(favorites.length / PRODUCTS_PER_PAGE),
+        [favorites.length]
+    );
+
+    const paginatedProducts = useMemo(() => {
+        const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+        const endIndex = startIndex + PRODUCTS_PER_PAGE;
+        return favorites.slice(startIndex, endIndex);
+    }, [favorites, currentPage]);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     if (!hasUser) {
         return <FavListLoginPrompt />;
@@ -39,7 +62,16 @@ export default function FavList() {
                 ) : favorites.length === 0 ? (
                     <FavListEmptyState onExploreClick={() => navigate("/")} />
                 ) : (
-                    <ProductCardGrid products={favorites} />
+                    <>
+                        <ProductCardGrid products={paginatedProducts} />
+                        {totalPages > 1 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                            />
+                        )}
+                    </>
                 )}
             </div>
         </div>
