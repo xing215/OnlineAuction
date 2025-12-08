@@ -28,11 +28,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const [imageError, setImageError] = useState(false);
     const { user, token, refreshUser } = useUser();
 
+    // Get product ID from _id field
+    const productId = useMemo(() => product._id, [product._id]);
+
     // Check if product is in user's watch_list
     const isLiked = useMemo(() => {
         if (!user || !user.watch_list) return false;
-        return user.watch_list.includes(product.id);
-    }, [user, product.id]);
+        return user.watch_list.some(
+            (id: string) => String(id) === String(productId)
+        );
+    }, [user, productId]);
 
     const [, setTick] = useState(0);
 
@@ -81,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             navigate("/signin");
             return;
         } else if (onBidClick) {
-            onBidClick(product.id);
+            onBidClick(productId);
         }
     };
 
@@ -90,7 +95,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             navigate("/signin");
             return;
         } else if (onViewDetails) {
-            onViewDetails(product.id);
+            onViewDetails(productId);
         }
     };
 
@@ -106,8 +111,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         try {
             const updatedWatchList = isLiked
-                ? (user.watch_list || []).filter((id) => id !== product.id)
-                : [...(user.watch_list || []), product.id];
+                ? (user.watch_list || []).filter(
+                      (id) => String(id) !== String(productId)
+                  )
+                : [...(user.watch_list || []), productId];
 
             console.log("Updating watch_list:", updatedWatchList);
 
