@@ -29,7 +29,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const { user, token, refreshUser } = useUser();
 
     // Get product ID from _id field
-    const productId = useMemo(() => product._id, [product._id]);
+    const productId = useMemo(() => product.id, [product.id]);
 
     // Check if product is in user's watch_list
     const isLiked = useMemo(() => {
