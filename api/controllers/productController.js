@@ -280,3 +280,32 @@ exports.getSellerById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+// Update product description
+exports.updateProductDescription = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { content } = req.body;
+    
+    if (!content || content.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Description content cannot be empty' });
+    } 
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // Check if user is the seller
+    if (product.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Only seller can update product description' });
+    }
+
+    const updatedProduct = await Product.updateProductDescription(productId, content.trim());
+
+    res.json({ success: true, data: updatedProduct });
+  } catch (error) {
+    console.error("Error in updateProductDescription:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

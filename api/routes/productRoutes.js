@@ -59,5 +59,8 @@ router.post('/:productId/questions', authMiddleware, questionController.createQu
 // GET /api/products/:productId/questions 
 router.get('/:productId/questions', questionController.getQuestions);
 
+// PUT /api/products/:productId/description - update product description
+router.put('/:productId/description', authMiddleware, productController.updateProductDescription);
+
 
 module.exports = router;
