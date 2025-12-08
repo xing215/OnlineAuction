@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react"; // Bỏ useEffect thừa
 import { formatDate } from "../../utilities/FormatDate";
 import type { Product } from "../../types";
 import { apiUrl } from "../../config/api";
@@ -13,12 +13,13 @@ export const Description: React.FC<DescriptionProps> = ({
   product,
   onDescriptionUpdate,
 }) => {
-  const { user } = useUser();
+  const { user, token } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [newDescription, setNewDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Logic kiểm tra seller giữ nguyên
   const isSeller =
     user &&
     product?.seller &&
@@ -37,13 +38,17 @@ export const Description: React.FC<DescriptionProps> = ({
     setError(null);
 
     try {
+      if (!token) {
+        throw new Error("Bạn chưa đăng nhập hoặc phiên đăng nhập hết hạn");
+      }
+
       const response = await fetch(
         apiUrl(`/api/products/${product.id}/description`),
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Authorization": `Bearer ${token}`, 
           },
           body: JSON.stringify({
             content: newDescription.trim(),
@@ -51,26 +56,14 @@ export const Description: React.FC<DescriptionProps> = ({
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Không thể cập nhật mô tả");
+        throw new Error(data.message || "Không thể cập nhật mô tả");
       }
 
-      const data = await response.json();
-      
-      // Update the product with new description update
-      const updatedProduct = {
-        ...product,
-        description_updates: [
-          ...(product.description_updates || []),
-          {
-            content: newDescription.trim(),
-            created_at: new Date(),
-          },
-        ],
-      };
-
-      if (onDescriptionUpdate) {
-        onDescriptionUpdate(updatedProduct);
+      if (data.success && onDescriptionUpdate) {
+        onDescriptionUpdate(data.data);
       }
 
       setNewDescription("");
@@ -82,15 +75,7 @@ export const Description: React.FC<DescriptionProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (!product?.id) return;
-
-    const updateDescription = async () => {
-      if (!newDescription.trim() || !isSubmitting) return;
-    };
-
-    updateDescription();
-  }, [isSubmitting, newDescription, product?.id]);
+  // Đã xóa bỏ useEffect thừa thãi gây rối logic ở đây
 
   return (
     <div>
@@ -108,7 +93,9 @@ export const Description: React.FC<DescriptionProps> = ({
         )}
       </div>
 
+      {/* Hiển thị Description chính hiện tại */}
       <p className="text-gray-600 leading-relaxed mb-4">
+        {/* Nếu logic backend là cập nhật description chính thì hiển thị, nếu chỉ push history thì hiển thị cái mới nhất trong history hoặc giữ nguyên */}
         {product.description || "Chưa có mô tả chi tiết."}
       </p>
 
@@ -158,7 +145,7 @@ export const Description: React.FC<DescriptionProps> = ({
           <div className="space-y-3">
             {product.description_updates
               .slice()
-              .reverse()
+              .reverse() // Đảo ngược để hiển thị mới nhất lên đầu
               .map((update, index) => (
                 <div
                   key={index}
@@ -170,11 +157,8 @@ export const Description: React.FC<DescriptionProps> = ({
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">
                       {formatDate(
-                        typeof update.created_at === "string"
-                          ? update.created_at
-                          : update.created_at.toISOString
-                          ? update.created_at.toISOString()
-                          : String(update.created_at)
+                         // Xử lý an toàn cho date string hoặc Date object
+                         new Date(update.created_at)
                       )}
                     </span>
                     {index === 0 && (
