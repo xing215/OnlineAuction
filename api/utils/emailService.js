@@ -1,46 +1,46 @@
-const nodemailer = require('nodemailer');
-const config = require('../config/config');
+const nodemailer = require("nodemailer");
+const config = require("../config/config");
 
 // Tạo transporter cho email
 const createTransport = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
+    return nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD,
+        },
+    });
 };
 
 const maskName = (fullName) => {
-  if (!fullName) return '****User';
-  const name = fullName.trim();
-  const parts = name.split(' ');
-  const lastName = parts[parts.length - 1];
-  return `****${lastName}`;
+    if (!fullName) return "****User";
+    const name = fullName.trim();
+    const parts = name.split(" ");
+    const lastName = parts[parts.length - 1];
+    return `****${lastName}`;
 };
 
-const sendNewQuestionEmail = async ({ 
-  sellerEmail, 
-  sellerName, 
-  productName, 
-  productId,
-  askerName, 
-  askerEmail,
-  question 
+const sendNewQuestionEmail = async ({
+    sellerEmail,
+    sellerName,
+    productName,
+    productId,
+    askerName,
+    askerEmail,
+    question,
 }) => {
-  try {
-    const transporter = createTransport();
-    
-    const maskedAskerName = maskName(askerName);
-    const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: sellerEmail,
-      replyTo: askerEmail || undefined,
-      subject: `Câu hỏi mới về sản phẩm: ${productName}`,
-        html: `
+    try {
+        const transporter = createTransport();
+
+        const maskedAskerName = maskName(askerName);
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: sellerEmail,
+            replyTo: askerEmail || undefined,
+            subject: `Câu hỏi mới về sản phẩm: ${productName}`,
+            html: `
             <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 
@@ -79,39 +79,41 @@ const sendNewQuestionEmail = async ({
                 </div>
             </div>
             </div>
-        `
-    };
-    
-    await transporter.sendMail(mailOptions);
-    console.log('Email thông báo câu hỏi mới đã được gửi đến:', sellerEmail);
-    
-  } catch (error) {
-    console.error('Lỗi khi gửi email thông báo câu hỏi:', error);
-  }
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(
+            "Email thông báo câu hỏi mới đã được gửi đến:",
+            sellerEmail
+        );
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo câu hỏi:", error);
+    }
 };
 
-const sendAnswerEmail = async ({ 
-  askerEmail, 
-  askerName, 
-  productName, 
-  productId,
-  sellerName, 
-  sellerEmail,
-  question,
-  answer 
+const sendAnswerEmail = async ({
+    askerEmail,
+    askerName,
+    productName,
+    productId,
+    sellerName,
+    sellerEmail,
+    question,
+    answer,
 }) => {
-  try {
-    const transporter = createTransport();
-    
-    const maskedSellerName = maskName(sellerName);
-    const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: askerEmail,
-      replyTo: sellerEmail || undefined,
-      subject: `Phản hồi cho câu hỏi của bạn: ${productName}`,
-      html: `
+    try {
+        const transporter = createTransport();
+
+        const maskedSellerName = maskName(sellerName);
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: askerEmail,
+            replyTo: sellerEmail || undefined,
+            subject: `Phản hồi cho câu hỏi của bạn: ${productName}`,
+            html: `
             <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 
@@ -158,20 +160,19 @@ const sendAnswerEmail = async ({
                 </div>
             </div>
             </div>
-        `
-    };
-    
-    await transporter.sendMail(mailOptions);
-    console.log('Email thông báo trả lời đã được gửi đến:', askerEmail);
-    
-  } catch (error) {
-    console.error('Lỗi khi gửi email thông báo trả lời:', error);
-  }
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Email thông báo trả lời đã được gửi đến:", askerEmail);
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo trả lời:", error);
+    }
 };
 
 module.exports = {
-  sendNewQuestionEmail,
-  sendOTPEmail,
-  sendAnswerEmail,
-  maskName
+    sendNewQuestionEmail,
+    //sendOTPEmail,
+    sendAnswerEmail,
+    maskName,
 };

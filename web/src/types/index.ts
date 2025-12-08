@@ -1,8 +1,8 @@
 export interface Product {
-<<<<<<< HEAD
-    _id: string;
+    id: string;
     name: string;
     category: string; // ObjectId ref to Category
+    category_name: string;
     seller: string; // ObjectId ref to User
     images: string[];
     description?: string;
@@ -23,32 +23,6 @@ export interface Product {
     current_price?: number;
     bid_count?: number;
     highest_bidder_name?: string;
-=======
-  id: string;
-  name: string;
-  category: string; // ObjectId ref to Category
-  category_name: string;
-  seller: string; // ObjectId ref to User
-  images: string[];
-  description?: string;
-  description_updates: {
-    content: string;
-    created_at: Date;
-  }[];
-  start_price: number;
-  step_price: number;
-  buy_now_price?: number;
-  posted_at: Date;
-  end_date: Date;
-  status: "active" | "sold" | "expired";
-  banned_bidders: string[]; // ObjectId refs to User
-  createdAt: Date;
-  updatedAt: Date;
-  time_remaining?: number; // virtual
-  current_price?: number;
-  bid_count?: number;
-  highest_bidder_name?: string;
->>>>>>> 720950db11655778c37e1a5a082cbea41cb9ca7c
 }
 
 export interface Bid {
@@ -122,29 +96,16 @@ export interface Otp {
 }
 
 export interface ProductQuestion {
-<<<<<<< HEAD
     id: string;
-    product: string; // ObjectId ref to Product
-    asker: string; // ObjectId ref to User
+    product: string | { _id: string; name: string; images?: string[] }; // ObjectId ref to Product
+    asker: string | { _id: string; full_name: string }; // ObjectId ref to User
     question: string;
-    asked_at: Date;
-    answer?: string;
-    answered_at?: Date;
-    createdAt: Date;
-    updatedAt: Date;
-    masked_asker_name?: string; // virtual
-=======
-  id: string;
-  product: string | { _id: string; name: string; images?: string[] }; // ObjectId ref to Product
-  asker: string | { _id: string; full_name: string }; // ObjectId ref to User
-  question: string;
-  asked_at: Date | string;
-  answer?: string | null;
-  answered_at?: Date | string | null;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
-  masked_asker_name?: string;
->>>>>>> 720950db11655778c37e1a5a082cbea41cb9ca7c
+    asked_at: Date | string;
+    answer?: string | null;
+    answered_at?: Date | string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    masked_asker_name?: string;
 }
 
 export interface UpgradeRequest {
