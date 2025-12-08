@@ -45,10 +45,15 @@ export interface CategoryTree {
 export interface Category {
     id: string;
     name: string;
-    parent_id?: string; // ObjectId ref to Category
+    parent_id?: string | undefined; // ObjectId ref to Category
     is_active: boolean;
     createdAt: Date;
     updatedAt: Date;
+    icon?: string;
+    product_count?: number;
+}
+export interface CategoryTreeNode extends Category {
+  children: CategoryTreeNode[];
 }
 
 export interface Feedback {
