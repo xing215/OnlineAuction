@@ -1,5 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AccessTime, Star } from "@mui/icons-material";
+import { apiUrl } from "../../config/api";
+import { formatCurrency } from "../../utilities/FormatCurrency";
+import { formatDate } from "../../utilities/FormatDate";
+import { type User, type Product } from "../../types";
 import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
 import { ProductList, QnABox } from "../../components/Product";
@@ -69,53 +74,54 @@ export const ProductDetail: React.FC = () => {
         } else {
           console.warn("Lỗi tải sản phẩm liên quan:", relatedResult.reason);
         }
-        setIsModalOpen(true);
-    };
 
-    const handlePlaceBid = async (bidAmountNum: number) => {
-        if (!user || !token || !id) return;
-
-        setIsBidLoading(true);
-        try {
-            const response = await placeBid(id, bidAmountNum, token);
-
-            if (response.success) {
-                alert("Đặt giá thành công!");
-                setIsModalOpen(false);
-                // Reload page to show updated data
-                window.location.reload();
-            } else {
-                alert(response.message || "Đặt giá thất bại");
-            }
-        } catch (error) {
-            console.error("Place bid error:", error);
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Có lỗi xảy ra khi đặt giá"
-            );
-        } finally {
-            setIsBidLoading(false);
+        if (sellerResult.status === "fulfilled") {
+          const res = sellerResult.value;
+          setSeller(res.data);
+        } else {
+          console.warn("Lỗi tải tên người bán:", sellerResult.reason);
         }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const timeRemaining = useMemo(() => {
-        if (!product?.end_date) return "00:00:00";
-        return getTimeRemaining(new Date(product.end_date));
-    }, [product?.end_date]);
+    loadAllData();
+  }, [id]);
 
-    const categoryName = useMemo(() => {
-        if (!product?.category) return "";
-        return typeof product.category === "object"
-            ? (product.category as { name: string }).name
-            : product.category;
-    }, [product?.category]);
+  // Timer for countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 1000);
 
-    const currentPrice = product?.current_price ?? product?.start_price ?? 0;
+    return () => clearInterval(timer);
+  }, []);
 
-    const handleViewDetails = (productId: string) => {
-        navigate(`/product/${productId}`);
-    };
+  const handleBidClick = () => {
+    // TODO: Implement bid logic
+    console.log("Placing bid:", bidAmount);
+  };
+
+  const timeRemaining = useMemo(() => {
+    if (!product?.end_date) return "00:00:00";
+    return getTimeRemaining(new Date(product.end_date));
+  }, [product?.end_date]);
+
+  const categoryName = useMemo(() => {
+    if (!product?.category) return "";
+    return typeof product.category === "object"
+      ? (product.category as { name: string }).name
+      : product.category;
+  }, [product?.category]);
+
+  const currentPrice = product?.current_price ?? product?.start_price ?? 0;
+
+  const handleViewDetails = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
 
   if (loading) {
     return (
@@ -125,6 +131,7 @@ export const ProductDetail: React.FC = () => {
     );
   }
 
+  if (error || !product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
         <p className="text-lg text-gray-600">
@@ -239,35 +246,26 @@ export const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-                    <div className="flex flex-col gap-4">
-                        <ProductHeader
-                            productName={product.name}
-                            seller={seller}
-                            createdAt={product.createdAt}
-                        />
-
-                        <ProductCountdown timeRemaining={timeRemaining} />
-
-                        <ProductPriceInfo
-                            currentPrice={currentPrice}
-                            highestBidderName={product.highest_bidder_name}
-                            bidCount={product.bid_count}
-                        />
-
-                        <ProductBidForm
-                            bidAmount=""
-                            onBidAmountChange={() => {}}
-                            onBidClick={handleBidClick}
-                            minimumBid={currentPrice + product.step_price}
-                        />
-
-                        {product.buy_now_price && (
-                            <ProductBuyNow
-                                buyNowPrice={product.buy_now_price}
-                            />
-                        )}
-                    </div>
+            {/* Price Info */}
+            <div className=" p-4 rounded-xl border border-gray-200">
+              <div className="flex flex-col mb-4">
+                <span className="text-sm text-gray-600 mb-1">Giá hiện tại</span>
+                <span className="text-3xl font-bold text-[#D5AD41]">
+                  {formatCurrency(currentPrice)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-600">Người đặt giá cao nhất:</span>
+                  <span className="text-gray-800 font-medium">
+                    {product.highest_bidder_name || "Chưa có ai đặt giá"}
+                  </span>
+                  <span className="text-gray-600 ml-auto">
+                    {product.bid_count} lượt đặt giá
+                  </span>
                 </div>
+              </div>
+            </div>
 
             {/* Bid Form */}
             <div className="grid grid-cols-4 gap-4 items-center">
@@ -280,15 +278,27 @@ export const ProductDetail: React.FC = () => {
                     currentPrice + product.step_price
                   )}`}
                 />
+              </div>
+              <button
+                className="flex justify-between items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                onClick={handleBidClick}
+              >
+                <span>Đặt giá</span>
+                <Gavel />
+              </button>
+            </div>
 
-                {/* Related Products */}
-                <ProductList
-                    title="Sản phẩm cùng chuyên mục"
-                    subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
-                    products={relatedProducts}
-                    onBidClick={handleBidClick}
-                    onViewDetails={handleViewDetails}
-                />
+            {/* Buy Now */}
+            {product.buy_now_price && (
+              <div className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg">
+                <span>Mua ngay</span>
+                <span className="text-2xl">
+                  {formatCurrency(product.buy_now_price)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Tabs Section */}
         <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
@@ -362,7 +372,18 @@ export const ProductDetail: React.FC = () => {
             )}
           </div>
         </div>
-    );
+
+        {/* Related Products */}
+        <ProductList
+          title="Sản phẩm cùng chuyên mục"
+          subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
+          products={relatedProducts}
+          onBidClick={handleBidClick}
+          onViewDetails={handleViewDetails}
+        />
+      </div>
+    </div>
+  );
 };
 
 export default ProductDetail;
