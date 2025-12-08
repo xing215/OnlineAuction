@@ -53,9 +53,17 @@ exports.createProduct = async (req, res) => {
     const allowedStatus = ['active', 'sold', 'expired'];
     const finalStatus = status && allowedStatus.includes(status) ? status : 'active';
 
+    const categoryObj = await Category.findById(category).select('name');
+    if (!categoryObj) {
+      return res.status(400).json({ success: false, message: 'Invalid category ID' });
+    }
+
+    const category_name = categoryObj.name;
+
     const productData = {
       name: String(name).trim(),
       category,
+      category_name,
       seller,
       images,
       description: description || undefined,
@@ -99,57 +107,66 @@ exports.getProducts = async (req, res) => {
   try {
     const { page = 1, limit = 8, search, category, sort } = req.query;
 
-    // 1. Xây dựng bộ lọc
-    const filter = { status: 'active' };
+    // FILTER CƠ BẢN
+    const filter = { status: "active" };
 
-    // Tìm kiếm (Regex)
-    if (search) {
-      filter.name = { $regex: search, $options: 'i' };
+    // 1. FULL-TEXT SEARCH
+    if (search && search.trim() !== "") {
+      filter.$text = { $search: search };
     }
 
-    // Lọc Category (Nếu khác 'all' và có giá trị)
-    if (category && category !== 'all' && category !== 'undefined') {
+    // 2. CATEGORY FILTER + SUBCATEGORIES
+    if (category && category !== "all" && category !== "undefined") {
       const categoryIds = await getAllSubcategories(category);
       filter.category = { $in: categoryIds };
     }
 
-    // 2. Sắp xếp
+    // 3. SORT
     let sortOption = {};
-    switch (sort) {
-      case 'price_asc':
-        sortOption = { current_price: 1, start_price: 1 }; 
-        break;
-      case 'price_desc':
-        sortOption = { current_price: -1, start_price: -1 };
-        break;
-      case 'end_date_asc': 
-        sortOption = { end_date: 1 }; 
-        break;
-      case 'end_date_desc': 
-        sortOption = { end_date: -1 }; 
-        break;
-      case 'newest':
-      default:
-        sortOption = { posted_at: -1 }; // Mới đăng lên đầu
-        break;
+
+    if (search) {
+      // Nếu có text search -> ưu tiên relevance score
+      sortOption = { score: { $meta: "textScore" } };
+    } else {
+      switch (sort) {
+        case "price_asc":
+          sortOption = { current_price: 1 };
+          break;
+        case "price_desc":
+          sortOption = { current_price: -1 };
+          break;
+        case "end_date_asc":
+          sortOption = { end_date: 1 };
+          break;
+        case "end_date_desc":
+          sortOption = { end_date: -1 };
+          break;
+        case "newest":
+        default:
+          sortOption = { posted_at: -1 };
+      }
     }
 
-    // 3. Phân trang
+    // 4. PAGINATION
     const limitNum = parseInt(limit);
     const pageNum = parseInt(page);
     const skip = (pageNum - 1) * limitNum;
 
-    // 4. Query DB
+    // 5. QUERY DB (với textScore nếu có search)
+    const projection = search
+      ? { score: { $meta: "textScore" } }
+      : {};
+
     const [products, totalDocs] = await Promise.all([
-      Product.find(filter)
-        .populate('category', 'name')
+      Product.find(filter, projection)
+        .populate("category", "name")
         .sort(sortOption)
         .skip(skip)
         .limit(limitNum),
       Product.countDocuments(filter)
     ]);
 
-    // 5. Trả về Response
+    // 6. RESPONSE
     res.json({
       success: true,
       data: products,
