@@ -2,6 +2,7 @@ export interface Product {
   id: string;
   name: string;
   category: string; // ObjectId ref to Category
+  category_name: string;
   seller: string; // ObjectId ref to User
   images: string[];
   description?: string;
