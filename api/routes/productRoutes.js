@@ -4,6 +4,8 @@ const multer = require('multer');
 const path = require('path');
 const { createProduct } = require('../controllers/productController');
 const productController = require('../controllers/productController');
+const questionController = require('../controllers/questionController');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Multer setup - use memory storage for Cloudinary upload
 const storage = multer.memoryStorage();
@@ -50,6 +52,12 @@ router.get('/seller/:sellerId', productController.getSellerById);
 
 // GET /api/products/category/:categoryId - get products by category
 router.get('/category/:categoryId', productController.getProductsByCategory);
+
+// POST /api/products/:productId/questions 
+router.post('/:productId/questions', authMiddleware, questionController.createQuestion);
+
+// GET /api/products/:productId/questions 
+router.get('/:productId/questions', questionController.getQuestions);
 
 
 module.exports = router;

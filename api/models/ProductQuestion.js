@@ -29,7 +29,8 @@ const ProductQuestionSchema = new mongoose.Schema({
 }, { 
     timestamps: true, 
     toJSON: { virtuals: true }, 
-    toObject: { virtuals: true } 
+    toObject: { virtuals: true },
+    collection: 'product_questions'
 });
 
 // Index để load danh sách câu hỏi của 1 sản phẩm
@@ -45,5 +46,21 @@ ProductQuestionSchema.virtual('masked_asker_name').get(function() {
     }
     return '****User';
 });
+
+// Method để lấy thông tin đã mask
+ProductQuestionSchema.methods.toSafeJSON = function() {
+    const obj = this.toObject();
+    
+    // Mask tên người hỏi
+    if (obj.asker && obj.asker.full_name) {
+        const name = obj.asker.full_name.trim();
+        const parts = name.split(' ');
+        const lastName = parts[parts.length - 1];
+        obj.asker.full_name = `****${lastName}`;
+        obj.masked_asker_name = `****${lastName}`;
+    }
+    
+    return obj;
+};
 
 module.exports = mongoose.model('ProductQuestion', ProductQuestionSchema);

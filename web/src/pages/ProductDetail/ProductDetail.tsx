@@ -7,7 +7,8 @@ import { formatDate } from "../../utilities/FormatDate";
 import { type User, type Product } from "../../types";
 import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
-import { ProductList } from "../../components/Product";
+import { ProductList, QnABox } from "../../components/Product";
+
 
 export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +20,7 @@ export const ProductDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
-  const [activeTab, setActiveTab] = useState<"description" | "bidHistory">(
+  const [activeTab, setActiveTab] = useState<"description" | "qna">(
     "description"
   );
   const [, setTick] = useState(0);
@@ -125,7 +126,7 @@ export const ProductDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -138,7 +139,7 @@ export const ProductDetail: React.FC = () => {
         </p>
         <button
           onClick={() => navigate("/")}
-          className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
         >
           Quay lại trang chủ
         </button>
@@ -157,13 +158,13 @@ export const ProductDetail: React.FC = () => {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-5 text-xs sm:text-sm text-gray-600">
           <span
-            className="cursor-pointer hover:text-blue-600 transition-colors"
+            className="cursor-pointer hover:text-yellow-600 transition-colors"
             onClick={() => navigate("/")}
           >
             Trang chủ
           </span>
           <span className="text-gray-400">›</span>
-          <span className="cursor-pointer hover:text-blue-600 transition-colors">
+          <span className="cursor-pointer hover:text-yellow-600 transition-colors">
             {categoryName}
           </span>
           <span className="text-gray-400">›</span>
@@ -189,8 +190,8 @@ export const ProductDetail: React.FC = () => {
                     key={index}
                     className={`w-20 h-15 rounded border-2 overflow-hidden cursor-pointer transition-colors ${
                       index === selectedImageIndex
-                        ? "border-blue-600"
-                        : "border-transparent hover:border-blue-600"
+                        ? "border-yellow-600"
+                        : "border-transparent hover:border-yellow-600"
                     }`}
                     onClick={() => setSelectedImageIndex(index)}
                   >
@@ -214,7 +215,7 @@ export const ProductDetail: React.FC = () => {
               <div className="flex items-center gap-2 text-sm">
                 <div className="flex gap-0.5">
                   <span className="text-gray-600">Người bán:</span>
-                  <span className="text-blue-600 font-medium">
+                  <span className="text-yellow-600 font-medium">
                     {seller?.full_name}
                   </span>
                 </div>
@@ -271,7 +272,7 @@ export const ProductDetail: React.FC = () => {
               <div className="col-span-3 flex flex-col gap-2">
                 <input
                   type="text"
-                  className="p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-black text-base"
+                  className="p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base"
                   onChange={(e) => setBidAmount(e.target.value)}
                   placeholder={`Tối thiểu: ${formatCurrency(
                     currentPrice + product.step_price
@@ -305,27 +306,27 @@ export const ProductDetail: React.FC = () => {
             <button
               className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
                 activeTab === "description"
-                  ? "text-blue-600"
-                  : "text-gray-600 hover:text-blue-600"
+                  ? "text-yellow-600"
+                  : "text-gray-600 hover:text-yellow-600"
               }`}
               onClick={() => setActiveTab("description")}
             >
               Mô tả
               {activeTab === "description" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
               )}
             </button>
             <button
               className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
-                activeTab === "bidHistory"
-                  ? "text-blue-600"
-                  : "text-gray-600 hover:text-blue-600"
+                activeTab === "qna"
+                  ? "text-yellow-600"
+                  : "text-gray-600 hover:text-yellow-600"
               }`}
-              onClick={() => setActiveTab("bidHistory")}
+              onClick={() => setActiveTab("qna")}
             >
               Hỏi đáp
-              {activeTab === "bidHistory" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></span>
+              {activeTab === "qna" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
               )}
             </button>
           </div>
@@ -359,12 +360,14 @@ export const ProductDetail: React.FC = () => {
                   )}
               </div>
             )}
-            {activeTab === "bidHistory" && (
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                  Hỏi đáp
-                </h3>
-                <p className="text-gray-400 italic">Chưa có cuộc hỏi đáp nào</p>
+            {activeTab === "qna" && (
+              <div className="animate-fade-in">
+                <div className="-mt-8"> 
+                  <QnABox 
+                    productId={product.id} 
+                    sellerId={typeof product.seller === 'object' ? (product.seller as any)?._id || (product.seller as any)?.id : product.seller}
+                  />
+                </div>
               </div>
             )}
           </div>
