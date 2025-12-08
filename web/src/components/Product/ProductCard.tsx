@@ -24,16 +24,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onBidClick,
     onViewDetails,
 }) => {
-
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
     const { user, token, refreshUser } = useUser();
 
+    // Get product ID from _id field
+    const productId = useMemo(() => product._id, [product._id]);
+
     // Check if product is in user's watch_list
     const isLiked = useMemo(() => {
         if (!user || !user.watch_list) return false;
-        return user.watch_list.includes(product.id);
-    }, [user, product.id]);
+        return user.watch_list.some(
+            (id: string) => String(id) === String(productId)
+        );
+    }, [user, productId]);
 
     const [, setTick] = useState(0);
 
@@ -81,15 +85,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (!user || !token) {
             navigate("/signin");
             return;
-        }
-        if (onBidClick) {
-            onBidClick(product.id);
+        } else if (onBidClick) {
+            onBidClick(productId);
         }
     };
 
     const handleViewDetails = () => {
-        if (onViewDetails) {
-            onViewDetails(product.id);
+        if (!user || !token) {
+            navigate("/signin");
+            return;
+        } else if (onViewDetails) {
+            onViewDetails(productId);
         }
     };
 
@@ -105,8 +111,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         try {
             const updatedWatchList = isLiked
-                ? (user.watch_list || []).filter((id) => id !== product.id)
-                : [...(user.watch_list || []), product.id];
+                ? (user.watch_list || []).filter(
+                      (id) => String(id) !== String(productId)
+                  )
+                : [...(user.watch_list || []), productId];
 
             console.log("Updating watch_list:", updatedWatchList);
 
@@ -146,11 +154,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     return (
-        <article onClick={handleViewDetails} className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
-            <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px] cursor-pointer">
+        <article className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
+            <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 sm:h-[280px] cursor-pointer">
                 {imageError || !primaryImage ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                        <span className="text-sm font-medium text-gray-500">
                             No Image Available
                         </span>
                     </div>
@@ -160,6 +168,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         alt={product.name}
                         className="relative inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={handleImageError}
+                        onClick={handleViewDetails}
                         loading="lazy"
                     />
                 )}
@@ -204,37 +213,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             <div className="flex flex-col gap-2 p-4">
                 <h3
-                    className="h-5 truncate text-base font-semibold text-gray-900 dark:text-white"
+                    className="h-5 truncate text-base font-semibold text-gray-900 cursor-pointer hover:text-yellow-600"
                     title={product.name}
+                    onClick={handleViewDetails}
                 >
                     {product.name}
                 </h3>
 
                 <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-yellow-600 dark:text-yellow-500 sm:text-xl">
+                    <span className="text-lg font-bold text-yellow-600 sm:text-xl">
                         {formatCurrency(currentPrice)}
                     </span>
-                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1.5 text-gray-600">
                         <span className="text-xs font-medium sm:text-sm">
                             Lượt ra giá: {bidCount}
                         </span>
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-gray-600">
                     Cao nhất: {highestBidder}
                 </p>
 
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-500">
+                <p className="text-xs font-medium text-gray-500">
                     Trạng thái:{" "}
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="font-semibold text-gray-700">
                         {statusLabel}
                     </span>
                 </p>
 
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-500">
+                <p className="text-xs font-medium text-gray-500">
                     Ngày đăng:{" "}
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    <span className="font-semibold text-gray-700">
                         {formatDate(startedAt.toISOString())}
                     </span>
                 </p>
@@ -264,7 +274,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 {!isAuctionEnded && (
                     <button
                         type="button"
-                        className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 cursor-pointer"
+                        className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 cursor-pointer"
                         onClick={handleViewDetails}
                     >
                         <span>Đặt giá</span>
