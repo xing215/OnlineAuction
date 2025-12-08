@@ -34,6 +34,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
   const [categoryClicked, setCategoryClicked] = useState(false);
   const hoverTimeoutRef = useRef<number | null>(null);
   const accountName = user?.full_name || user?.fullName || user?.name || "";
+  const isLoggedIn = !!user;
 
   const renderPrimaryButton = (key: WebPageKey, label: string) => {
     const isActive = activePage === key;
@@ -194,7 +195,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
           <div className="space-y-4 pt-6">
             <div className="space-y-2 border-l border-[#d5ad41]/60 pl-4">
               <p className={sectionTitleStyles}>Tài khoản</p>
-              {isAccountOpen &&
+              {isAccountOpen && isLoggedIn &&
                 secondaryNav.map((item) => {
                   const SecondaryIcon = WEB_PAGE[item.key].Icon;
                   return (
@@ -213,20 +214,20 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
             <button
               type="button"
-              onClick={() => {
-                toggleAccount();
-              }}
-              className="flex items-center justify-between rounded-2xl bg-[#d5ad41] px-4 py-3 text-sm font-semibold text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer"
+              onClick={isLoggedIn ? toggleAccount : () => navigate('/signin')}
+              className={`w-full flex items-center ${isLoggedIn ? 'justify-between' : 'justify-center'} rounded-2xl bg-[#d5ad41] px-4 py-3 text-sm font-semibold text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer`}
             >
               <span className="flex items-center gap-2">
                 <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
-                {accountName || 'Tài khoản'}
+                {isLoggedIn ? (accountName || 'Tài khoản') : 'Đăng nhập'}
               </span>
-              <ExpandMoreRounded
-                className={`h-4 w-4 text-[#3E3C31] transition-transform ${
-                  isAccountOpen ? "rotate-180" : ""
-                }`}
-              />
+              {isLoggedIn && (
+                <ExpandMoreRounded
+                  className={`h-4 w-4 text-[#3E3C31] transition-transform ${
+                    isAccountOpen ? "rotate-180" : ""
+                  }`}
+                />
+              )}
             </button>
           </div>
         )}
