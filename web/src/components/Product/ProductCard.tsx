@@ -24,7 +24,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onBidClick,
     onViewDetails,
 }) => {
-
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
     const { user, token, refreshUser } = useUser();
@@ -146,7 +145,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     return (
-        <article onClick={handleViewDetails} className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
+        <article
+            onClick={handleViewDetails}
+            className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]"
+        >
             <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px] cursor-pointer">
                 {imageError || !primaryImage ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
