@@ -146,8 +146,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     return (
-        <article onClick={handleViewDetails} className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
-            <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px] cursor-pointer">
+        <article onClick={handleViewDetails} className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px] cursor-pointer">
+            <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 dark:bg-gray-700 sm:h-[280px] ">
                 {imageError || !primaryImage ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -204,7 +204,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             <div className="flex flex-col gap-2 p-4">
                 <h3
-                    className="h-5 truncate text-base font-semibold text-gray-900 dark:text-white"
+                    className="truncate text-base font-semibold text-gray-900 dark:text-white"
                     title={product.name}
                 >
                     {product.name}
