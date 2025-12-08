@@ -6,6 +6,7 @@ import ProductListPage from "./pages/ProductListPage";
 import MyProductsPage from "./pages/MyProductsPage";
 import SignInPage from "./pages/Signin";
 import SignUpPage from "./pages/Signup";
+import ForgotPasswordPage from "./pages/ForgotPassword";
 import Profile from "./pages/Profile";
 import HomePage from "./pages/HomePage/HomePage";
 import CreateProduct from "./components/Product/CreateProduct";
@@ -31,6 +32,7 @@ const PlaceholderPage = ({ title }: PlaceholderPageProps) => (
 const AUTH_ROUTES = {
     SIGNIN: "/signin",
     SIGNUP: "/signup",
+    FORGOT_PASSWORD: "/forgot-password",
 } as const;
 
 function App() {
@@ -92,6 +94,10 @@ function App() {
                         <Route
                             path={AUTH_ROUTES.SIGNUP}
                             element={<SignUpPage />}
+                        />
+                        <Route
+                            path={AUTH_ROUTES.FORGOT_PASSWORD}
+                            element={<ForgotPasswordPage />}
                         />
                         <Route
                             path="*"

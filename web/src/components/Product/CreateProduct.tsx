@@ -351,24 +351,10 @@ const CreateProduct: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
-                                {/* Giả lập ô Tình trạng để giống UI (Disabled vì mặc định là active)
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Tình trạng *</label>
-                                    <div className="relative">
-                                        <select disabled className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 cursor-not-allowed appearance-none">
-                                            <option>Mới / Active</option>
-                                        </select>
-                                        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
-                                    </div>
-                                </div> */}
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Mô tả chi tiết <span className="text-red-500">*</span></label>
-                                {/* Wrapper div để chỉnh CSS bo góc cho editor */}
+                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Mô tả chi tiết </label>
                                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200 focus-within:ring-2 focus-within:ring-yellow-200 focus-within:border-yellow-400 transition">
                                     <ReactQuill 
                                         theme="snow"
@@ -380,18 +366,6 @@ const CreateProduct: React.FC = () => {
                                     />
                                 </div>
                             </div>
-
-                            {/* <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Mô tả chi tiết *</label>
-                                <textarea 
-                                    name="description" 
-                                    value={form.description} 
-                                    onChange={handleChange} 
-                                    rows={4} 
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:bg-white focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none transition placeholder-gray-400 resize-none" 
-                                    placeholder="Mô tả chi tiết về sản phẩm, tình trạng, nguồn gốc..."
-                                ></textarea>
-                            </div> */}
                         </div>
                     </div>
 
@@ -492,37 +466,6 @@ const CreateProduct: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* SECTION 4: THÔNG TIN VẬN CHUYỂN (VISUAL ONLY - Chưa map logic)
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 className="font-semibold text-gray-900 mb-6 border-b border-gray-100 pb-4">Thông tin vận chuyển</h3>
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Địa điểm *</label>
-                                <input className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none" placeholder="Hà Nội, Việt Nam" />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Chi phí vận chuyển ($) *</label>
-                                    <input className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none" placeholder="0 = Miễn phí" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1">Thời gian xử lý (ngày) *</label>
-                                    <div className="relative">
-                                        <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl appearance-none outline-none">
-                                            <option>Chọn thời gian</option>
-                                            <option>1-2 ngày</option>
-                                            <option>3-5 ngày</option>
-                                        </select>
-                                        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> */}
-
                     {/* ACTIONS */}
                     <div className="flex items-center gap-4 pt-2">
                         <button 
