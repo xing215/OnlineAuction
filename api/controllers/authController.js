@@ -1,6 +1,8 @@
 const User = require("../models/User");
+const Otp = require("../models/OTP");
 const jwtHelper = require("../utils/jwtHelper");
 const { verifyRecaptcha } = require("../utils/recaptchaHelper");
+const { sendOTPEmail } = require("../utils/emailService");
 
 // POST /api/auth/login
 exports.login = async (req, res, next) => {
@@ -348,6 +350,91 @@ exports.updateProfile = async (req, res, next) => {
                 message: err.message,
             });
         }
+        next(err);
+    }
+};
+
+// POST /api/auth/forgot-password - Request OTP
+exports.forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        // Check if user exists
+        const user = await User.findByEmail(email);
+        if (!user) {
+            await new Promise(resolve => setTimeout(resolve, 1500))
+            return res.status(200).json({
+                success: false,
+                message: "Mã OTP đã được gửi đến email của bạn",
+            });
+        }
+
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save OTP to database
+        const otp = new Otp({
+            email: email.toLowerCase().trim(),
+            code: otpCode,
+            type: "forgot_password",
+        });
+
+        await otp.save();
+
+        // Send OTP via email
+        await sendOTPEmail({
+            email: user.email,
+            full_name: user.full_name,
+            otp: otpCode,
+            type: "forgot_password",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Mã OTP đã được gửi đến email của bạn",
+        });
+    } catch (err) {
+        console.error("Lỗi trong forgotPassword:", err);
+        next(err);
+    }
+};
+
+// POST /api/auth/reset-password - Verify OTP and reset password
+exports.resetPassword = async (req, res, next) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        // Verify OTP
+        const isValidOtp = await Otp.verifyOtp(
+            email.toLowerCase().trim(),
+            otp,
+            "forgot_password"
+        );
+
+        // Find user and update password
+        const user = await User.findByEmail(email);
+        if (!user && !isValidOtp) {
+            return res.status(404).json({
+                success: false,
+                message: "Mã OTP không hợp lệ hoặc đã hết hạn",
+            });
+        }
+
+        // Update password
+        user.password = newPassword;
+        await user.save();
+
+        // Delete used OTP
+        await Otp.deleteMany({
+            email: email.toLowerCase().trim(),
+            type: "forgot_password",
+        });
+
+        return res.json({
+            success: true,
+            message: "Đặt lại mật khẩu thành công",
+        });
+    } catch (err) {
+        console.error("Lỗi trong resetPassword:", err);
         next(err);
     }
 };

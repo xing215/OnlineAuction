@@ -8,7 +8,8 @@ const ProductSchema = new Schema({
       // index: 'text', 
       trim: true 
     },
-    category: { type: Schema.Types.ObjectId, ref: 'Category', required: true }, 
+    category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
+    category_name: { type: String },
     seller: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
  
     images: { 
@@ -48,7 +49,10 @@ const ProductSchema = new Schema({
 });
 
 // Indexes for better query performance
-ProductSchema.index({ name: 'text' }); 
+ProductSchema.index({
+  name: 'text',
+  category_name: 'text'
+});
 ProductSchema.index({ status: 1, end_date: 1 }); 
 ProductSchema.index({ status: 1, bid_count: -1 }); 
 // ProductSchema.index({ status: 1, current_price: -1 }); 
