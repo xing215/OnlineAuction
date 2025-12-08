@@ -3,3 +3,4 @@
  */
 export { ProductCard, type ProductCardProps, } from './ProductCard';
 export { ProductList, type ProductListProps } from './ProductList';
+export { QnABox } from './QnABox';

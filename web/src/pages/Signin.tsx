@@ -3,6 +3,7 @@ import { useLoginForm } from "../hooks/useSigninForm";
 import AuthLayout from "../components/AuthLayout";
 import SocialButtons from "../components/SocialButtons";
 import ReCAPTCHA from "react-google-recaptcha";
+import { Link } from 'react-router-dom';
 
 export default function SignInPage() {
     const {
@@ -75,12 +76,12 @@ export default function SignInPage() {
 
                 {/* Forgot Password */}
                 <div className="flex items-center justify-end">
-                    <a
-                        href="#!"
+                    <Link
+                        to="/forgot-password"
                         className="text-sm font-medium text-[#D5AD41] hover:underline"
                     >
                         Quên mật khẩu?
-                    </a>
+                    </Link>
                 </div>
 
                 {/* reCAPTCHA */}

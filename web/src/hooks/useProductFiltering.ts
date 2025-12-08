@@ -26,29 +26,30 @@ export const useProductFiltering = () => {
 
   // --- 3. EFFECT: Gọi API trực tiếp ---
   useEffect(() => {
+    // 1. Tạo biến cờ để kiểm soát Race Condition
+    let isCancelled = false;
+
     const fetchProducts = async () => {
+      // 2. Clear dữ liệu cũ NGAY LẬP TỨC để tránh hiện nội dung cũ
+      setProducts([]); 
+      setTotalResults(0);
       setIsLoading(true);
       setError(null);
       
       try {
-        // A. Xây dựng tham số (Query String)
         const params = new URLSearchParams();
         params.append('page', currentPage.toString());
         params.append('limit', ITEMS_PER_PAGE.toString());
         params.append('sort', sortOption);
 
-        // Chỉ gửi search nếu có nội dung
         if (debouncedSearch) {
           params.append('search', debouncedSearch);
         }
 
-        // Chỉ gửi category nếu khác 'all'
-        // Lưu ý: activeCategory phải là ID
         if (activeCategory && activeCategory !== 'all') {
           params.append('category', activeCategory);
         }
 
-        // B. Thực hiện gọi Fetch
         const response = await fetch(`${API_URL}?${params.toString()}`);
         
         if (!response.ok) {
@@ -57,31 +58,43 @@ export const useProductFiltering = () => {
 
         const data = await response.json();
 
-        // C. Cập nhật State dựa trên phản hồi từ Server
-        if (data.success) {
-          setProducts(data.data);
-          setTotalResults(data.total_items); 
-          setTotalPages(data.total_pages);
-        } else {
-          setProducts([]);
-          setTotalResults(0);
-          setError(data.message || 'Lỗi không xác định từ server');
+        // cập nhật State nếu chưa bị cancel
+        if (!isCancelled) {
+          if (data.success) {
+            setProducts(data.data);
+            setTotalResults(data.total_items); 
+            setTotalPages(data.total_pages);
+          } else {
+            setProducts([]);
+            setTotalResults(0);
+            setError(data.message || 'Lỗi không xác định từ server');
+          }
         }
 
       } catch (err: unknown) {
-        console.error("Fetch error:", err);
-        setError((err as Error).message || 'Không thể tải dữ liệu sản phẩm');
-        setProducts([]);
+        // Chỉ báo lỗi nếu chưa cancel
+        if (!isCancelled) {
+          console.error("Fetch error:", err);
+          setError((err as Error).message || 'Không thể tải dữ liệu sản phẩm');
+          setProducts([]);
+        }
       } finally {
-        setIsLoading(false);
+        // Chỉ tắt loading nếu chưa cancel
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchProducts();
 
+    return () => {
+      isCancelled = true;
+    };
+
   }, [activeCategory, debouncedSearch, sortOption, currentPage]); 
 
-  // Reset về trang 1 khi thay đổi bộ lọc (Search, Category, Sort)
+  // Reset về trang 1 khi thay đổi bộ lọc
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory, debouncedSearch, sortOption]);

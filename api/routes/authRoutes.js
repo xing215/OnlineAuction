@@ -9,6 +9,12 @@ router.post("/login", authController.login);
 // Public: Register
 router.post("/register", authController.register);
 
+// Public: Forgot password - request OTP
+router.post("/forgot-password", authController.forgotPassword);
+
+// Public: Reset password - verify OTP and set new password
+router.post("/reset-password", authController.resetPassword);
+
 // Protected: get current user profile
 router.get("/me", authMiddleware, (req, res) => {
     return res.json({ success: true, user: req.user });
