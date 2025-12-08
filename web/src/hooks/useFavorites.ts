@@ -22,9 +22,14 @@ export const useFavorites = () => {
                 setError(null);
 
                 // Fetch all products and filter by watch_list IDs
-                const response = await fetch(apiUrl("/api/products"), {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
-                });
+                const response = await fetch(
+                    apiUrl("/api/products?limit=1000"),
+                    {
+                        headers: token
+                            ? { Authorization: `Bearer ${token}` }
+                            : {},
+                    }
+                );
 
                 if (!response.ok) {
                     throw new Error("Không thể tải danh sách sản phẩm");
@@ -33,9 +38,24 @@ export const useFavorites = () => {
                 const data = await response.json();
                 const allProducts = data.data || data.products || [];
 
+                // Normalize watch_list IDs for comparison
+                const normalizedWatchList = user.watch_list.map((id: string) =>
+                    String(id)
+                );
+
                 // Filter products that are in user's watch_list
                 const favoriteProducts = allProducts.filter(
-                    (product: Product) => user.watch_list?.includes(product.id)
+                    (product: Product) => {
+                        const productId = String(product._id);
+                        return normalizedWatchList.includes(productId);
+                    }
+                );
+
+                console.log("Watch list:", normalizedWatchList);
+                console.log("All products count:", allProducts.length);
+                console.log(
+                    "Favorite products found:",
+                    favoriteProducts.length
                 );
 
                 setFavorites(favoriteProducts);
