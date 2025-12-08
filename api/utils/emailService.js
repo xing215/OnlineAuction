@@ -171,6 +171,7 @@ const sendAnswerEmail = async ({
 
 module.exports = {
   sendNewQuestionEmail,
+  sendOTPEmail,
   sendAnswerEmail,
   maskName
 };
