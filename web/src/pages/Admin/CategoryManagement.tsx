@@ -33,7 +33,7 @@ const CategoryManagement = () => {
     <div className="min-h-screen bg-[#F8F9FA] p-6 font-sans">
       <div className="max-w-6xl mx-auto mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Quản lý Danh mục</h1>
-        <p className="text-gray-500 text-sm">Kết nối API trực tiếp (Hook Pattern)</p>
+        <p className="text-gray-500 text-sm"></p>
       </div>
 
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
