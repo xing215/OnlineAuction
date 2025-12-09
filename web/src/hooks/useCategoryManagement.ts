@@ -22,8 +22,15 @@ export const useCategoryManagement = () => {
       const json = await res.json();
       
       if (json.success) {
-        setCategories(json.data);
-        const rootIds = json.data.filter((c: Category) => !c.parent_id).map((c: Category) => c.id);
+        const normalizedData = json.data.map((item: any) => ({
+          ...item,
+          id: item.id || item._id,
+          parent_id: (item.parent_id && item.parent_id !== "") ? item.parent_id : null
+        }));
+        setCategories(normalizedData);
+        const rootIds = normalizedData
+          .filter((c: Category) => !c.parent_id)
+          .map((c: Category) => c.id);
         setExpandedIds(new Set(rootIds));
       } else {
         alert('Lỗi tải dữ liệu: ' + json.message);

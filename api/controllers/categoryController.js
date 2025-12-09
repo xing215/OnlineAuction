@@ -1,4 +1,5 @@
 const Category = require('../models/Category');
+const Product = require('../models/Product');
 
 // GET /api/categories/roots
 exports.getRoots = async (req, res, next) => {
@@ -22,7 +23,28 @@ exports.getTree = async (req, res, next) => {
 // GET /api/categories
 exports.getAllCategories = async (req, res, next) => {
   try {
-    const categories = await Category.getAllCategories();
+    const categories = await Category.aggregate([
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'category',
+          as: 'products_list'
+        }
+      },
+      {
+        $addFields: {
+          product_count: { $size: '$products_list' }
+        }
+      },
+      {
+        $project: {
+          products_list: 0,
+          __v: 0
+        }
+      },
+    ]);
+
     return res.json({ success: true, data: categories });
   } catch (err) {
     next(err);
@@ -76,13 +98,28 @@ exports.updateCategory = async (req, res, next) => {
 exports.deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const childCount = await Category.countDocuments({ parent_id: id });
 
+    if (childCount > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Không thể xóa: Danh mục này đang chứa ${childCount} danh mục con.` 
+      });
+    }
+
+    const productCount = await Product.countDocuments({ category: id });
+    if (productCount > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Không thể xóa: Danh mục này đang chứa ${productCount} sản phẩm.` 
+      });
+    }
     const deletedCategory = await Category.findByIdAndDelete(id);
 
     if (!deletedCategory) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy danh mục' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy danh mục cần xóa' });
     }
-    return res.json({ success: true, message: 'Đã xóa thành công', id });
+    return res.json({ success: true, message: 'Đã xóa danh mục thành công', id });
   } catch (err) {
     next(err);
   }
