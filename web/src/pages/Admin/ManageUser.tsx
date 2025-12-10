@@ -3,6 +3,7 @@ import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
 import { useUser } from "../../context/useUser";
+import AdminLayout from "../../components/Admin/AdminLayout";
 
 interface User {
     _id: string;
@@ -185,321 +186,346 @@ export const ManageUser: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-                        Quản lý Người dùng
-                    </h1>
-                    <p className="text-gray-600">
-                        Quản lý Bidder và Seller, xử lý vi phạm
-                    </p>
+        <AdminLayout>
+            <div className="min-h-screen bg-gray-50 p-8">
+                <div className="max-w-7xl mx-auto">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+                            Quản lý người dùng
+                        </h1>
+                        <p className="text-gray-600">
+                            Thay đổi vai trò và trạng thái của người dùng trong
+                            hệ thống
+                        </p>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="bg-white rounded-3xl shadow-sm p-6 mb-6">
+                        <div className="flex gap-4 items-center">
+                            {/* Search */}
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm theo tên hoặc email..."
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
+                                    className="w-full pl-12 pr-4 py-2 rounded-2xl bg-neutral-50 border border-gray-200 focus:outline-none focus:border-yellow-500"
+                                />
+                            </div>
+
+                            {/* Role Filter */}
+                            <div className="relative">
+                                <button
+                                    onClick={() =>
+                                        setRoleDropdownOpen(!roleDropdownOpen)
+                                    }
+                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                    <span>
+                                        {filterRole === "all"
+                                            ? "Tất cả vai trò"
+                                            : filterRole
+                                                  .charAt(0)
+                                                  .toUpperCase() +
+                                              filterRole.slice(1)}
+                                    </span>
+                                    <ChevronDown
+                                        className={`w-4 h-4 transition-transform ${
+                                            roleDropdownOpen ? "rotate-180" : ""
+                                        }`}
+                                    />
+                                </button>
+
+                                {roleDropdownOpen && (
+                                    <div className="absolute top-full mt-2 w-35 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
+                                        <button
+                                            onClick={() => {
+                                                setFilterRole("all");
+                                                setRoleDropdownOpen(false);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                        >
+                                            Tất cả vai trò
+                                        </button>
+                                        {(
+                                            [
+                                                "bidder",
+                                                "seller",
+                                                "admin",
+                                            ] as const
+                                        ).map((role) => (
+                                            <button
+                                                key={role}
+                                                onClick={() => {
+                                                    setFilterRole(role);
+                                                    setRoleDropdownOpen(false);
+                                                }}
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                            >
+                                                {role.charAt(0).toUpperCase() +
+                                                    role.slice(1)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Status Filter */}
+                            <div className="relative">
+                                <button
+                                    onClick={() =>
+                                        setStatusDropdownOpen(
+                                            !statusDropdownOpen
+                                        )
+                                    }
+                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                    <span>
+                                        {filterStatus === "all"
+                                            ? "Tất cả trạng thái"
+                                            : filterStatus === "unverified"
+                                            ? "Chưa xác thực"
+                                            : filterStatus === "active"
+                                            ? "Đang hoạt động"
+                                            : "Khóa"}
+                                    </span>
+                                    <ChevronDown
+                                        className={`w-4 h-4 transition-transform ${
+                                            statusDropdownOpen
+                                                ? "rotate-180"
+                                                : ""
+                                        }`}
+                                    />
+                                </button>
+
+                                {statusDropdownOpen && (
+                                    <div className="absolute top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
+                                        <button
+                                            onClick={() => {
+                                                setFilterStatus("all");
+                                                setStatusDropdownOpen(false);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                        >
+                                            Tất cả trạng thái
+                                        </button>
+                                        {(
+                                            [
+                                                "unverified",
+                                                "active",
+                                                "locked",
+                                            ] as const
+                                        ).map((status) => (
+                                            <button
+                                                key={status}
+                                                onClick={() => {
+                                                    setFilterStatus(status);
+                                                    setStatusDropdownOpen(
+                                                        false
+                                                    );
+                                                }}
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                            >
+                                                {status === "unverified"
+                                                    ? "Chưa xác thực"
+                                                    : status === "active"
+                                                    ? "Đang hoạt động"
+                                                    : "Khóa"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Results */}
+                    <div className="mb-4">
+                        <p className="text-sm text-gray-600">
+                            Tìm thấy {filteredUsers.length} người dùng
+                        </p>
+                    </div>
+
+                    {/* Table */}
+                    <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-gray-200 bg-gray-50">
+                                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-700">
+                                            Người dùng
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                                            Đánh giá
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                                            Vai trò
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                                            Trạng thái
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                                            Ngày tham gia
+                                        </th>
+                                        <th className="px-3 py-4 text-left text-sm font-medium text-gray-700">
+                                            Thao tác
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr>
+                                            <td
+                                                colSpan={6}
+                                                className="px-6 py-8"
+                                            >
+                                                <div className="flex justify-center items-center h-40">
+                                                    <div className="w-8 h-8 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : filteredUsers.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan={6}
+                                                className="px-6 py-8"
+                                            >
+                                                <div className="text-center text-gray-500">
+                                                    Không tìm thấy người dùng
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredUsers.map((user) => (
+                                            <tr
+                                                key={user._id}
+                                                className="border-b border-gray-100 hover:bg-gray-50"
+                                            >
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                                                            <svg
+                                                                className="w-6 h-6 text-gray-600"
+                                                                fill="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">
+                                                                {user.full_name}
+                                                            </p>
+                                                            <p className="text-sm text-gray-600">
+                                                                {user.email}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {renderStars(
+                                                        user.rating_percentage ||
+                                                            0
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span
+                                                        className={`inline-flex px-3 py-1 rounded-full border text-xs font-medium ${getRoleColor(
+                                                            user.role
+                                                        )}`}
+                                                    >
+                                                        {getRoleBadgeLabel(
+                                                            user.role
+                                                        )}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span
+                                                        className={`inline-flex px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(
+                                                            user.status
+                                                        )}`}
+                                                    >
+                                                        {getStatusLabel(
+                                                            user.status
+                                                        )}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-600">
+                                                    {formatDate(user.createdAt)}
+                                                </td>
+                                                <td className="px-6 py-4 relative">
+                                                    <button
+                                                        onClick={() =>
+                                                            setOpenDropdown(
+                                                                openDropdown ===
+                                                                    user._id
+                                                                    ? null
+                                                                    : user._id
+                                                            )
+                                                        }
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        title="More options"
+                                                    >
+                                                        <MoreVertical className="w-5 h-5 text-gray-600" />
+                                                    </button>
+
+                                                    {openDropdown ===
+                                                        user._id && (
+                                                        <div className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleEditClick(
+                                                                        user
+                                                                    )
+                                                                }
+                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Filters */}
-                <div className="bg-white rounded-3xl shadow-sm p-6 mb-6">
-                    <div className="flex gap-4 items-center">
-                        {/* Search */}
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-4 top-3 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Tìm theo tên hoặc email..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-4 py-2 rounded-2xl bg-neutral-50 border border-gray-200 focus:outline-none focus:border-yellow-500"
-                            />
-                        </div>
+                {/* Edit User Modal */}
+                {editingUser && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-3xl shadow-lg p-8 max-w-md w-full mx-4">
+                            <div className="flex items-center justify-center mb-6 ">
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    Edit User
+                                </h2>
+                            </div>
 
-                        {/* Role Filter */}
-                        <div className="relative">
-                            <button
-                                onClick={() =>
-                                    setRoleDropdownOpen(!roleDropdownOpen)
-                                }
-                                className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
-                            >
-                                <span>
-                                    {filterRole === "all"
-                                        ? "Tất cả vai trò"
-                                        : filterRole.charAt(0).toUpperCase() +
-                                          filterRole.slice(1)}
-                                </span>
-                                <ChevronDown
-                                    className={`w-4 h-4 transition-transform ${
-                                        roleDropdownOpen ? "rotate-180" : ""
-                                    }`}
-                                />
-                            </button>
+                            <div className="mb-6">
+                                <p className="text-gray-700 font-medium mb-2">
+                                    {editingUser.full_name}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                    {editingUser.email}
+                                </p>
+                            </div>
 
-                            {roleDropdownOpen && (
-                                <div className="absolute top-full mt-2 w-35 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
-                                    <button
-                                        onClick={() => {
-                                            setFilterRole("all");
-                                            setRoleDropdownOpen(false);
-                                        }}
-                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
-                                    >
-                                        Tất cả vai trò
-                                    </button>
+                            {/* Role Selection */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                    Role
+                                </label>
+                                <div className="space-y-2">
                                     {(
                                         ["bidder", "seller", "admin"] as const
                                     ).map((role) => (
-                                        <button
-                                            key={role}
-                                            onClick={() => {
-                                                setFilterRole(role);
-                                                setRoleDropdownOpen(false);
-                                            }}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
-                                        >
-                                            {role.charAt(0).toUpperCase() +
-                                                role.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Status Filter */}
-                        <div className="relative">
-                            <button
-                                onClick={() =>
-                                    setStatusDropdownOpen(!statusDropdownOpen)
-                                }
-                                className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
-                            >
-                                <span>
-                                    {filterStatus === "all"
-                                        ? "Tất cả trạng thái"
-                                        : filterStatus === "unverified"
-                                        ? "Chưa xác thực"
-                                        : filterStatus === "active"
-                                        ? "Đang hoạt động"
-                                        : "Khóa"}
-                                </span>
-                                <ChevronDown
-                                    className={`w-4 h-4 transition-transform ${
-                                        statusDropdownOpen ? "rotate-180" : ""
-                                    }`}
-                                />
-                            </button>
-
-                            {statusDropdownOpen && (
-                                <div className="absolute top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
-                                    <button
-                                        onClick={() => {
-                                            setFilterStatus("all");
-                                            setStatusDropdownOpen(false);
-                                        }}
-                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
-                                    >
-                                        Tất cả trạng thái
-                                    </button>
-                                    {(
-                                        [
-                                            "unverified",
-                                            "active",
-                                            "locked",
-                                        ] as const
-                                    ).map((status) => (
-                                        <button
-                                            key={status}
-                                            onClick={() => {
-                                                setFilterStatus(status);
-                                                setStatusDropdownOpen(false);
-                                            }}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
-                                        >
-                                            {status === "unverified"
-                                                ? "Chưa xác thực"
-                                                : status === "active"
-                                                ? "Đang hoạt động"
-                                                : "Khóa"}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Results */}
-                <div className="mb-4">
-                    <p className="text-sm text-gray-600">
-                        Tìm thấy {filteredUsers.length} người dùng
-                    </p>
-                </div>
-
-                {/* Table */}
-                <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="px-8 py-4 text-left text-sm font-medium text-gray-700">
-                                        Người dùng
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                                        Đánh giá
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                                        Vai trò
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                                        Trạng thái
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                                        Ngày tham gia
-                                    </th>
-                                    <th className="px-3 py-4 text-left text-sm font-medium text-gray-700">
-                                        Thao tác
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-8">
-                                            <div className="flex justify-center items-center h-40">
-                                                <div className="w-8 h-8 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : filteredUsers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-8">
-                                            <div className="text-center text-gray-500">
-                                                Không tìm thấy người dùng
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredUsers.map((user) => (
-                                        <tr
-                                            key={user._id}
-                                            className="border-b border-gray-100 hover:bg-gray-50"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
-                                                        <svg
-                                                            className="w-6 h-6 text-gray-600"
-                                                            fill="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-gray-900">
-                                                            {user.full_name}
-                                                        </p>
-                                                        <p className="text-sm text-gray-600">
-                                                            {user.email}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {renderStars(
-                                                    user.rating_percentage || 0
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span
-                                                    className={`inline-flex px-3 py-1 rounded-full border text-xs font-medium ${getRoleColor(
-                                                        user.role
-                                                    )}`}
-                                                >
-                                                    {getRoleBadgeLabel(
-                                                        user.role
-                                                    )}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span
-                                                    className={`inline-flex px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(
-                                                        user.status
-                                                    )}`}
-                                                >
-                                                    {getStatusLabel(
-                                                        user.status
-                                                    )}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">
-                                                {formatDate(user.createdAt)}
-                                            </td>
-                                            <td className="px-6 py-4 relative">
-                                                <button
-                                                    onClick={() =>
-                                                        setOpenDropdown(
-                                                            openDropdown ===
-                                                                user._id
-                                                                ? null
-                                                                : user._id
-                                                        )
-                                                    }
-                                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                                    title="More options"
-                                                >
-                                                    <MoreVertical className="w-5 h-5 text-gray-600" />
-                                                </button>
-
-                                                {openDropdown === user._id && (
-                                                    <div className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                                                        <button
-                                                            onClick={() =>
-                                                                handleEditClick(
-                                                                    user
-                                                                )
-                                                            }
-                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
-                                                        >
-                                                            Edit
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            {/* Edit User Modal */}
-            {editingUser && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-3xl shadow-lg p-8 max-w-md w-full mx-4">
-                        <div className="flex items-center justify-center mb-6 ">
-                            <h2 className="text-2xl font-bold text-gray-900">
-                                Edit User
-                            </h2>
-                        </div>
-
-                        <div className="mb-6">
-                            <p className="text-gray-700 font-medium mb-2">
-                                {editingUser.full_name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                                {editingUser.email}
-                            </p>
-                        </div>
-
-                        {/* Role Selection */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Role
-                            </label>
-                            <div className="space-y-2">
-                                {(["bidder", "seller", "admin"] as const).map(
-                                    (role) => (
                                         <label
                                             key={role}
                                             className="flex items-center cursor-pointer"
@@ -523,70 +549,74 @@ export const ManageUser: React.FC = () => {
                                                 {role}
                                             </span>
                                         </label>
-                                    )
-                                )}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Status Selection */}
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Status
-                            </label>
-                            <div className="space-y-2">
-                                {(
-                                    ["unverified", "active", "locked"] as const
-                                ).map((status) => (
-                                    <label
-                                        key={status}
-                                        className="flex items-center cursor-pointer"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="status"
-                                            value={status}
-                                            checked={editStatus === status}
-                                            onChange={(e) =>
-                                                setEditStatus(
-                                                    e.target.value as
-                                                        | "unverified"
-                                                        | "active"
-                                                        | "locked"
-                                                )
-                                            }
-                                            className="w-4 h-4 text-yellow-600 cursor-pointer"
-                                        />
-                                        <span className="ml-3 text-gray-700 capitalize">
-                                            {status === "unverified"
-                                                ? "Chưa xác thực"
-                                                : status === "active"
-                                                ? "Đang hoạt động"
-                                                : "Khóa"}
-                                        </span>
-                                    </label>
-                                ))}
+                            {/* Status Selection */}
+                            <div className="mb-8">
+                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                    Status
+                                </label>
+                                <div className="space-y-2">
+                                    {(
+                                        [
+                                            "unverified",
+                                            "active",
+                                            "locked",
+                                        ] as const
+                                    ).map((status) => (
+                                        <label
+                                            key={status}
+                                            className="flex items-center cursor-pointer"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="status"
+                                                value={status}
+                                                checked={editStatus === status}
+                                                onChange={(e) =>
+                                                    setEditStatus(
+                                                        e.target.value as
+                                                            | "unverified"
+                                                            | "active"
+                                                            | "locked"
+                                                    )
+                                                }
+                                                className="w-4 h-4 text-yellow-600 cursor-pointer"
+                                            />
+                                            <span className="ml-3 text-gray-700 capitalize">
+                                                {status === "unverified"
+                                                    ? "Chưa xác thực"
+                                                    : status === "active"
+                                                    ? "Đang hoạt động"
+                                                    : "Khóa"}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Buttons */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setEditingUser(null)}
-                                className="flex-1 px-4 py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                className="flex-1 px-4 py-3 rounded-2xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-colors"
-                            >
-                                Save
-                            </button>
+                            {/* Buttons */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setEditingUser(null)}
+                                    className="flex-1 px-4 py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveEdit}
+                                    className="flex-1 px-4 py-3 rounded-2xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-colors"
+                                >
+                                    Save
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </AdminLayout>
     );
 };
 
