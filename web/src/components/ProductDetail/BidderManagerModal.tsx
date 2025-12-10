@@ -227,13 +227,6 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                 }
                                                 className="ml-4 flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors shrink-0"
                                             >
-                                                <svg
-                                                    className="w-4 h-4"
-                                                    fill="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                                                </svg>
                                                 <span>Bỏ cấm</span>
                                             </button>
                                         ) : (
@@ -245,13 +238,6 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                 }
                                                 className="ml-4 flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-300 text-red-600 font-semibold text-sm hover:bg-red-100 transition-colors shrink-0"
                                             >
-                                                <svg
-                                                    className="w-4 h-4"
-                                                    fill="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
-                                                </svg>
                                                 <span>Cấm</span>
                                             </button>
                                         )}
