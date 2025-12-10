@@ -26,6 +26,10 @@ export const ManageUser: React.FC = () => {
     const [editStatus, setEditStatus] = useState<
         "unverified" | "active" | "locked"
     >("active");
+    const [filterRole, setFilterRole] = useState<string>("all");
+    const [filterStatus, setFilterStatus] = useState<string>("all");
+    const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const { token } = useUser();
 
     useEffect(() => {
@@ -61,9 +65,14 @@ export const ManageUser: React.FC = () => {
                     .includes(searchTerm.toLowerCase()) ||
                 user.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-            return matchesSearch;
+            const matchesRole =
+                filterRole === "all" || user.role === filterRole;
+            const matchesStatus =
+                filterStatus === "all" || user.status === filterStatus;
+
+            return matchesSearch && matchesRole && matchesStatus;
         });
-    }, [users, searchTerm]);
+    }, [users, searchTerm, filterRole, filterStatus]);
 
     const getRoleColor = (role: string) => {
         switch (role) {
@@ -175,6 +184,24 @@ export const ManageUser: React.FC = () => {
         }
     };
 
+    const handleLock = async (userId: string) => {
+        try {
+            const response = await fetch(apiUrl(`/api/users/${userId}/lock`), {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                fetchUsers();
+                setOpenDropdown(null);
+            }
+        } catch (error) {
+            console.error("Failed to lock user:", error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto">
@@ -205,18 +232,114 @@ export const ManageUser: React.FC = () => {
 
                         {/* Role Filter */}
                         <div className="relative">
-                            <button className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2">
-                                <span>Tất cả vai trò</span>
-                                <ChevronDown className="w-4 h-4" />
+                            <button
+                                onClick={() =>
+                                    setRoleDropdownOpen(!roleDropdownOpen)
+                                }
+                                className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                            >
+                                <span>
+                                    {filterRole === "all"
+                                        ? "Tất cả vai trò"
+                                        : filterRole.charAt(0).toUpperCase() +
+                                          filterRole.slice(1)}
+                                </span>
+                                <ChevronDown
+                                    className={`w-4 h-4 transition-transform ${
+                                        roleDropdownOpen ? "rotate-180" : ""
+                                    }`}
+                                />
                             </button>
+
+                            {roleDropdownOpen && (
+                                <div className="absolute top-full mt-2 w-35 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
+                                    <button
+                                        onClick={() => {
+                                            setFilterRole("all");
+                                            setRoleDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                    >
+                                        Tất cả vai trò
+                                    </button>
+                                    {(
+                                        ["bidder", "seller", "admin"] as const
+                                    ).map((role) => (
+                                        <button
+                                            key={role}
+                                            onClick={() => {
+                                                setFilterRole(role);
+                                                setRoleDropdownOpen(false);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                        >
+                                            {role.charAt(0).toUpperCase() +
+                                                role.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Status Filter */}
                         <div className="relative">
-                            <button className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2">
-                                <span>Tất cả trạng thái</span>
-                                <ChevronDown className="w-4 h-4" />
+                            <button
+                                onClick={() =>
+                                    setStatusDropdownOpen(!statusDropdownOpen)
+                                }
+                                className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                            >
+                                <span>
+                                    {filterStatus === "all"
+                                        ? "Tất cả trạng thái"
+                                        : filterStatus === "unverified"
+                                        ? "Chưa xác thực"
+                                        : filterStatus === "active"
+                                        ? "Đang hoạt động"
+                                        : "Khóa"}
+                                </span>
+                                <ChevronDown
+                                    className={`w-4 h-4 transition-transform ${
+                                        statusDropdownOpen ? "rotate-180" : ""
+                                    }`}
+                                />
                             </button>
+
+                            {statusDropdownOpen && (
+                                <div className="absolute top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-40">
+                                    <button
+                                        onClick={() => {
+                                            setFilterStatus("all");
+                                            setStatusDropdownOpen(false);
+                                        }}
+                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                    >
+                                        Tất cả trạng thái
+                                    </button>
+                                    {(
+                                        [
+                                            "unverified",
+                                            "active",
+                                            "locked",
+                                        ] as const
+                                    ).map((status) => (
+                                        <button
+                                            key={status}
+                                            onClick={() => {
+                                                setFilterStatus(status);
+                                                setStatusDropdownOpen(false);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                        >
+                                            {status === "unverified"
+                                                ? "Chưa xác thực"
+                                                : status === "active"
+                                                ? "Đang hoạt động"
+                                                : "Khóa"}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -234,7 +357,7 @@ export const ManageUser: React.FC = () => {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                                    <th className="px-8 py-4 text-left text-sm font-medium text-gray-700">
                                         Người dùng
                                     </th>
                                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
@@ -249,7 +372,7 @@ export const ManageUser: React.FC = () => {
                                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
                                         Ngày tham gia
                                     </th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
+                                    <th className="px-3 py-4 text-left text-sm font-medium text-gray-700">
                                         Thao tác
                                     </th>
                                 </tr>
@@ -345,7 +468,7 @@ export const ManageUser: React.FC = () => {
                                                 </button>
 
                                                 {openDropdown === user._id && (
-                                                    <div className="absolute right-[-5] mt-0 w-24 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                                    <div className="absolute right-0 mt-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                                         <button
                                                             onClick={() =>
                                                                 handleEditClick(
@@ -355,6 +478,16 @@ export const ManageUser: React.FC = () => {
                                                             className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
                                                         >
                                                             Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleLock(
+                                                                    user._id
+                                                                )
+                                                            }
+                                                            className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 font-medium transition-colors"
+                                                        >
+                                                            Lock
                                                         </button>
                                                     </div>
                                                 )}
