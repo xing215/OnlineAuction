@@ -132,11 +132,17 @@ async function getAllSubcategories(categoryId) {
 
 exports.getProducts = async (req, res) => {
     try {
-        const { page = 1, limit = 8, search, category, sort } = req.query;
+        const { page = 1, limit = 8, search, category, sort, status } = req.query;
 
         // FILTER CƠ BẢN
-        const filter = { status: "active" };
-
+        const filter = {
+            status: { $ne: 'deleted' }
+        };
+        if (status && status !== 'all') {
+            filter.status = status;
+        } else if (!status) {
+            filter.status = "active"; 
+        }
         // 1. FULL-TEXT SEARCH
         if (search && search.trim() !== "") {
             filter.$text = { $search: search };
@@ -309,5 +315,50 @@ exports.getSellerById = async (req, res) => {
     } catch (error) {
         console.error("Error in getSellerNameById:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Delete product
+exports.deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Sản phẩm không tồn tại' });
+        }
+
+        // KIỂM TRA ĐIỀU KIỆN AN TOÀN
+        const hasBids = product.bid_count > 0;
+        const isSold = product.status === 'sold';
+
+        // SOFT DELETE
+        if (hasBids || isSold) {
+            product.status = 'deleted';
+            await product.save();
+
+            return res.json({ 
+                success: true, 
+                message: 'Sản phẩm đã có người tham gia/đã bán. Đã chuyển sang trạng thái "Đã xóa" (Soft Delete).' 
+            });
+            
+            /*
+            return res.status(400).json({
+                success: false,
+                message: 'Không thể xóa sản phẩm đã có lượt đấu giá hoặc đã bán.'
+            });
+            */
+        }
+
+        // HARD DELETE
+        await Product.findByIdAndDelete(id);
+        // if (product.images && product.images.length > 0) { ... deleteImagesFromCloud(product.images) ... }
+        return res.json({ 
+            success: true, 
+            message: 'Đã xóa sản phẩm vĩnh viễn.' 
+        });
+    } catch (error) {
+        console.error('Lỗi xóa sản phẩm:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi xóa sản phẩm' });
     }
 };

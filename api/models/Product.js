@@ -36,7 +36,7 @@ const ProductSchema = new Schema({
     
     status: { 
         type: String, 
-        enum: ['active', 'sold', 'expired'], 
+        enum: ['active', 'sold', 'expired', 'deleted'], 
         default: 'active' 
     },
 
