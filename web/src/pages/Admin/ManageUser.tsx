@@ -3,7 +3,7 @@ import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
 import { useUser } from "../../context/useUser";
-import AdminLayout from "../../components/Admin/AdminLayout";
+import { AdminLayout } from "../../components/Admin";
 
 interface User {
     _id: string;
