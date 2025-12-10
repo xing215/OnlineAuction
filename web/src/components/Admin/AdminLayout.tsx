@@ -42,7 +42,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </div>
 
                 {/* Page Content */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
+                <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                    {children}
+                </div>
             </main>
         </div>
     );

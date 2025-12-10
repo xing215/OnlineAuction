@@ -16,7 +16,10 @@ interface AdminSidebarProps {
     onCloseMobile?: () => void;
 }
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen = false, onCloseMobile }) => {
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({
+    isMobileOpen = false,
+    onCloseMobile,
+}) => {
     const navigate = useNavigate();
     const { logout } = useUser();
     const currentPath = window.location.pathname;
@@ -63,9 +66,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen = false
     };
 
     return (
-        <div className={`fixed md:sticky md:top-0 bg-white border-r border-gray-200 w-[250px] h-screen flex flex-col z-50 transition-transform duration-300 ease-in-out ${
-            isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}>
+        <div
+            className={`fixed md:sticky md:top-0 bg-white border-r border-gray-200 w-[250px] h-screen flex flex-col z-50 transition-transform duration-300 ease-in-out ${
+                isMobileOpen
+                    ? "translate-x-0"
+                    : "-translate-x-full md:translate-x-0"
+            }`}
+        >
             {/* Header */}
             <div className="border-b border-gray-200 h-[72px] px-4 md:px-6 py-6 flex items-center gap-3 justify-between">
                 <div className="flex items-baseline gap-2">
@@ -104,7 +111,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen = false
                                     <span className="text-lg md:text-[19.65px]">
                                         {link.icon}
                                     </span>
-                                    <span className="hidden sm:inline">{link.label}</span>
+                                    <span className="hidden sm:inline">
+                                        {link.label}
+                                    </span>
                                 </div>
                             ) : (
                                 <button
@@ -118,7 +127,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen = false
                                     <span className="text-lg md:text-[19.65px]">
                                         {link.icon}
                                     </span>
-                                    <span className="hidden sm:inline">{link.label}</span>
+                                    <span className="hidden sm:inline">
+                                        {link.label}
+                                    </span>
                                 </button>
                             )}
                         </div>
@@ -130,7 +141,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen = false
             <div className="border-t border-gray-200 p-2 md:p-4">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-full border border-gray-200 bg-white text-[#3e3c31] font-medium text-xs md:text-[13.75px] hover:bg-gray-50 transition-all"
+                    className="w-full flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-full border border-gray-200 bg-white text-[#3e3c31] font-medium text-xs md:text-[13.75px] hover:bg-gray-50 transition-all cursor-pointer"
                 >
                     <LogOut className="w-4 h-4" />
                     <span className="hidden sm:inline">Đăng xuất</span>
