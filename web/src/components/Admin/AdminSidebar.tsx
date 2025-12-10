@@ -18,6 +18,12 @@ export const AdminSidebar: React.FC = () => {
 
     const navLinks: SidebarLink[] = [
         {
+            label: "Quản lý Người dùng",
+            path: "/admin/manage-user",
+            icon: "",
+            isActive: currentPath === "/admin/manage-user",
+        },
+        {
             label: "Quản lý Danh mục",
             path: "/admin/manage-category",
             icon: "",
@@ -30,12 +36,6 @@ export const AdminSidebar: React.FC = () => {
             icon: "",
             isActive: currentPath === "/admin/manage-product",
             isComingSoon: true,
-        },
-        {
-            label: "Quản lý Người dùng",
-            path: "/admin/manage-user",
-            icon: "",
-            isActive: currentPath === "/admin/manage-user",
         },
         {
             label: "Yêu cầu nâng cấp",
