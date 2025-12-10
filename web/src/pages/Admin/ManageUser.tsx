@@ -184,24 +184,6 @@ export const ManageUser: React.FC = () => {
         }
     };
 
-    const handleLock = async (userId: string) => {
-        try {
-            const response = await fetch(apiUrl(`/api/users/${userId}/lock`), {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                fetchUsers();
-                setOpenDropdown(null);
-            }
-        } catch (error) {
-            console.error("Failed to lock user:", error);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto">
@@ -468,26 +450,16 @@ export const ManageUser: React.FC = () => {
                                                 </button>
 
                                                 {openDropdown === user._id && (
-                                                    <div className="absolute right-0 mt-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                                    <div className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                                         <button
                                                             onClick={() =>
                                                                 handleEditClick(
                                                                     user
                                                                 )
                                                             }
-                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
                                                         >
                                                             Edit
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                handleLock(
-                                                                    user._id
-                                                                )
-                                                            }
-                                                            className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 font-medium transition-colors"
-                                                        >
-                                                            Lock
                                                         </button>
                                                     </div>
                                                 )}
