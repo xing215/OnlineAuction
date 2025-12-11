@@ -48,7 +48,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             path: "/admin/upgrade-requests",
             icon: "",
             isActive: currentPath === "/admin/upgrade-requests",
-            isComingSoon: true,
         },
     ];
 
