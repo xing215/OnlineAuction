@@ -13,6 +13,7 @@ import {
     PlaceBidModal,
     BidderManagerModal,
 } from "../../components/ProductDetail";
+import { BannedBidderModal } from "../../components/ProductDetail/BannedBidderModal";
 import { placeBid } from "../../hooks/usePlaceBid";
 import { BidHistoryTable } from "../../components/ProductDetail/History";
 
@@ -32,6 +33,7 @@ export const ProductDetail: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBidLoading, setIsBidLoading] = useState(false);
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
+    const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
@@ -61,11 +63,21 @@ export const ProductDetail: React.FC = () => {
             alert("Đặt giá thành công!");
         } catch (error) {
             console.error("Bid error:", error);
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Đặt giá thất bại. Vui lòng thử lại."
-            );
+            
+            // Check if user is banned
+            if (
+                error instanceof Error &&
+                error.message.includes("banned")
+            ) {
+                setIsModalOpen(false);
+                setIsBannedModalOpen(true);
+            } else {
+                alert(
+                    error instanceof Error
+                        ? error.message
+                        : "Đặt giá thất bại. Vui lòng thử lại."
+                );
+            }
         } finally {
             setIsBidLoading(false);
         }
@@ -393,19 +405,28 @@ export const ProductDetail: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Bidder Manager Button */}
-                        <button
-                            onClick={() => setIsBidderManagerOpen(true)}
-                            className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
-                        >
-                            Quản lý người đặt giá
-                        </button>
+                        {/* Bidder Manager Button - Only show for product owner */}
+                        {user && seller && user.id === seller.id && (
+                            <button
+                                onClick={() => setIsBidderManagerOpen(true)}
+                                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
+                            >
+                                Quản lý người đặt giá
+                            </button>
+                        )}
 
                         {/* Bidder Manager Modal */}
                         <BidderManagerModal
                             isOpen={isBidderManagerOpen}
                             onClose={() => setIsBidderManagerOpen(false)}
                             productId={product.id}
+                            productName={product.name}
+                        />
+
+                        {/* Banned Bidder Modal */}
+                        <BannedBidderModal
+                            isOpen={isBannedModalOpen}
+                            onClose={() => setIsBannedModalOpen(false)}
                             productName={product.name}
                         />
                     </div>

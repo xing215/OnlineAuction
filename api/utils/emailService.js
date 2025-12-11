@@ -232,10 +232,146 @@ const sendAnswerEmail = async ({
         console.error("Lỗi khi gửi email thông báo trả lời:", error);
     }
 };
+ 
+const sendBannedBidderEmail = async ({
+    userEmail,
+    userName,
+    productName,
+    productId,
+    sellerName,
+}) => {
+    try {
+        const transporter = createTransport();
+
+        const maskedSellerName = maskName(sellerName);
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: `Thông báo: Bạn đã bị hạn chế đặt giá cho sản phẩm "${productName}"`,
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                
+                <div style="background-color: #ef4444; height: 6px; width: 100%;"></div>
+                
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Thông báo hạn chế đặt giá
+                </h2>
+                
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Xin chào <strong>${userName}</strong>,<br>
+                    Người bán <strong>${maskedSellerName}</strong> đã hạn chế bạn đặt giá cho sản phẩm <strong style="color: #dc2626;">${productName}</strong>.
+                </p>
+
+                <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 4px; margin-bottom: 30px;">
+                    <p style="margin: 0; color: #991b1b; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Lưu ý:</p>
+                    <p style="margin-top: 10px; margin-bottom: 0; color: #1f2937; font-size: 15px;">
+                    Bạn không thể tiếp tục đặt giá cho sản phẩm này. Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ với người bán hoặc bộ phận hỗ trợ.
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <a href="${productUrl}" 
+                    style="display: inline-block; background-color: #6b7280; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease; box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);">
+                    Xem sản phẩm
+                    </a>
+                </div>
+                
+                </div>
+
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá.<br>
+                    Vui lòng không trả lời trực tiếp email này.
+                </p>
+                </div>
+            </div>
+            </div>
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Email thông báo bị cấm đã được gửi đến:", userEmail);
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo bị cấm:", error);
+    }
+};
+
+const sendUnbannedBidderEmail = async ({
+    userEmail,
+    userName,
+    productName,
+    productId,
+    sellerName,
+}) => {
+    try {
+        const transporter = createTransport();
+
+        const maskedSellerName = maskName(sellerName);
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: `Thông báo: Bạn đã được phép đặt giá lại cho sản phẩm "${productName}"`,
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                
+                <div style="background-color: #10b981; height: 6px; width: 100%;"></div>
+                
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Đã bỏ hạn chế đặt giá
+                </h2>
+                
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Xin chào <strong>${userName}</strong>,<br>
+                    Người bán <strong>${maskedSellerName}</strong> đã bỏ hạn chế đặt giá cho bạn đối với sản phẩm <strong style="color: #059669;">${productName}</strong>.
+                </p>
+
+                <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; border-radius: 4px; margin-bottom: 30px;">
+                    <p style="margin: 0; color: #065f46; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Thông báo:</p>
+                    <p style="margin-top: 10px; margin-bottom: 0; color: #1f2937; font-size: 15px;">
+                    Bạn hiện đã có thể tham gia đặt giá cho sản phẩm này. Vui lòng tuân thủ quy định đấu giá để tránh bị hạn chế trong tương lai.
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <a href="${productUrl}" 
+                    style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+                    Xem sản phẩm và đặt giá
+                    </a>
+                </div>
+                
+                </div>
+
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá.<br>
+                    Vui lòng không trả lời trực tiếp email này.
+                </p>
+                </div>
+            </div>
+            </div>
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Email thông báo bỏ cấm đã được gửi đến:", userEmail);
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo bỏ cấm:", error);
+    }
+};
 
 module.exports = {
     sendNewQuestionEmail,
     sendOTPEmail,
     sendAnswerEmail,
+    sendBannedBidderEmail,
+    sendUnbannedBidderEmail,
     maskName,
 };

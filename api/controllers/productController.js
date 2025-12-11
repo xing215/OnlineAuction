@@ -1,6 +1,9 @@
 const Product = require("../models/Product");
 const { uploadMultipleToCloudinary } = require("../utils/cloudinary");
 const Category = require("../models/Category");
+const { sendBannedBidderEmail } = require('../utils/emailService');
+const { sendUnbannedBidderEmail } = require('../utils/emailService');
+const User = require('../models/User');
 
 // Create product handler supporting multipart uploads (req.files)
 exports.createProduct = async (req, res) => {
@@ -361,4 +364,136 @@ exports.deleteProduct = async (req, res) => {
         console.error('Lỗi xóa sản phẩm:', error);
         res.status(500).json({ success: false, message: 'Lỗi server khi xóa sản phẩm' });
     }
+};
+
+// Ban bidder from product
+exports.banBidder = async (req, res) => {
+    try {
+        const { productId, userId } = req.body;
+
+        if (!productId || !userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'productId and userId are required'
+            });
+        }
+
+        const product = await Product.findById(productId).populate('seller', 'full_name email');
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        // Check if user is already banned
+        if (product.banned_bidders.includes(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'User is already banned from bidding'
+            });
+        }
+
+        // Add user to banned list
+        product.banned_bidders.push(userId);
+        await product.save();
+
+        // Get banned user info for email      
+        const bannedUser = await User.findById(userId);
+
+        // Send email notification
+        if (bannedUser && bannedUser.email) {
+            sendBannedBidderEmail({
+                userEmail: bannedUser.email,
+                userName: bannedUser.full_name,
+                productName: product.name,
+                productId: product._id,
+                sellerName: product.seller.full_name
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'User has been banned from bidding',
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error while banning user'
+        });
+    }
+};
+
+// Unban bidder from product
+exports.unbanBidder = async (req, res) => {
+    try {
+        const { productId, userId } = req.body;
+
+        if (!productId || !userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'productId and userId are required'
+            });
+        }
+
+        const product = await Product.findById(productId).populate('seller', 'full_name email');
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        // Remove user from banned list
+        product.banned_bidders = product.banned_bidders.filter(
+            id => id.toString() !== userId.toString()
+        );
+        await product.save();
+
+        // Get unbanned user info for email
+        const unbannedUser = await User.findById(userId);
+
+        // Send email notification
+        if (unbannedUser && unbannedUser.email) {
+            sendUnbannedBidderEmail({
+                userEmail: unbannedUser.email,
+                userName: unbannedUser.full_name,
+                productName: product.name,
+                productId: product._id,
+                sellerName: product.seller.full_name
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'User has been unbanned from bidding',
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error while unbanning user'
+        });
+    }
+};
+
+exports.getBannedList = async (req, res) => {
+    try {
+        const { productId } = req.params;   
+        const product = await Product.findById(productId).select('banned_bidders');
+        if (!product) {
+            return res.status(404).json({  
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        res.json({
+            success: true,
+            data: product.banned_bidders
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false, 
+            message: 'Server error while fetching banned list'
+        });
+    }   
 };
