@@ -327,7 +327,8 @@ exports.placeBid = async (req, res) => {
                 bidCount: product.bid_count,
                 highestBidder: updatedHighestBid.user.full_name,
                 isLeading: result.isNewLeader,
-                isAutoBid: isAutoBid || false
+                isAutoBid: isAutoBid || false,
+                endDate: product.end_date
             },
         });
     } catch (error) {

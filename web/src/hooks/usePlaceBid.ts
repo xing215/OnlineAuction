@@ -16,6 +16,7 @@ export interface PlaceBidResponse {
         highestBidder: string;
         isLeading?: boolean;
         isAutoBid?: boolean;
+        endDate?: string;
     };
 }
 

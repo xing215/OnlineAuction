@@ -57,6 +57,9 @@ export const ProductDetail: React.FC = () => {
                     highest_bidder_name:
                         response.data.highestBidder ??
                         product.highest_bidder_name,
+                    end_date: response.data.endDate 
+                        ? new Date(response.data.endDate) 
+                        : product.end_date,
                 };
                 setProduct(updatedProduct);
             }
