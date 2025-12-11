@@ -9,7 +9,10 @@ import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
 import { ProductList, QnABox } from "../../components/Product";
 import { useUser } from "../../context/useUser";
-import { PlaceBidModal } from "../../components/ProductDetail";
+import {
+    PlaceBidModal,
+    BidderManagerModal,
+} from "../../components/ProductDetail";
 import { placeBid } from "../../hooks/usePlaceBid";
 import { BidHistoryTable } from "../../components/ProductDetail/History";
 
@@ -28,6 +31,7 @@ export const ProductDetail: React.FC = () => {
     >("description");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBidLoading, setIsBidLoading] = useState(false);
+    const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
@@ -388,6 +392,22 @@ export const ProductDetail: React.FC = () => {
                                 </span>
                             </div>
                         )}
+
+                        {/* Bidder Manager Button */}
+                        <button
+                            onClick={() => setIsBidderManagerOpen(true)}
+                            className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
+                        >
+                            Quản lý người đặt giá
+                        </button>
+
+                        {/* Bidder Manager Modal */}
+                        <BidderManagerModal
+                            isOpen={isBidderManagerOpen}
+                            onClose={() => setIsBidderManagerOpen(false)}
+                            productId={product.id}
+                            productName={product.name}
+                        />
                     </div>
                 </div>
 
