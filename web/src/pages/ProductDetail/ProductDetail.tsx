@@ -9,8 +9,12 @@ import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
 import { ProductList, QnABox } from "../../components/Product";
 import { useUser } from "../../context/useUser";
-import { PlaceBidModal } from "../../components/ProductDetail";
+import {
+    PlaceBidModal,
+    BidderManagerModal,
+} from "../../components/ProductDetail";
 import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
+import { BidHistoryTable } from "../../components/ProductDetail/History";
 
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -22,16 +26,20 @@ export const ProductDetail: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     //const [bidAmount, setBidAmount] = useState("");
-    const [activeTab, setActiveTab] = useState<"description" | "qna">(
-        "description"
-    );
+    const [activeTab, setActiveTab] = useState<
+        "description" | "history" | "qna"
+    >("description");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBidLoading, setIsBidLoading] = useState(false);
+<<<<<<< HEAD
     const [currentAutoBid, setCurrentAutoBid] = useState<{
         maxBid: number;
         currentBidPrice: number;
         isLeading: boolean;
     } | null>(null);
+=======
+    const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
+>>>>>>> main
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
@@ -429,6 +437,22 @@ export const ProductDetail: React.FC = () => {
                                 </span>
                             </div>
                         )}
+
+                        {/* Bidder Manager Button */}
+                        <button
+                            onClick={() => setIsBidderManagerOpen(true)}
+                            className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
+                        >
+                            Quản lý người đặt giá
+                        </button>
+
+                        {/* Bidder Manager Modal */}
+                        <BidderManagerModal
+                            isOpen={isBidderManagerOpen}
+                            onClose={() => setIsBidderManagerOpen(false)}
+                            productId={product.id}
+                            productName={product.name}
+                        />
                     </div>
                 </div>
 
@@ -445,6 +469,19 @@ export const ProductDetail: React.FC = () => {
                         >
                             Mô tả
                             {activeTab === "description" && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
+                            )}
+                        </button>
+                        <button
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                                activeTab === "history"
+                                    ? "text-yellow-600"
+                                    : "text-gray-600 hover:text-yellow-600"
+                            }`}
+                            onClick={() => setActiveTab("history")}
+                        >
+                            Lịch sử đấu giá
+                            {activeTab === "history" && (
                                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
                             )}
                         </button>
@@ -489,7 +526,7 @@ export const ProductDetail: React.FC = () => {
                                                         </p>
                                                         <span className="text-xs text-gray-400">
                                                             {formatDate(
-                                                                update.created_at.toISOString()
+                                                                update.created_at
                                                             )}
                                                         </span>
                                                     </div>
@@ -499,6 +536,13 @@ export const ProductDetail: React.FC = () => {
                                     )}
                             </div>
                         )}
+
+                        {activeTab === "history" && (
+                            <div className="animate-fade-in">
+                                <BidHistoryTable productId={product.id} />
+                            </div>
+                        )}
+
                         {activeTab === "qna" && (
                             <div className="animate-fade-in">
                                 <div className="-mt-8">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '../types';
 import { useDebounce } from './useDebounce';
 import { apiUrl } from "../config/api";
@@ -13,6 +13,8 @@ export const useProductFiltering = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [status, setStatus] = useState('active');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // --- 2. STATE DATA (Dữ liệu từ API) ---
   const [products, setProducts] = useState<Product[]>([]);
@@ -46,9 +48,11 @@ export const useProductFiltering = () => {
           params.append('search', debouncedSearch);
         }
 
-        if (activeCategory && activeCategory !== 'all') {
-          params.append('category', activeCategory);
+        if (activeCategory && activeCategory !== "all") {
+          params.append("category", activeCategory);
         }
+
+        if (status && status !== "all") params.append("status", status);
 
         const response = await fetch(`${API_URL}?${params.toString()}`);
         
@@ -92,12 +96,16 @@ export const useProductFiltering = () => {
       isCancelled = true;
     };
 
-  }, [activeCategory, debouncedSearch, sortOption, currentPage]); 
+  }, [activeCategory, debouncedSearch, sortOption, currentPage, status, refreshKey]); 
 
   // Reset về trang 1 khi thay đổi bộ lọc
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, debouncedSearch, sortOption]);
+  }, [activeCategory, debouncedSearch, sortOption, status]);
+
+  const refresh = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+  }, []);
 
   // --- 4. RETURN ---
   return {
@@ -106,15 +114,18 @@ export const useProductFiltering = () => {
     totalPages,
     isLoading,
     error,
-    
+
     activeCategory,
     searchQuery,
     sortOption,
     currentPage,
-    
+
     setActiveCategory,
     setSearchQuery,
     setSortOption,
     setCurrentPage,
+    status,
+    setStatus,
+    refresh,
   };
 };

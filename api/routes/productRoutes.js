@@ -59,5 +59,7 @@ router.post('/:productId/questions', authMiddleware, questionController.createQu
 // GET /api/products/:productId/questions 
 router.get('/:productId/questions', questionController.getQuestions);
 
+// DELETE /api/products/:id
+router.delete('/:id', productController.deleteProduct);
 
 module.exports = router;
