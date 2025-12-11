@@ -15,6 +15,7 @@ import ChangePassword from "./pages/ChangePassword";
 import { UserProvider } from "./context/UserContext";
 import { ProductDetail } from "./pages/ProductDetail/ProductDetail";
 import FavList from "./pages/FavList";
+import ManageUser from "./pages/Admin/ManageUser";
 
 interface PlaceholderPageProps {
     title: string;
@@ -98,6 +99,11 @@ function App() {
                         <Route
                             path={AUTH_ROUTES.FORGOT_PASSWORD}
                             element={<ForgotPasswordPage />}
+                        />
+                        {/* Admin */}
+                        <Route
+                            path="/admin/manage-user"
+                            element={<ManageUser />}
                         />
                         <Route
                             path="*"

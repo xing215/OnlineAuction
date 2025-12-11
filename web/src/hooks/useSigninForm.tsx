@@ -1,10 +1,14 @@
 import { useState, useRef } from "react";
 import { useUser } from "../context/useUser";
+import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState<{ email?: string; recaptcha?: string }>({});
+    const [errors, setErrors] = useState<{
+        email?: string;
+        recaptcha?: string;
+    }>({});
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -12,6 +16,7 @@ export const useLoginForm = () => {
     const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
     const { login } = useUser();
+    const navigate = useNavigate();
 
     const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
@@ -53,15 +58,22 @@ export const useLoginForm = () => {
                 }
             }
 
-            await login({
+            const user = await login({
                 email: formData.email,
                 password: formData.password,
                 ...(recaptchaToken && { recaptchaToken }),
             });
-            window.location.href = "/";
+
+            // Navigate based on user role
+            if (user?.role === "admin") {
+                navigate("/admin/manage-user");
+            } else {
+                navigate("/");
+            }
         } catch (err) {
             console.error("Login error:", err);
-            const message = err instanceof Error ? err.message : "Lỗi đăng nhập";
+            const message =
+                err instanceof Error ? err.message : "Lỗi đăng nhập";
             alert(message);
             // Reset reCAPTCHA on error
             recaptchaRef.current?.reset();
