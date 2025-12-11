@@ -3,15 +3,167 @@ const Product = require("../models/Product");
 const mongoose = require("mongoose");
 
 /**
- * Place a manual bid on a product
- * TODO: Auto-bid mechanism will be implemented later
+ * Auto-bidding helper functions
+ */
+
+/**
+ * Calculate new price based on proxy bidding rules
+ * Formula: New Price = Loser's Max Bid + Bid Step
+ * Constraint: New Price cannot exceed Winner's Max Bid
+ */
+function calculateNewPrice(winnerMaxBid, loserMaxBid, stepPrice) {
+    const calculatedPrice = loserMaxBid + stepPrice;
+    return Math.min(calculatedPrice, winnerMaxBid);
+}
+
+/**
+ * Compare two bidders and determine winner
+ * Returns: { winner, loser, newPrice }
+ */
+function compareAutoBids(bidderA, bidderB, stepPrice) {
+    const maxBidA = bidderA.maxBid;
+    const maxBidB = bidderB.maxBid;
+
+    // Case 1: A has higher max bid - A wins
+    if (maxBidA > maxBidB) {
+        return {
+            winner: bidderA,
+            loser: bidderB,
+            newPrice: calculateNewPrice(maxBidA, maxBidB, stepPrice)
+        };
+    }
+    
+    // Case 2: B has higher max bid - B wins
+    if (maxBidB > maxBidA) {
+        return {
+            winner: bidderB,
+            loser: bidderA,
+            newPrice: calculateNewPrice(maxBidB, maxBidA, stepPrice)
+        };
+    }
+    
+    // Case 3: Tie (Equal max bids) - First-come, first-served
+    // The bidder who placed their bid first wins
+    if (bidderA.timestamp < bidderB.timestamp) {
+        return {
+            winner: bidderA,
+            loser: bidderB,
+            newPrice: maxBidA // Price stays at the tied amount
+        };
+    } else {
+        return {
+            winner: bidderB,
+            loser: bidderA,
+            newPrice: maxBidB
+        };
+    }
+}
+
+/**
+ * Handle auto-bid placement logic
+ * This function orchestrates the entire auto-bidding process
+ */
+async function processAutoBid(productId, newBidder, product, session) {
+    const stepPrice = product.step_price;
+    
+    // Get current highest bid
+    const currentHighestBid = await Bid.findOne({ product: productId })
+        .sort({ price: -1 })
+        .session(session);
+
+    // Get current leader's auto-bid info (if exists)
+    let currentLeaderAutoBid = null;
+    if (currentHighestBid) {
+        currentLeaderAutoBid = await Bid.findOne({
+            product: productId,
+            user: currentHighestBid.user,
+            is_auto_bid: true
+        })
+        .sort({ created_at: -1 })
+        .session(session);
+    }
+
+    // Scenario 1: First bidder or no auto-bid competition
+    if (!currentHighestBid || !currentLeaderAutoBid || !currentLeaderAutoBid.maximum_bid_limit) {
+        const initialPrice = product.start_price + stepPrice;
+        const newPrice = Math.min(initialPrice, newBidder.maxBid);
+        
+        const newBid = new Bid({
+            product: productId,
+            user: newBidder.userId,
+            price: newPrice,
+            is_auto_bid: true,
+            maximum_bid_limit: newBidder.maxBid,
+            created_at: new Date()
+        });
+        
+        await newBid.save({ session });
+        return {
+            newPrice: newPrice,
+            winnerUserId: newBidder.userId,
+            isNewLeader: true
+        };
+    }
+
+    // Scenario 2: Self-update - Current leader increasing their max bid
+    if (currentHighestBid.user.toString() === newBidder.userId.toString()) {
+        // Update the maximum_bid_limit without changing current price
+        currentLeaderAutoBid.maximum_bid_limit = newBidder.maxBid;
+        await currentLeaderAutoBid.save({ session });
+        
+        return {
+            newPrice: currentHighestBid.price, // Price stays the same
+            winnerUserId: newBidder.userId,
+            isNewLeader: false,
+            isSelfUpdate: true
+        };
+    }
+
+    // Scenario 3: Competition between current leader and new challenger
+    const currentLeader = {
+        userId: currentHighestBid.user,
+        maxBid: currentLeaderAutoBid.maximum_bid_limit,
+        timestamp: currentLeaderAutoBid.created_at
+    };
+
+    const challenger = {
+        userId: newBidder.userId,
+        maxBid: newBidder.maxBid,
+        timestamp: new Date()
+    };
+
+    // Compare and determine winner
+    const result = compareAutoBids(currentLeader, challenger, stepPrice);
+    
+    // Create new bid record for the winner
+    const newBid = new Bid({
+        product: productId,
+        user: result.winner.userId,
+        price: result.newPrice,
+        is_auto_bid: true,
+        maximum_bid_limit: result.winner.maxBid,
+        created_at: new Date()
+    });
+    
+    await newBid.save({ session });
+    
+    return {
+        newPrice: result.newPrice,
+        winnerUserId: result.winner.userId,
+        isNewLeader: result.winner.userId.toString() === newBidder.userId.toString(),
+        loserMaxBid: result.loser.maxBid
+    };
+}
+
+/**
+ * Place a bid on a product (supports both manual and auto-bidding)
  */
 exports.placeBid = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const { productId, bidAmount, isAutoBid } = req.body;
+        const { productId, bidAmount, isAutoBid, maxBid } = req.body;
         const userId = req.user._id; // From JWT middleware
 
         // Validate input
@@ -20,6 +172,15 @@ exports.placeBid = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Product ID and bid amount are required",
+            });
+        }
+
+        // Validate auto-bid input
+        if (isAutoBid && (!maxBid || maxBid < bidAmount)) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                success: false,
+                message: "Maximum bid must be greater than or equal to current bid amount",
             });
         }
 
@@ -83,29 +244,64 @@ exports.placeBid = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({
                 success: false,
-                message: `Minimum bid is ${minimumBid.toLocaleString(
-                    "vi-VN"
-                )}đ`,
+                message: `Minimum bid is ${minimumBid.toLocaleString("vi-VN")}đ`,
             });
         }
 
-        // TODO: Auto-bid logic will be implemented here
-        // For now, only handle manual bids
+        let result;
+        let responseMessage = "Bid placed successfully";
 
-        // Create new bid
-        const newBid = new Bid({
-            product: productId,
-            user: userId,
-            price: bidAmountNum,
-            is_auto_bid: false, // Currently only manual
-            created_at: new Date(),
-        });
+        // Handle Auto-bid
+        if (isAutoBid) {
+            const maxBidNum = parseFloat(maxBid);
+            
+            // Validate max bid
+            if (isNaN(maxBidNum) || maxBidNum < minimumBid) {
+                await session.abortTransaction();
+                return res.status(400).json({
+                    success: false,
+                    message: `Maximum bid must be at least ${minimumBid.toLocaleString("vi-VN")}đ`,
+                });
+            }
 
-        await newBid.save({ session });
+            result = await processAutoBid(
+                productId,
+                { userId, maxBid: maxBidNum },
+                product,
+                session
+            );
+
+            // Update response message based on result
+            if (result.isSelfUpdate) {
+                responseMessage = "Your maximum bid has been updated successfully";
+            } else if (result.isNewLeader) {
+                responseMessage = "You are now the highest bidder!";
+            } else {
+                responseMessage = "Your bid has been placed, but you were outbid";
+            }
+        } 
+        // Handle Manual bid
+        else {
+            const newBid = new Bid({
+                product: productId,
+                user: userId,
+                price: bidAmountNum,
+                is_auto_bid: false,
+                created_at: new Date(),
+            });
+
+            await newBid.save({ session });
+
+            result = {
+                newPrice: bidAmountNum,
+                winnerUserId: userId,
+                isNewLeader: true
+            };
+        }
 
         // Update product bid count and current price
         product.bid_count = (product.bid_count || 0) + 1;
-        product.current_price = bidAmountNum; // Store current price in product
+        product.current_price = result.newPrice;
 
         // Auto-extend if within 5 minutes of end
         const timeRemaining = product.end_date - new Date();
@@ -125,11 +321,13 @@ exports.placeBid = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Bid placed successfully",
+            message: responseMessage,
             data: {
-                currentPrice: updatedHighestBid.price,
+                currentPrice: result.newPrice,
                 bidCount: product.bid_count,
                 highestBidder: updatedHighestBid.user.full_name,
+                isLeading: result.isNewLeader,
+                isAutoBid: isAutoBid || false
             },
         });
     } catch (error) {
@@ -237,6 +435,56 @@ exports.getCurrentBid = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Server error while fetching current bid",
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Get user's current auto-bid for a product
+ */
+exports.getMyAutoBid = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const userId = req.user._id;
+
+        // Get user's active auto-bid for this product
+        const userAutoBid = await Bid.findOne({
+            product: productId,
+            user: userId,
+            is_auto_bid: true,
+            maximum_bid_limit: { $ne: null }
+        })
+        .sort({ created_at: -1 });
+
+        if (!userAutoBid) {
+            return res.status(200).json({
+                success: true,
+                data: null,
+                message: "No active auto-bid found"
+            });
+        }
+
+        // Check if user is currently the highest bidder
+        const highestBid = await Bid.findOne({ product: productId })
+            .sort({ price: -1 });
+
+        const isLeading = highestBid && highestBid.user.toString() === userId.toString();
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                maxBid: userAutoBid.maximum_bid_limit,
+                currentBidPrice: userAutoBid.price,
+                isLeading: isLeading,
+                createdAt: userAutoBid.created_at
+            }
+        });
+    } catch (error) {
+        console.error("Get my auto-bid error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while fetching your auto-bid",
             error: error.message,
         });
     }

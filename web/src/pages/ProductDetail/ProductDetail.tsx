@@ -10,7 +10,7 @@ import { Gavel } from "lucide-react";
 import { ProductList, QnABox } from "../../components/Product";
 import { useUser } from "../../context/useUser";
 import { PlaceBidModal } from "../../components/ProductDetail";
-import { placeBid } from "../../hooks/usePlaceBid";
+import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
 
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -27,15 +27,20 @@ export const ProductDetail: React.FC = () => {
     );
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBidLoading, setIsBidLoading] = useState(false);
+    const [currentAutoBid, setCurrentAutoBid] = useState<{
+        maxBid: number;
+        currentBidPrice: number;
+        isLeading: boolean;
+    } | null>(null);
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
-    const handleBidConfirm = async (bidAmount: number) => {
+    const handleBidConfirm = async (bidAmount: number, isAutoBid?: boolean, maxBid?: number) => {
         if (!user || !token || !product) return;
 
         setIsBidLoading(true);
         try {
-            const response = await placeBid(product.id, bidAmount, token);
+            const response = await placeBid(product.id, bidAmount, token, isAutoBid || false, maxBid);
 
             // Update product data with new bid info
             if (response.data) {
@@ -51,9 +56,24 @@ export const ProductDetail: React.FC = () => {
                 setProduct(updatedProduct);
             }
 
-            // Close modal and show success
+            // Close modal and show success with appropriate message
             setIsModalOpen(false);
-            alert("Đặt giá thành công!");
+            const successMessage = response.data?.isLeading 
+                ? (isAutoBid ? "Đặt giá tự động thành công! Bạn đang dẫn đầu." : "Đặt giá thành công! Bạn đang dẫn đầu.")
+                : (isAutoBid ? "Đặt giá tự động thành công!" : "Đặt giá thành công!");
+            alert(successMessage);
+
+            // Refresh auto-bid data if it was an auto-bid
+            if (isAutoBid && maxBid) {
+                try {
+                    const autoBidResponse = await getMyAutoBid(product.id, token);
+                    if (autoBidResponse.data) {
+                        setCurrentAutoBid(autoBidResponse.data);
+                    }
+                } catch (error) {
+                    console.error("Error refreshing auto-bid:", error);
+                }
+            }
         } catch (error) {
             console.error("Bid error:", error);
             alert(
@@ -144,6 +164,27 @@ export const ProductDetail: React.FC = () => {
 
         loadAllData();
     }, [id]);
+
+    // Fetch user's auto-bid when modal opens
+    useEffect(() => {
+        const fetchAutoBid = async () => {
+            if (isModalOpen && user && token && product) {
+                try {
+                    const response = await getMyAutoBid(product.id, token);
+                    if (response.data) {
+                        setCurrentAutoBid(response.data);
+                    } else {
+                        setCurrentAutoBid(null);
+                    }
+                } catch (error) {
+                    console.error("Error fetching auto-bid:", error);
+                    setCurrentAutoBid(null);
+                }
+            }
+        };
+
+        fetchAutoBid();
+    }, [isModalOpen, user, token, product]);
 
     // Timer for countdown
     useEffect(() => {
@@ -376,6 +417,7 @@ export const ProductDetail: React.FC = () => {
                             stepPrice={product.step_price}
                             minimumBid={minimumBid}
                             isLoading={isBidLoading}
+                            currentAutoBid={currentAutoBid}
                         />
 
                         {/* Buy Now */}
