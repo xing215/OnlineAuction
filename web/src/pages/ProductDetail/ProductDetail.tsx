@@ -11,6 +11,7 @@ import { ProductList, QnABox } from "../../components/Product";
 import { useUser } from "../../context/useUser";
 import { PlaceBidModal } from "../../components/ProductDetail";
 import { placeBid } from "../../hooks/usePlaceBid";
+import { BidHistoryTable } from "../../components/ProductDetail/History";
 
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -22,9 +23,9 @@ export const ProductDetail: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     //const [bidAmount, setBidAmount] = useState("");
-    const [activeTab, setActiveTab] = useState<"description" | "qna">(
-        "description"
-    );
+    const [activeTab, setActiveTab] = useState<
+        "description" | "history" | "qna"
+    >("description");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBidLoading, setIsBidLoading] = useState(false);
     const { user, token } = useUser();
@@ -408,6 +409,19 @@ export const ProductDetail: React.FC = () => {
                         </button>
                         <button
                             className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                                activeTab === "history"
+                                    ? "text-yellow-600"
+                                    : "text-gray-600 hover:text-yellow-600"
+                            }`}
+                            onClick={() => setActiveTab("history")}
+                        >
+                            Lịch sử đấu giá
+                            {activeTab === "history" && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
+                            )}
+                        </button>
+                        <button
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
                                 activeTab === "qna"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"
@@ -447,7 +461,7 @@ export const ProductDetail: React.FC = () => {
                                                         </p>
                                                         <span className="text-xs text-gray-400">
                                                             {formatDate(
-                                                                update.created_at.toISOString()
+                                                                update.created_at
                                                             )}
                                                         </span>
                                                     </div>
@@ -457,6 +471,13 @@ export const ProductDetail: React.FC = () => {
                                     )}
                             </div>
                         )}
+
+                        {activeTab === "history" && (
+                            <div className="animate-fade-in">
+                                <BidHistoryTable productId={product.id} />
+                            </div>
+                        )}
+
                         {activeTab === "qna" && (
                             <div className="animate-fade-in">
                                 <div className="-mt-8">
