@@ -28,7 +28,7 @@ const ProductSchema = new Schema({
     buy_now_price: { type: Number, default: null }, 
     
     current_price: { type: Number, default: 0 }, 
-    // current_bidder: { type: Schema.Types.ObjectId, ref: 'User', default: null }, 
+    current_bidder: { type: Schema.Types.ObjectId, ref: 'User', default: null }, 
     bid_count: { type: Number, default: 0 }, 
 
     posted_at: { type: Date, default: Date.now }, 
