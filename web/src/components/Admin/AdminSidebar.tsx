@@ -36,14 +36,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             path: "/admin/manage-category",
             icon: "",
             isActive: currentPath === "/admin/manage-category",
-            isComingSoon: true,
         },
         {
             label: "Quản lý Sản phẩm",
             path: "/admin/manage-product",
             icon: "",
             isActive: currentPath === "/admin/manage-product",
-            isComingSoon: true,
         },
         {
             label: "Yêu cầu nâng cấp",
