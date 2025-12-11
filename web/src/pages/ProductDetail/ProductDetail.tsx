@@ -31,15 +31,12 @@ export const ProductDetail: React.FC = () => {
     >("description");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBidLoading, setIsBidLoading] = useState(false);
-<<<<<<< HEAD
     const [currentAutoBid, setCurrentAutoBid] = useState<{
         maxBid: number;
         currentBidPrice: number;
         isLeading: boolean;
     } | null>(null);
-=======
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
->>>>>>> main
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
