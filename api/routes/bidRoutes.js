@@ -12,4 +12,7 @@ router.get("/product/:productId", bidController.getBidHistory);
 // GET /api/bids/product/:productId/current - Get current bid info
 router.get("/product/:productId/current", bidController.getCurrentBid);
 
+// GET /api/bids/product/:productId/my-auto-bid - Get user's auto-bid for this product
+router.get("/product/:productId/my-auto-bid", authMiddleware, bidController.getMyAutoBid);
+
 module.exports = router;
