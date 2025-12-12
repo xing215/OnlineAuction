@@ -9,60 +9,102 @@ import { getTimeRemaining } from "../../utilities";
 import { Gavel } from "lucide-react";
 import { ProductList, QnABox } from "../../components/Product";
 import { useUser } from "../../context/useUser";
-import { PlaceBidModal } from "../../components/ProductDetail";
-import { placeBid } from "../../hooks/usePlaceBid";
+import {
+    PlaceBidModal,
+    BidderManagerModal,
+} from "../../components/ProductDetail";
+import { BannedBidderModal } from "../../components/ProductDetail/BannedBidderModal";
+import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
+import { BidHistoryTable } from "../../components/ProductDetail/History";
 
 export const ProductDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [seller, setSeller] = useState<User | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  //const [bidAmount, setBidAmount] = useState("");
-  const [activeTab, setActiveTab] = useState<"description" | "qna">(
-    "description"
-  );
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isBidLoading, setIsBidLoading] = useState(false);
-  const { user, token } = useUser();
-  const [, setTick] = useState(0);
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const [product, setProduct] = useState<Product | null>(null);
+    const [seller, setSeller] = useState<User | null>(null);
+    const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    //const [bidAmount, setBidAmount] = useState("");
+    const [activeTab, setActiveTab] = useState<
+        "description" | "history" | "qna"
+    >("description");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isBidLoading, setIsBidLoading] = useState(false);
+    const [currentAutoBid, setCurrentAutoBid] = useState<{
+        maxBid: number;
+        currentBidPrice: number;
+        isLeading: boolean;
+    } | null>(null);
+    const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
+    const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
+    const { user, token } = useUser();
+    const [, setTick] = useState(0);
 
-  const handleBidConfirm = async (bidAmount: number) => {
-    if (!user || !token || !product) return;
+    const handleBidConfirm = async (bidAmount: number, isAutoBid?: boolean, maxBid?: number) => {
+        if (!user || !token || !product) return;
 
-    setIsBidLoading(true);
-    try {
-      const response = await placeBid(product.id, bidAmount, token);
+        setIsBidLoading(true);
+        try {
+            const response = await placeBid(product.id, bidAmount, token, isAutoBid || false, maxBid);
 
-      // Update product data with new bid info
-      if (response.data) {
-        const updatedProduct = {
-          ...product,
-          current_price: response.data.currentPrice ?? product.current_price,
-          bid_count: response.data.bidCount ?? product.bid_count,
-          highest_bidder_name:
-            response.data.highestBidder ?? product.highest_bidder_name,
-        };
-        setProduct(updatedProduct);
-      }
+            // Update product data with new bid info
+            if (response.data) {
+                const updatedProduct = {
+                    ...product,
+                    current_price:
+                        response.data.currentPrice ?? product.current_price,
+                    bid_count: response.data.bidCount ?? product.bid_count,
+                    highest_bidder_name:
+                        response.data.highestBidder ??
+                        product.highest_bidder_name,
+                    end_date: response.data.endDate 
+                        ? new Date(response.data.endDate) 
+                        : product.end_date,
+                };
+                setProduct(updatedProduct);
+            }
 
-      // Close modal and show success
-      setIsModalOpen(false);
-      alert("Đặt giá thành công!");
-    } catch (error) {
-      console.error("Bid error:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Đặt giá thất bại. Vui lòng thử lại."
-      );
-    } finally {
-      setIsBidLoading(false);
-    }
-  };
+            // Close modal and show success with appropriate message
+            setIsModalOpen(false);
+            const successMessage = response.data?.isLeading 
+                ? (isAutoBid ? "Đặt giá tự động thành công! Bạn đang dẫn đầu." : "Đặt giá thành công! Bạn đang dẫn đầu.")
+                : (isAutoBid ? "Đặt giá tự động thành công!" : "Đặt giá thành công!");
+            alert(successMessage);
+
+            // Refresh auto-bid data if it was an auto-bid
+            if (isAutoBid && maxBid) {
+                try {
+                    const autoBidResponse = await getMyAutoBid(product.id, token);
+                    if (autoBidResponse.data) {
+                        setCurrentAutoBid(autoBidResponse.data);
+                    }
+                } catch (error) {
+                    console.error("Error refreshing auto-bid:", error);
+                }
+            }
+        } catch (error) {
+            console.error("Bid error:", error);
+            
+            // Check if user is banned
+            if (
+                error instanceof Error &&
+                error.message.includes("banned")
+            ) {
+                setIsModalOpen(false);
+                setIsBannedModalOpen(true);
+            } else {
+                alert(
+                    error instanceof Error
+                        ? error.message
+                        : "Đặt giá thất bại. Vui lòng thử lại."
+                );
+            }
+        } finally {
+            setIsBidLoading(false);
+        }
+    };
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -127,8 +169,29 @@ export const ProductDetail: React.FC = () => {
       }
     };
 
-    loadAllData();
-  }, [id]);
+        loadAllData();
+    }, [id]);
+
+    // Fetch user's auto-bid when modal opens
+    useEffect(() => {
+        const fetchAutoBid = async () => {
+            if (isModalOpen && user && token && product) {
+                try {
+                    const response = await getMyAutoBid(product.id, token);
+                    if (response.data) {
+                        setCurrentAutoBid(response.data);
+                    } else {
+                        setCurrentAutoBid(null);
+                    }
+                } catch (error) {
+                    console.error("Error fetching auto-bid:", error);
+                    setCurrentAutoBid(null);
+                }
+            }
+        };
+
+        fetchAutoBid();
+    }, [isModalOpen, user, token, product]);
 
   // Timer for countdown
   useEffect(() => {
@@ -340,106 +403,160 @@ export const ProductDetail: React.FC = () => {
               </button>
             </div>
 
-            {/* Place Bid Modal */}
-            <PlaceBidModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              onConfirm={handleBidConfirm}
-              currentPrice={currentPrice}
-              stepPrice={product.step_price}
-              minimumBid={minimumBid}
-              isLoading={isBidLoading}
-            />
+                        {/* Place Bid Modal */}
+                        <PlaceBidModal
+                            isOpen={isModalOpen}
+                            onClose={() => setIsModalOpen(false)}
+                            onConfirm={handleBidConfirm}
+                            currentPrice={currentPrice}
+                            stepPrice={product.step_price}
+                            minimumBid={minimumBid}
+                            isLoading={isBidLoading}
+                            currentAutoBid={currentAutoBid}
+                        />
 
-            {/* Buy Now */}
-            {product.buy_now_price && (
-              <div className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg">
-                <span>Mua ngay</span>
-                <span className="text-2xl">
-                  {formatCurrency(product.buy_now_price)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+                        {/* Buy Now */}
+                        {product.buy_now_price && (
+                            <div className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg">
+                                <span>Mua ngay</span>
+                                <span className="text-2xl">
+                                    {formatCurrency(product.buy_now_price)}
+                                </span>
+                            </div>
+                        )}
 
-        {/* Tabs Section */}
-        <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
-          <div className="flex border-b border-gray-200">
-            <button
-              className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
-                activeTab === "description"
-                  ? "text-yellow-600"
-                  : "text-gray-600 hover:text-yellow-600"
-              }`}
-              onClick={() => setActiveTab("description")}
-            >
-              Mô tả
-              {activeTab === "description" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
-              )}
-            </button>
-            <button
-              className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
-                activeTab === "qna"
-                  ? "text-yellow-600"
-                  : "text-gray-600 hover:text-yellow-600"
-              }`}
-              onClick={() => setActiveTab("qna")}
-            >
-              Hỏi đáp
-              {activeTab === "qna" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
-              )}
-            </button>
-          </div>
-          <div className="p-5">
-            {activeTab === "description" && (
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                  Thông tin chi tiết
-                </h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  {product.description || "Chưa có mô tả chi tiết."}
-                </p>
-                {product.description_updates &&
-                  product.description_updates.length > 0 && (
-                    <div className="mt-5 pt-5 border-t border-gray-200">
-                      <h4 className="text-base font-semibold mb-4 text-gray-800">
-                        Cập nhật mô tả:
-                      </h4>
-                      {product.description_updates.map((update, index) => (
-                        <div
-                          key={index}
-                          className="mb-4 p-2 bg-gray-50 rounded"
-                        >
-                          <p className="mb-1 text-gray-700">{update.content}</p>
-                          <span className="text-xs text-gray-400">
-                            {formatDate(update.created_at)}
-                          </span>
-                        </div>
-                      ))}
+                        {/* Bidder Manager Button - Only show for product owner */}
+                        {user && seller && user.id === seller.id && (
+                            <button
+                                onClick={() => setIsBidderManagerOpen(true)}
+                                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
+                            >
+                                Quản lý người đặt giá
+                            </button>
+                        )}
+
+                        {/* Bidder Manager Modal */}
+                        <BidderManagerModal
+                            isOpen={isBidderManagerOpen}
+                            onClose={() => setIsBidderManagerOpen(false)}
+                            productId={product.id}
+                            productName={product.name}
+                        />
+
+                        {/* Banned Bidder Modal */}
+                        <BannedBidderModal
+                            isOpen={isBannedModalOpen}
+                            onClose={() => setIsBannedModalOpen(false)}
+                            productName={product.name}
+                        />
                     </div>
-                  )}
-              </div>
-            )}
-            {activeTab === "qna" && (
-              <div className="animate-fade-in">
-                <div className="-mt-8">
-                  <QnABox
-                    productId={product.id}
-                    sellerId={
-                      typeof product.seller === "object"
-                        ? (product.seller as any)?._id ||
-                          (product.seller as any)?.id
-                        : product.seller
-                    }
-                  />
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
+
+                {/* Tabs Section */}
+                <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+                    <div className="flex border-b border-gray-200">
+                        <button
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                                activeTab === "description"
+                                    ? "text-yellow-600"
+                                    : "text-gray-600 hover:text-yellow-600"
+                            }`}
+                            onClick={() => setActiveTab("description")}
+                        >
+                            Mô tả
+                            {activeTab === "description" && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
+                            )}
+                        </button>
+                        <button
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                                activeTab === "history"
+                                    ? "text-yellow-600"
+                                    : "text-gray-600 hover:text-yellow-600"
+                            }`}
+                            onClick={() => setActiveTab("history")}
+                        >
+                            Lịch sử đấu giá
+                            {activeTab === "history" && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
+                            )}
+                        </button>
+                        <button
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                                activeTab === "qna"
+                                    ? "text-yellow-600"
+                                    : "text-gray-600 hover:text-yellow-600"
+                            }`}
+                            onClick={() => setActiveTab("qna")}
+                        >
+                            Hỏi đáp
+                            {activeTab === "qna" && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600"></span>
+                            )}
+                        </button>
+                    </div>
+                    <div className="p-5">
+                        {activeTab === "description" && (
+                            <div>
+                                <h3 className="text-xl font-semibold mb-4 text-gray-800">
+                                    Thông tin chi tiết
+                                </h3>
+                                <p className="text-gray-600 leading-relaxed mb-4">
+                                    {product.description ||
+                                        "Chưa có mô tả chi tiết."}
+                                </p>
+                                {product.description_updates &&
+                                    product.description_updates.length > 0 && (
+                                        <div className="mt-5 pt-5 border-t border-gray-200">
+                                            <h4 className="text-base font-semibold mb-4 text-gray-800">
+                                                Cập nhật mô tả:
+                                            </h4>
+                                            {product.description_updates.map(
+                                                (update, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="mb-4 p-2 bg-gray-50 rounded"
+                                                    >
+                                                        <p className="mb-1 text-gray-700">
+                                                            {update.content}
+                                                        </p>
+                                                        <span className="text-xs text-gray-400">
+                                                            {formatDate(
+                                                                update.created_at
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
+                            </div>
+                        )}
+
+                        {activeTab === "history" && (
+                            <div className="animate-fade-in">
+                                <BidHistoryTable productId={product.id} />
+                            </div>
+                        )}
+
+                        {activeTab === "qna" && (
+                            <div className="animate-fade-in">
+                                <div className="-mt-8">
+                                    <QnABox
+                                        productId={product.id}
+                                        sellerId={
+                                            typeof product.seller === "object"
+                                                ? (product.seller as any)
+                                                      ?._id ||
+                                                  (product.seller as any)?.id
+                                                : product.seller
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
         {/* Related Products */}
         <ProductList

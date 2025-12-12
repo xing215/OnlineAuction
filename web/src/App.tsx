@@ -15,6 +15,10 @@ import ChangePassword from "./pages/ChangePassword";
 import { UserProvider } from "./context/UserContext";
 import { ProductDetail } from "./pages/ProductDetail/ProductDetail";
 import FavList from "./pages/FavList";
+import ManageUser from "./pages/Admin/ManageUser";
+import CategoryManagement from "./pages/Admin/CategoryManagement";
+import ProductManagement from "./pages/Admin/ProductManagement";
+import UpgradeRequests from "./pages/Admin/UpgradeRequest";
 
 interface PlaceholderPageProps {
     title: string;
@@ -98,6 +102,23 @@ function App() {
                         <Route
                             path={AUTH_ROUTES.FORGOT_PASSWORD}
                             element={<ForgotPasswordPage />}
+                        />
+                        {/* Admin */}
+                        <Route
+                            path="/admin/manage-user"
+                            element={<ManageUser />}
+                        />
+                        <Route
+                            path="/admin/manage-category"
+                            element={<CategoryManagement />}
+                        />
+                        <Route
+                            path="/admin/manage-product"
+                            element={<ProductManagement />}
+                        />
+                        <Route
+                            path="/admin/upgrade-requests"
+                            element={<UpgradeRequests />}
                         />
                         <Route
                             path="*"
