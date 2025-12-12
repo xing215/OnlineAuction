@@ -59,6 +59,12 @@ router.post('/:productId/questions', authMiddleware, questionController.createQu
 // GET /api/products/:productId/questions 
 router.get('/:productId/questions', questionController.getQuestions);
 
+// PUT /api/products/:productId/description - update product description
+router.put('/:productId/description', authMiddleware, productController.updateProductDescription);
+
+// PUT /api/products/:productId/description - update product description
+router.put('/:productId/description', authMiddleware, productController.updateProductDescription);
+
 // POST /api/products/ban-bidder - ban a bidder from a product
 router.post('/ban-bidder', productController.banBidder);
 

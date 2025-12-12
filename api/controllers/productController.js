@@ -497,3 +497,32 @@ exports.getBannedList = async (req, res) => {
         });
     }   
 };
+
+// Update product description
+exports.updateProductDescription = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const { newDescription } = req.body;
+
+        if (!newDescription || newDescription.trim() === "") {
+            return res
+                .status(400)
+                .json({ success: false, message: "New description is required" });
+        }
+
+        const updatedProduct = await Product.updateProductDescription(
+            productId,
+            newDescription.trim()
+        );
+
+        res.json({ success: true, data: updatedProduct });
+    } catch (error) {
+        console.error("Error in updateProductDescription:", error);
+        if (error.message === "Product not found") {
+            return res
+                .status(404)
+                .json({ success: false, message: "Product not found" });
+        }
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
