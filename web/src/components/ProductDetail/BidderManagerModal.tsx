@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
+import { useUser } from "../../context/useUser";
 
 interface Bidder {
     _id: string;
@@ -31,10 +32,12 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
     const [bidders, setBidders] = useState<Bidder[]>([]);
     const [loading, setLoading] = useState(false);
     const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
+    const { token } = useUser();
 
     useEffect(() => {
         if (isOpen && productId) {
             fetchBidders();
+            fetchBannedList();
         }
     }, [isOpen, productId]);
 
@@ -59,18 +62,97 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
         }
     };
 
-    const handleBanBidder = (userId: string) => {
+    const fetchBannedList = async () => {
+        try {
+            const res = await fetch(apiUrl(`/api/products/banned/${productId}`));
+            if (res.ok) {
+                const data = await res.json();
+                setBannedUsers(new Set(data.data || []));
+            }
+        } catch (e) {
+            console.error("Failed to load banned list:", e);
+        }
+    };
+
+    const handleBanBidder = async (userId: string) => {
         const newBanned = new Set(bannedUsers);
         newBanned.add(userId);
         setBannedUsers(newBanned);
-        // TODO: Make API call to ban user
+        
+        try {
+            const response = await fetch(apiUrl("/api/products/ban-bidder"), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    productId,
+                    userId,
+                }),
+            });
+
+            if (!response.ok) {
+                // rollback if API fail
+                const rollback = new Set(bannedUsers);
+                rollback.delete(userId);
+                setBannedUsers(rollback);
+
+                const data = await response.json();
+                alert(data.message || "Cannot ban user");
+            } else {
+            await fetchBannedList(); 
+        }
+        } catch (error) {
+        // rollback
+        const rollback = new Set(bannedUsers);
+        rollback.delete(userId);
+        setBannedUsers(rollback);
+
+        alert("An error occurred while banning the user");
+    }
     };
 
-    const handleUnbanBidder = (userId: string) => {
+    const handleUnbanBidder = async (userId: string) => {
         const newBanned = new Set(bannedUsers);
         newBanned.delete(userId);
         setBannedUsers(newBanned);
-        // TODO: Make API call to unban user
+
+        try {
+            const response = await fetch(
+                apiUrl("/api/products/unban-bidder"),
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        userId,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+            // rollback
+            const rollback = new Set(bannedUsers);
+            rollback.add(userId);
+            setBannedUsers(rollback);
+
+            const data = await response.json();
+            alert(data.message || "Cannot unban user");
+        } else {
+            await fetchBannedList(); 
+        }
+    } catch (error) {
+        // rollback
+        const rollback = new Set(bannedUsers);
+        rollback.add(userId);
+        setBannedUsers(rollback);
+
+        alert("An error occurred while unbanning the user");
+    }
     };
 
     const formatTime = (dateString: string) => {
