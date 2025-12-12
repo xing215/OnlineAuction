@@ -19,6 +19,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const bidRoutes = require("./routes/bidRoutes");
 const userRoutes = require("./routes/userRoutes");
+const upgradeRoutes = require("./routes/upgradeRoutes");
 
 // Middleware
 app.use(express.json());
@@ -57,6 +58,9 @@ app.use("/api/bids", bidRoutes);
 
 // User routes
 app.use("/api/users", userRoutes);
+
+// Use upgrade request
+app.use("/api/upgrade", upgradeRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
