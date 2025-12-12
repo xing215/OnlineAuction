@@ -3,7 +3,9 @@ import ProfileHeader from "../components/Profile/ProfileHeader";
 import ProfileTabs from "../components/Profile/ProfileTabs";
 import ProfileForm from "../components/Profile/ProfileForm";
 import { ProductCard } from "../components/Product/ProductCard"; // Đảm bảo đường dẫn đúng tới file bạn gửi
+import UpgradeRequestButton from "../components/Profile/UpgradeRequestButton";
 import type { Product } from "../types/index";
+import { useUser } from "../context/useUser";
 
 interface ProductGridProps {
     products: Product[];
@@ -14,6 +16,7 @@ interface ProductGridProps {
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("info");
+    const { user } = useUser();
 
     // Mock data: Sản phẩm đang đấu giá (end_date ở tương lai)
     // Dựa trên cấu trúc từ ProductCard.example.tsx
@@ -129,6 +132,7 @@ export default function ProfilePage() {
                 <h1 className="text-2xl font-medium text-gray-700 mb-6">
                     Hồ sơ người dùng
                 </h1>
+                <UpgradeRequestButton userRole={user?.role} />
                 <ProfileHeader />
                 {/* Truyền state xuống Tabs */}
                 <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
