@@ -35,10 +35,14 @@ export const UpgradeRequest: React.FC = () => {
     const { token } = useUser();
 
     useEffect(() => {
-        fetchRequests();
+        if (token) {
+            fetchRequests();
+        }
     }, [token, filterStatus]);
 
     const fetchRequests = async () => {
+        if (!token) return;
+
         setLoading(true);
         try {
             const params = new URLSearchParams();
