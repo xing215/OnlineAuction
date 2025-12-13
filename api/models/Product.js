@@ -134,4 +134,18 @@ ProductSchema.statics.getSellerById = function(sellerId) {
     return this.model('User').findById(sellerId);
 };
 
+// Update product description
+ProductSchema.statics.updateProductDescription = async function(productId, newDescription) {
+    const product = await this.findById(productId);
+    if (!product) {
+        throw new Error('Product not found');
+    }
+
+    product.description_updates.push({ 
+        content: newDescription,
+        created_at: new Date()
+    });
+    return product.save();
+};
+
 module.exports = mongoose.model('Product', ProductSchema);

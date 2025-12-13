@@ -5,11 +5,16 @@ import { formatCurrency } from "../../utilities";
 interface PlaceBidModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (bidAmount: number) => void;
+    onConfirm: (bidAmount: number, isAutoBid?: boolean, maxBid?: number) => void;
     currentPrice: number;
     stepPrice: number;
     minimumBid: number;
     isLoading?: boolean;
+    currentAutoBid?: {
+        maxBid: number;
+        currentBidPrice: number;
+        isLeading: boolean;
+    } | null;
 }
 
 export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
@@ -20,15 +25,34 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
     stepPrice,
     minimumBid,
     isLoading = false,
+    currentAutoBid,
 }) => {
     const [bidAmount, setBidAmount] = useState("");
-    const [bidMode, setBidMode] = useState<"manual" | "auto">("manual"); // TODO: auto-bid will be implemented later
+    const [maxBidAmount, setMaxBidAmount] = useState("");
+    const [bidMode, setBidMode] = useState<"manual" | "auto">("manual");
     const [error, setError] = useState("");
 
+    // Pre-fill max bid if user has an active auto-bid
+    React.useEffect(() => {
+        if (isOpen && currentAutoBid?.maxBid) {
+            setBidMode("auto");
+            setMaxBidAmount(currentAutoBid.maxBid.toString());
+        } else {
+            setBidAmount("");
+            setMaxBidAmount("");
+            setError("");
+        }
+    }, [isOpen, currentAutoBid]);
+
     const handleBidAmountChange = (value: string) => {
-        // Only allow numbers and decimal point
         const numericValue = value.replace(/[^0-9]/g, "");
         setBidAmount(numericValue);
+        setError("");
+    };
+
+    const handleMaxBidAmountChange = (value: string) => {
+        const numericValue = value.replace(/[^0-9]/g, "");
+        setMaxBidAmount(numericValue);
         setError("");
     };
 
@@ -59,7 +83,33 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
             return;
         }
 
-        onConfirm(bidAmountNum);
+        if (bidMode === "auto") {
+            if (!maxBidAmount) {
+                setError("Vui lòng nhập giá tối đa cho đặt giá tự động");
+                return;
+            }
+
+            const maxBidAmountNum = parseFloat(maxBidAmount);
+
+            if (isNaN(maxBidAmountNum)) {
+                setError("Vui lòng nhập giá tối đa hợp lệ");
+                return;
+            }
+
+            if (maxBidAmountNum < bidAmountNum) {
+                setError("Giá tối đa phải lớn hơn hoặc bằng giá đặt hiện tại");
+                return;
+            }
+
+            if (maxBidAmountNum < minimumBid) {
+                setError(`Giá tối đa phải ít nhất là ${formatCurrency(minimumBid)}`);
+                return;
+            }
+
+            onConfirm(bidAmountNum, true, maxBidAmountNum);
+        } else {
+            onConfirm(bidAmountNum, false);
+        }
     };
 
     if (!isOpen) return null;
@@ -88,6 +138,24 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
 
                 {/* Bid Mode Selection */}
                 <div className="mb-6 space-y-3">
+                    {currentAutoBid && (
+                        <div className="mb-3 rounded-lg bg-green-50 p-3 text-sm">
+                            <p className="font-medium text-green-700 mb-1">
+                                ✓ Bạn đang có đặt giá tự động
+                            </p>
+                            <p className="text-green-600">
+                                Giá tối đa hiện tại:{" "}
+                                <span className="font-semibold">
+                                    {formatCurrency(currentAutoBid.maxBid)}
+                                </span>
+                            </p>
+                            {currentAutoBid.isLeading && (
+                                <p className="text-green-600 text-xs mt-1">
+                                    🏆 Bạn đang dẫn đầu
+                                </p>
+                            )}
+                        </div>
+                    )}
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="radio"
@@ -105,24 +173,40 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
                             </span>
                         </span>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer opacity-50">
+                    <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="radio"
                             name="bidMode"
                             value="auto"
-                            disabled
+                            checked={bidMode === "auto"}
+                            onChange={(e) =>
+                                setBidMode(e.target.value as "manual" | "auto")
+                            }
                             className="w-4 h-4 accent-[#d5ad41]"
                         />
                         <span className="flex items-center gap-2">
                             <span className="text-sm font-medium text-gray-700">
-                                Đặt giá tự động (Sắp cập nhật)
+                                {currentAutoBid ? "Cập nhật đặt giá tự động" : "Đặt giá tự động"}
                             </span>
                         </span>
                     </label>
+                    {bidMode === "auto" && (
+                        <div className="ml-7 mt-2 text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+                            <p className="font-medium text-blue-700 mb-1">💡 Đặt giá tự động hoạt động như thế nào?</p>
+                            <ul className="space-y-1 list-disc list-inside">
+                                <li>Hệ thống sẽ tự động đặt giá thay bạn cho đến khi đạt giá tối đa</li>
+                                <li>Bạn sẽ luôn ở vị trí cao nhất với giá thấp nhất có thể</li>
+                                <li>Giá tối đa của bạn sẽ được giữ bí mật</li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
                 {/* Price Input */}
                 <div className="mb-4">
+                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                        {bidMode === "auto" ? "Giá đặt ban đầu" : "Số tiền đặt giá"}
+                    </label>
                     <input
                         type="text"
                         inputMode="numeric"
@@ -132,6 +216,31 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
                         className="w-full rounded-2xl border-[1.5px] border-[#d5ad41] bg-neutral-50 px-5 py-3 text-base font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d5ad41] focus:ring-opacity-50 transition-all"
                     />
                 </div>
+
+                {/* Max Bid Input - Only for Auto-Bid */}
+                {bidMode === "auto" && (
+                    <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                            Giá tối đa bạn muốn trả
+                        </label>
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            value={maxBidAmount}
+                            onChange={(e) => handleMaxBidAmountChange(e.target.value)}
+                            placeholder="Nhập giá tối đa..."
+                            className="w-full rounded-2xl border-[1.5px] border-[#d5ad41] bg-neutral-50 px-5 py-3 text-base font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#d5ad41] focus:ring-opacity-50 transition-all"
+                        />
+                        {maxBidAmount && (
+                            <p className="mt-2 text-sm text-gray-600">
+                                Giá tối đa:{" "}
+                                <span className="font-semibold text-[#d5ad41]">
+                                    {formatCurrency(parseFloat(maxBidAmount) || 0)}
+                                </span>
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Formatted Price Display */}
                 {bidAmount && (
