@@ -12,6 +12,7 @@ interface UpgradeRequestItem {
         full_name: string;
         email: string;
     };
+    reason: string;
     status: "pending" | "approved" | "rejected";
     admin_note: string;
     createdAt: string;
@@ -35,19 +36,28 @@ export const UpgradeRequest: React.FC = () => {
 
     useEffect(() => {
         fetchRequests();
-    }, [token]);
+    }, [token, filterStatus]);
 
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const response = await fetch(apiUrl("/api/upgrade-requests"), {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const params = new URLSearchParams();
+            if (filterStatus !== "all") {
+                params.append("status", filterStatus);
+            }
+            params.append("limit", "100"); // Get more results
+
+            const response = await fetch(
+                apiUrl(`/api/upgrade/all?${params.toString()}`),
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
             if (response.ok) {
                 const data = await response.json();
-                setRequests(data.data || []);
+                setRequests(data.data?.requests || []);
             } else {
                 console.error("Failed to fetch requests:", response.statusText);
             }
@@ -105,55 +115,72 @@ export const UpgradeRequest: React.FC = () => {
         if (!selectedRequest) return;
         try {
             const response = await fetch(
-                apiUrl(`/api/upgrade-requests/${selectedRequest._id}/approve`),
+                apiUrl(`/api/upgrade/${selectedRequest._id}/approve`),
                 {
-                    method: "PUT",
+                    method: "PATCH",
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        admin_note: adminNote,
+                        admin_note: adminNote || "Yêu cầu đã được chấp nhận",
+                        expiry_days: 365,
                     }),
                 }
             );
 
             if (response.ok) {
+                alert("Đã chấp nhận yêu cầu nâng cấp!");
                 fetchRequests();
                 setIsModalOpen(false);
                 setSelectedRequest(null);
                 setAdminNote("");
+            } else {
+                const data = await response.json();
+                alert(data.message || "Không thể chấp nhận yêu cầu");
             }
         } catch (error) {
             console.error("Failed to approve request:", error);
+            alert("Lỗi kết nối. Vui lòng thử lại.");
         }
     };
 
     const handleReject = async () => {
         if (!selectedRequest) return;
+
+        if (!adminNote.trim()) {
+            alert("Vui lòng nhập lý do từ chối");
+            return;
+        }
+
         try {
             const response = await fetch(
-                apiUrl(`/api/upgrade-requests/${selectedRequest._id}/reject`),
+                apiUrl(`/api/upgrade/${selectedRequest._id}/reject`),
                 {
-                    method: "PUT",
+                    method: "PATCH",
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        admin_note: adminNote,
+                        admin_note: adminNote.trim(),
                     }),
                 }
             );
 
             if (response.ok) {
+                alert("Đã từ chối yêu cầu");
                 fetchRequests();
                 setIsModalOpen(false);
                 setSelectedRequest(null);
                 setAdminNote("");
+            } else {
+                const data = await response.json();
+                alert(data.message || "Không thể từ chối yêu cầu");
             }
         } catch (error) {
             console.error("Failed to reject request:", error);
+            alert("Lỗi kết nối. Vui lòng thử lại.");
         }
     };
 
@@ -312,9 +339,17 @@ export const UpgradeRequest: React.FC = () => {
                                                         )}
                                                     </span>
                                                 </p>
+                                                {request.reason && (
+                                                    <p>
+                                                        Lý do:{" "}
+                                                        <span className="font-medium text-gray-700">
+                                                            {request.reason}
+                                                        </span>
+                                                    </p>
+                                                )}
                                                 {request.admin_note && (
                                                     <p>
-                                                        Ghi chú:{" "}
+                                                        Ghi chú admin:{" "}
                                                         <span className="font-medium text-gray-700">
                                                             {request.admin_note}
                                                         </span>
@@ -346,7 +381,7 @@ export const UpgradeRequest: React.FC = () => {
                                                                 "approve"
                                                             )
                                                         }
-                                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors"
+                                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors whitespace-nowrap"
                                                     >
                                                         <Check className="w-4 h-4" />
                                                         <span>Chấp thuận</span>
@@ -358,7 +393,7 @@ export const UpgradeRequest: React.FC = () => {
                                                                 "reject"
                                                             )
                                                         }
-                                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors"
+                                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors whitespace-nowrap"
                                                     >
                                                         <X className="w-4 h-4" />
                                                         <span>Từ chối</span>
@@ -387,23 +422,43 @@ export const UpgradeRequest: React.FC = () => {
                                 <p className="text-sm md:text-base text-gray-700 font-medium mb-2">
                                     {selectedRequest.user.full_name}
                                 </p>
-                                <p className="text-xs md:text-sm text-gray-500">
+                                <p className="text-xs md:text-sm text-gray-500 mb-3">
                                     {selectedRequest.user.email}
                                 </p>
+                                {selectedRequest.reason && (
+                                    <div className="bg-gray-50 p-3 rounded-lg">
+                                        <p className="text-xs font-medium text-gray-600 mb-1">
+                                            Lý do của người dùng:
+                                        </p>
+                                        <p className="text-sm text-gray-800">
+                                            {selectedRequest.reason}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mb-6">
                                 <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                                     Ghi chú từ Admin
+                                    {modalAction === "reject" && (
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
+                                    )}
                                 </label>
                                 <textarea
                                     value={adminNote}
                                     onChange={(e) =>
                                         setAdminNote(e.target.value)
                                     }
-                                    placeholder="Nhập ghi chú (tùy chọn)..."
+                                    placeholder={
+                                        modalAction === "reject"
+                                            ? "Nhập lý do từ chối (bắt buộc)..."
+                                            : "Nhập ghi chú (tùy chọn)..."
+                                    }
                                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-yellow-500 focus:outline-none resize-none text-sm"
                                     rows={3}
+                                    required={modalAction === "reject"}
                                 />
                             </div>
 
@@ -420,7 +475,11 @@ export const UpgradeRequest: React.FC = () => {
                                             ? handleApprove
                                             : handleReject
                                     }
-                                    className={`flex-1 px-4 py-2 rounded-2xl text-white font-medium text-sm transition-colors ${
+                                    disabled={
+                                        modalAction === "reject" &&
+                                        !adminNote.trim()
+                                    }
+                                    className={`flex-1 px-4 py-2 rounded-2xl text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap ${
                                         modalAction === "approve"
                                             ? "bg-green-600 hover:bg-green-700"
                                             : "bg-red-600 hover:bg-red-700"
