@@ -64,7 +64,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const currentPrice = product.current_price ?? product.start_price;
     const buyNowPrice = product.buy_now_price ?? null;
     const bidCount = product.bid_count ?? 0;
-    const highestBidder = product.highest_bidder_name ?? "Chưa có";
+    const highestBidder = product.current_bidder ?? "Chưa có";
     const isAuctionEnded = endDate.getTime() <= Date.now();
     const statusLabel = isAuctionEnded ? "Đã kết thúc" : "Đang diễn ra";
     const timeRemaining = getTimeRemaining(endDate);

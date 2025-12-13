@@ -42,7 +42,7 @@ export default function ProfilePage() {
             updatedAt: new Date(),
             current_price: 3200,
             bid_count: 45,
-            highest_bidder_name: "pro_creator",
+            current_bidder: "pro_creator",
         },
         {
             id: "2",
@@ -65,7 +65,7 @@ export default function ProfilePage() {
             updatedAt: new Date(),
             current_price: 15750,
             bid_count: 23,
-            highest_bidder_name: "collector_vn",
+            current_bidder: "collector_vn",
         },
     ];
 
@@ -93,7 +93,7 @@ export default function ProfilePage() {
             updatedAt: new Date(),
             current_price: 500,
             bid_count: 12,
-            highest_bidder_name: "booklover",
+            current_bidder: "booklover",
         },
         {
             id: "4",
@@ -116,7 +116,7 @@ export default function ProfilePage() {
             updatedAt: new Date(),
             current_price: 12500,
             bid_count: 156,
-            highest_bidder_name: "musicfan",
+            current_bidder: "musicfan",
         },
     ];
 

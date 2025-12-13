@@ -22,7 +22,7 @@ export interface Product {
     time_remaining?: number; // virtual
     current_price?: number;
     bid_count?: number;
-    highest_bidder_name?: string;
+    current_bidder?: string; // ObjectId ref to User
 }
 
 export interface Bid {
@@ -53,7 +53,7 @@ export interface Category {
     product_count?: number;
 }
 export interface CategoryTreeNode extends Category {
-  children: CategoryTreeNode[];
+    children: CategoryTreeNode[];
 }
 
 export interface Feedback {
