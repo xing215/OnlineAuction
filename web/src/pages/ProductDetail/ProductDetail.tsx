@@ -410,8 +410,11 @@ export const ProductDetail: React.FC = () => {
                                         Người đặt giá cao nhất:
                                     </span>
                                     <span className="text-gray-800 font-medium">
-                                        {product.current_bidder ||
-                                            "Chưa có ai đặt giá"}
+                                        {typeof product.current_bidder ===
+                                            "object" &&
+                                        product.current_bidder?.full_name
+                                            ? product.current_bidder.full_name
+                                            : "Chưa có ai đặt giá"}
                                     </span>
                                     <span className="text-gray-600 ml-auto">
                                         {product.bid_count} lượt đặt giá

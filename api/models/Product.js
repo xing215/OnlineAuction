@@ -99,7 +99,8 @@ ProductSchema.statics.findTopExpiring = function (limit = 5) {
     })
         .sort({ end_date: 1 })
         .limit(limit)
-        .populate("category", "name");
+        .populate("category", "name")
+        .populate("current_bidder", "full_name");
 };
 
 // Lấy Top 5 sản phẩm nhiều lượt ra giá nhất
@@ -107,7 +108,8 @@ ProductSchema.statics.findTopBidding = function (limit = 5) {
     return this.find({ status: "active" })
         .sort({ bid_count: -1 })
         .limit(limit)
-        .populate("category", "name");
+        .populate("category", "name")
+        .populate("current_bidder", "full_name");
 };
 
 // Lấy Top 5 sản phẩm giá cao nhất
@@ -115,13 +117,15 @@ ProductSchema.statics.findTopPrice = function (limit = 5) {
     return this.find({ status: "active" })
         .sort({ current_price: -1 })
         .limit(limit)
-        .populate("category", "name");
+        .populate("category", "name")
+        .populate("current_bidder", "full_name");
 };
 // Lấy sản phẩm theo ID
 ProductSchema.statics.getProductById = function (productId) {
     return this.findById(productId)
         .populate("category", "name")
-        .populate("seller", "username email");
+        .populate("seller", "username email")
+        .populate("current_bidder", "full_name");
 };
 
 // Lấy đánh giá người bán theo user ID
@@ -140,7 +144,9 @@ ProductSchema.statics.getSellerRatingSummary = function (sellerId) {
 
 // Lấy sản phẩm theo danh mục
 ProductSchema.statics.getProductsByCategory = function (categoryId) {
-    return this.find({ category: categoryId }).populate("category", "name");
+    return this.find({ category: categoryId })
+        .populate("category", "name")
+        .populate("current_bidder", "full_name");
 };
 
 // Lấy tên người bán theo seller ID

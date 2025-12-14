@@ -210,6 +210,7 @@ exports.getProducts = async (req, res) => {
         const [products, totalDocs] = await Promise.all([
             Product.find(filter, projection)
                 .populate("category", "name")
+                .populate("current_bidder", "full_name")
                 .sort(sortOption)
                 .skip(skip)
                 .limit(limitNum),
@@ -321,7 +322,9 @@ exports.getProductsByCategory = async (req, res) => {
         const products = await Product.find({
             category: categoryId,
             status: "active",
-        }).populate("category", "name");
+        })
+            .populate("category", "name")
+            .populate("current_bidder", "full_name");
 
         res.json({ success: true, data: products });
     } catch (error) {
@@ -540,12 +543,10 @@ exports.updateProductDescription = async (req, res) => {
         const { newDescription } = req.body;
 
         if (!newDescription || newDescription.trim() === "") {
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "New description is required",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "New description is required",
+            });
         }
 
         const updatedProduct = await Product.updateProductDescription(
