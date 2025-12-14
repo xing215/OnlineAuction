@@ -22,7 +22,15 @@ export interface Product {
     time_remaining?: number; // virtual
     current_price?: number;
     bid_count?: number;
-    current_bidder?: string | { full_name: string }; // ObjectId ref to User or populated User object
+    current_bidder?:
+        | string
+        | {
+              full_name: string;
+              rating_summary?: {
+                  positive_count: number;
+                  negative_count: number;
+              };
+          }; // ObjectId ref to User or populated User object with rating
 }
 
 export interface Bid {

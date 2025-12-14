@@ -6,7 +6,7 @@ import { formatCurrency } from "../../utilities/FormatCurrency";
 import { formatDate } from "../../utilities/FormatDate";
 import { type User, type Product } from "../../types";
 import { getTimeRemaining } from "../../utilities";
-import { Gavel } from "lucide-react";
+import { Gavel, ThumbsUp, ThumbsDown } from "lucide-react";
 import { ProductList, QnABox } from "../../components/Product";
 import { useUser } from "../../context/useUser";
 import {
@@ -358,20 +358,37 @@ export const ProductDetail: React.FC = () => {
                             <h1 className="text-2xl font-semibold mb-2 text-gray-800">
                                 {product.name}
                             </h1>
-                            <div className="flex items-center gap-2 text-sm">
-                                <div className="flex gap-0.5">
+                            <div className="flex items-center gap-2 text-sm justify-between">
+                                <div className="flex gap-2">
                                     <span className="text-gray-600">
                                         Người bán:
                                     </span>
                                     <span className="text-yellow-600 font-medium">
                                         {seller?.full_name}
                                     </span>
+                                    <span className="flex items-center gap-1.5 text-xs ml-2">
+                                        <ThumbsUp
+                                            fill="#D5AD41"
+                                            strokeWidth={0.5}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-yellow-600 font-semibold">
+                                            {seller?.rating_summary
+                                                .positive_count || 0}
+                                        </span>
+                                        <ThumbsDown
+                                            fill="#45556c"
+                                            strokeWidth={0.5}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-slate-600 font-semibold">
+                                            {seller?.rating_summary
+                                                .negative_count || 0}
+                                        </span>
+                                    </span>
                                 </div>
-                                <span className="flex justify-center items-center text-orange-400">
-                                    <Star></Star>
-                                    {seller?.rating_percentage || 0}%
-                                </span>
-                                <div className="flex gap-0.5">
+
+                                <div className="flex gap-1">
                                     <span className="text-gray-600 hidden sm:inline">
                                         Ngày đăng:
                                     </span>
@@ -416,6 +433,33 @@ export const ProductDetail: React.FC = () => {
                                             ? product.current_bidder.full_name
                                             : "Chưa có ai đặt giá"}
                                     </span>
+                                    {typeof product.current_bidder ===
+                                        "object" &&
+                                        product.current_bidder
+                                            ?.rating_summary && (
+                                            <span className="flex items-center gap-1.5 text-xs ml-2">
+                                                <ThumbsUp
+                                                    fill="#D5AD41"
+                                                    strokeWidth={0.5}
+                                                    className="w-4 h-4"
+                                                />
+                                                <span className="text-yellow-600 font-semibold">
+                                                    {product.current_bidder
+                                                        .rating_summary
+                                                        .positive_count || 0}
+                                                </span>
+                                                <ThumbsDown
+                                                    fill="#45556c"
+                                                    strokeWidth={0.5}
+                                                    className="w-4 h-4"
+                                                />
+                                                <span className="text-slate-600 font-semibold">
+                                                    {product.current_bidder
+                                                        .rating_summary
+                                                        .negative_count || 0}
+                                                </span>
+                                            </span>
+                                        )}
                                     <span className="text-gray-600 ml-auto">
                                         {product.bid_count} lượt đặt giá
                                     </span>
