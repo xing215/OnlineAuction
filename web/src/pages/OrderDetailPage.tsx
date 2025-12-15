@@ -333,7 +333,7 @@ const OrderDetailPage: React.FC = () => {
           {error || "Không tìm thấy đơn hàng"}
         </div>
         <button
-          onClick={() => navigate("/user/orders")}
+          onClick={() => navigate("/order")}
           className="flex items-center gap-2 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100"
         >
           <ChevronLeft size={16} /> Quay lại danh sách
@@ -362,7 +362,7 @@ const OrderDetailPage: React.FC = () => {
         {/* 1. HEADER */}
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => navigate("/user/orders")}
+            onClick={() => navigate("/order")}
             className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition"
           >
             <ChevronLeft size={20} /> Quay lại
