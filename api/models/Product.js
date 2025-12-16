@@ -102,6 +102,7 @@ ProductSchema.statics.findTopPrice = function(limit = 5) {
                .limit(limit)
                .populate('category', 'name');
 };
+
 // Lấy sản phẩm theo ID
 ProductSchema.statics.getProductById = function(productId) {
     return this.findById(productId)

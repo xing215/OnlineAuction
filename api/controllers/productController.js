@@ -253,7 +253,7 @@ exports.getTopPrice = async (req, res) => {
         const products = await Product.findTopPrice(parseInt(limit));
 
         // Ensure current_price is set (fallback to start_price if not set)
-        const productData = product.toObject ? product.toObject() : product;
+        const productData = products.toObject ? products.toObject() : products;
         if (!productData.current_price || productData.current_price === 0) {
             productData.current_price = productData.start_price;
         }
