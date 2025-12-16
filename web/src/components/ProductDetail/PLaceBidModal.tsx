@@ -52,6 +52,10 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
 
     const handleMaxBidAmountChange = (value: string) => {
         const numericValue = value.replace(/[^0-9]/g, "");
+        if (parseFloat(numericValue) % stepPrice !== 0) {
+            setError(`Giá tối đa phải là bội số của ${formatCurrency(stepPrice)}`);
+            return;
+        }
         setMaxBidAmount(numericValue);
         setError("");
     };
