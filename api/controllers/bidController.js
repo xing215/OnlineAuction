@@ -1,6 +1,12 @@
 const Bid = require("../models/Bid");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
+const User = require("../models/User");
+const {
+    sendNewBidToSellerEmail,
+    sendNewBidToCurrentBidderEmail,
+    sendOutbidEmail,
+} = require("../utils/emailService");
 
 /**
  * Auto-bidding helper functions
@@ -330,7 +336,60 @@ exports.placeBid = async (req, res) => {
         // Get updated highest bidder info
         const updatedHighestBid = await Bid.findOne({ product: productId })
             .sort({ price: -1 })
-            .populate("user", "full_name");
+            .populate("user", "full_name email");
+
+        // Send emails to all parties after successful bid
+        setImmediate(async () => {
+            try {
+                // Get seller info
+                const seller = await User.findById(product.seller);
+                
+                // Get current bidder info
+                const currentBidder = await User.findById(userId);
+
+                // Send email to seller
+                if (seller && seller.email) {
+                    sendNewBidToSellerEmail({
+                        sellerEmail: seller.email,
+                        sellerName: seller.full_name,
+                        productName: product.name,
+                        productId: product._id,
+                        bidderName: currentBidder.full_name,
+                        bidAmount: result.newPrice,
+                        bidCount: product.bid_count,
+                    });
+                }
+
+                // Send confirmation email to current bidder
+                if (currentBidder && currentBidder.email) {
+                    sendNewBidToCurrentBidderEmail({
+                        bidderEmail: currentBidder.email,
+                        bidderName: currentBidder.full_name,
+                        productName: product.name,
+                        productId: product._id,
+                        bidAmount: result.newPrice,
+                        isLeading: result.isNewLeader,
+                    });
+                }
+
+                // Send outbid notification to previous highest bidder (if exists and different from current)
+                if (highestBid && highestBid.user.toString() !== userId.toString()) {
+                    const previousBidder = await User.findById(highestBid.user);
+                    if (previousBidder && previousBidder.email) {
+                        sendOutbidEmail({
+                            bidderEmail: previousBidder.email,
+                            bidderName: previousBidder.full_name,
+                            productName: product.name,
+                            productId: product._id,
+                            previousBidAmount: highestBid.price,
+                            newBidAmount: result.newPrice,
+                        });
+                    }
+                }
+            } catch (emailError) {
+                console.error("Error sending bid notification emails:", emailError);
+            }
+        });
 
         return res.status(201).json({
             success: true,
