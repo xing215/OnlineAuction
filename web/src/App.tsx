@@ -16,9 +16,8 @@ import { UserProvider } from "./context/UserContext";
 import { ProductDetail } from "./pages/ProductDetail/ProductDetail";
 import FavList from "./pages/FavList";
 import ManageUser from "./pages/Admin/ManageUser";
-import CategoryManagement from "./pages/Admin/CategoryManagement";
-import ProductManagement from "./pages/Admin/ProductManagement";
-import UpgradeRequests from "./pages/Admin/UpgradeRequest";
+import OrderDetailPage from "./pages/OrderDetailPage";
+import OrderManagement from "./pages/OrderManagement";
 
 interface PlaceholderPageProps {
     title: string;
@@ -86,6 +85,14 @@ function App() {
                                 path={WEB_PAGE.CHANGE_PASSWORD.path}
                                 element={<ChangePassword />}
                             />
+                            <Route 
+                                path={WEB_PAGE.ORDER.path}
+                                element={<OrderManagement />} 
+                            />
+                            <Route 
+                                path="/orders/:orderId" 
+                                element={<OrderDetailPage />} 
+                            />
                         </Route>
                         <Route
                             path={WEB_PAGE.LOGOUT.path}
@@ -107,18 +114,6 @@ function App() {
                         <Route
                             path="/admin/manage-user"
                             element={<ManageUser />}
-                        />
-                        <Route
-                            path="/admin/manage-category"
-                            element={<CategoryManagement />}
-                        />
-                        <Route
-                            path="/admin/manage-product"
-                            element={<ProductManagement />}
-                        />
-                        <Route
-                            path="/admin/upgrade-requests"
-                            element={<UpgradeRequests />}
                         />
                         <Route
                             path="*"

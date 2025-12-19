@@ -76,6 +76,21 @@ export interface Message {
     content: string;
     sent_at: Date;
 }
+export interface OrderView extends Order {
+    product_detail?: Product;
+    seller_detail?: User;
+    winner_detail?: User;
+}
+
+export interface OrderResponse {
+    success: boolean;
+    data: OrderView[];
+}
+
+export interface OrderDetailResponse {
+    success: boolean;
+    data: OrderView;
+}
 
 export interface Order {
     id: string;
@@ -85,6 +100,8 @@ export interface Order {
     final_price: number;
     status: "pending" | "paid" | "shipped" | "completed" | "cancelled";
     shipping_address?: string;
+    payment_proof?: string;
+    shipping_proof?: string;
     cancellation?: {
         by: string; // ObjectId ref to User
         reason: string;

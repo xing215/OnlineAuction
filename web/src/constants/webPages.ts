@@ -8,6 +8,7 @@ import {
   LockResetRounded,
   LogoutRounded,
   MenuRounded,
+  Receipt,
 } from "@mui/icons-material";
 
 export interface WebPageConfig {
@@ -26,6 +27,7 @@ export const WEB_PAGE = {
   CHANGE_PASSWORD: { path: "/change-password", label: "Đổi mật khẩu", Icon: LockResetRounded },
   LOGOUT: { path: "/logout", label: "Đăng xuất", Icon: LogoutRounded },
   CREATE_PRODUCT: { path: "/my-products/new", label: "Đăng sản phẩm", Icon: Inventory2Rounded },
+  ORDER: { path: "/order", label: "Đơn hàng", Icon: Receipt},
 } as const satisfies Record<string, WebPageConfig>;
 
 export type WebPageKey = keyof typeof WEB_PAGE;
@@ -36,6 +38,7 @@ export const PRIMARY_NAV_KEYS: WebPageKey[] = [
   "FAVORITES",
   "BID_HISTORY",
   "MY_PRODUCTS",
+  "ORDER"
 ];
 
 export const SECONDARY_NAV_KEYS: WebPageKey[] = [

@@ -20,6 +20,7 @@ const questionRoutes = require("./routes/questionRoutes");
 const bidRoutes = require("./routes/bidRoutes");
 const userRoutes = require("./routes/userRoutes");
 const upgradeRoutes = require("./routes/upgradeRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 // Middleware
 app.use(express.json());
@@ -62,6 +63,9 @@ app.use("/api/users", userRoutes);
 // Use upgrade request
 app.use("/api/upgrade", upgradeRoutes);
 
+// Order routes
+app.use("/api/orders", orderRoutes);
+
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
@@ -72,6 +76,9 @@ const startServer = async () => {
     try {
         // Connect to MongoDB Atlas
         await connectDatabase();
+
+        // Start background job: auto-create orders when auctions end
+        //startAuctionSettlementJob();
 
         // Start server after successful database connection
         app.listen(PORT, () => {
