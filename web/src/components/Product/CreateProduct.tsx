@@ -3,6 +3,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
+import { useNavigate } from "react-router-dom";
 
 // TYPES
 type ProductForm = {
@@ -16,6 +17,8 @@ type ProductForm = {
 };
 
 const CreateProduct: React.FC = () => {
+    const navigate = useNavigate();
+
     // State lưu danh mục
     const [categories, setCategories] = useState<{_id: string, name: string}[]>([]);
     const { user, token } = useUser();
@@ -216,6 +219,8 @@ const CreateProduct: React.FC = () => {
                 setForm({ name: '', category: '', description: '', start_price: '', step_price: '', buy_now_price: '', end_date: '' });
                 setImages([]);
                 setDurationSelect('');
+
+                navigate("/my-products"); 
                 
             } catch (parseError) {
                 console.error("Server response not JSON:", text, parseError);
@@ -478,7 +483,7 @@ const CreateProduct: React.FC = () => {
                         <button 
                             type="submit" 
                             disabled={submitting}
-                            className={`flex-1 py-3.5 rounded-full text-white font-bold shadow-lg shadow-yellow-200/50 transition transform active:scale-[0.99] ${submitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#EAB308] hover:bg-[#CA8A04]'}`}
+                            className={`flex-1 py-3.5 rounded-full cursor-pointer text-white font-bold shadow-lg shadow-yellow-200/50 transition transform active:scale-[0.99] ${submitting ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#EAB308] hover:bg-[#CA8A04]'}`}
                         >
                             {submitting ? 'Đang xử lý...' : 'Đăng sản phẩm'}
                         </button>
