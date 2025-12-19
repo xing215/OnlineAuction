@@ -6,7 +6,7 @@ import { formatCurrency } from "../../utilities/FormatCurrency";
 import { formatDate } from "../../utilities/FormatDate";
 import { type User, type Product } from "../../types";
 import { getTimeRemaining } from "../../utilities";
-import { Gavel } from "lucide-react";
+import { Gavel, ThumbsUp, ThumbsDown } from "lucide-react";
 import { ProductList, QnABox, Description } from "../../components/Product";
 import { useUser } from "../../context/useUser";
 import {
@@ -42,12 +42,22 @@ export const ProductDetail: React.FC = () => {
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
-    const handleBidConfirm = async (bidAmount: number, isAutoBid?: boolean, maxBid?: number) => {
+    const handleBidConfirm = async (
+        bidAmount: number,
+        isAutoBid?: boolean,
+        maxBid?: number
+    ) => {
         if (!user || !token || !product) return;
 
         setIsBidLoading(true);
         try {
-            const response = await placeBid(product.id, bidAmount, token, isAutoBid || false, maxBid);
+            const response = await placeBid(
+                product.id,
+                bidAmount,
+                token,
+                isAutoBid || false,
+                maxBid
+            );
 
             // Update product data with new bid info
             if (response.data) {
@@ -56,11 +66,10 @@ export const ProductDetail: React.FC = () => {
                     current_price:
                         response.data.currentPrice ?? product.current_price,
                     bid_count: response.data.bidCount ?? product.bid_count,
-                    highest_bidder_name:
-                        response.data.highestBidder ??
-                        product.highest_bidder_name,
-                    end_date: response.data.endDate 
-                        ? new Date(response.data.endDate) 
+                    current_bidder:
+                        response.data.highestBidder ?? product.current_bidder,
+                    end_date: response.data.endDate
+                        ? new Date(response.data.endDate)
                         : product.end_date,
                 };
                 setProduct(updatedProduct);
@@ -68,15 +77,22 @@ export const ProductDetail: React.FC = () => {
 
             // Close modal and show success with appropriate message
             setIsModalOpen(false);
-            const successMessage = response.data?.isLeading 
-                ? (isAutoBid ? "Đặt giá tự động thành công! Bạn đang dẫn đầu." : "Đặt giá thành công! Bạn đang dẫn đầu.")
-                : (isAutoBid ? "Đặt giá tự động thành công!" : "Đặt giá thành công!");
+            const successMessage = response.data?.isLeading
+                ? isAutoBid
+                    ? "Đặt giá tự động thành công! Bạn đang dẫn đầu."
+                    : "Đặt giá thành công! Bạn đang dẫn đầu."
+                : isAutoBid
+                ? "Đặt giá tự động thành công!"
+                : "Đặt giá thành công!";
             alert(successMessage);
 
             // Refresh auto-bid data if it was an auto-bid
             if (isAutoBid && maxBid) {
                 try {
-                    const autoBidResponse = await getMyAutoBid(product.id, token);
+                    const autoBidResponse = await getMyAutoBid(
+                        product.id,
+                        token
+                    );
                     if (autoBidResponse.data) {
                         setCurrentAutoBid(autoBidResponse.data);
                     }
@@ -86,12 +102,9 @@ export const ProductDetail: React.FC = () => {
             }
         } catch (error) {
             console.error("Bid error:", error);
-            
+
             // Check if user is banned
-            if (
-                error instanceof Error &&
-                error.message.includes("banned")
-            ) {
+            if (error instanceof Error && error.message.includes("banned")) {
                 setIsModalOpen(false);
                 setIsBannedModalOpen(true);
             } else {
@@ -106,68 +119,81 @@ export const ProductDetail: React.FC = () => {
         }
     };
 
-  useEffect(() => {
-    const loadAllData = async () => {
-      if (!id) return;
+    useEffect(() => {
+        const loadAllData = async () => {
+            if (!id) return;
 
-      setLoading(true);
-      setRelatedProducts([]);
-      setError(null);
+            setLoading(true);
+            setRelatedProducts([]);
+            setError(null);
 
-      try {
-        const productRes = await fetch(apiUrl(`/api/products/${id}`));
-        if (!productRes.ok) throw new Error("Failed to fetch product");
+            try {
+                const productRes = await fetch(apiUrl(`/api/products/${id}`));
+                if (!productRes.ok) throw new Error("Failed to fetch product");
 
-        const productData = await productRes.json();
-        const currentProduct = productData.data;
+                const productData = await productRes.json();
+                const currentProduct = productData.data;
 
-        console.log(currentProduct);
+                console.log(currentProduct);
 
-        setProduct(currentProduct);
-        //setBidAmount(currentProduct.step_price?.toString() || "");
+                setProduct(currentProduct);
+                //setBidAmount(currentProduct.step_price?.toString() || "");
 
-        const categoryId = currentProduct.category?._id;
-        const sellerId = currentProduct.seller?._id;
+                const categoryId = currentProduct.category?._id;
+                const sellerId = currentProduct.seller?._id;
 
-        const relatedPromise = categoryId
-          ? fetch(apiUrl(`/api/products?category=${categoryId}&limit=6`)).then(
-              (res) =>
-                res.ok ? res.json() : Promise.reject("Related fetch failed")
-            )
-          : Promise.reject("No category");
+                const relatedPromise = categoryId
+                    ? fetch(
+                          apiUrl(`/api/products?category=${categoryId}&limit=6`)
+                      ).then((res) =>
+                          res.ok
+                              ? res.json()
+                              : Promise.reject("Related fetch failed")
+                      )
+                    : Promise.reject("No category");
 
-        const sellerPromise = sellerId
-          ? fetch(apiUrl(`/api/products/seller/${sellerId}`)).then((res) =>
-              res.ok ? res.json() : Promise.reject("Seller fetch failed")
-            )
-          : Promise.reject("No seller");
+                const sellerPromise = sellerId
+                    ? fetch(apiUrl(`/api/products/seller/${sellerId}`)).then(
+                          (res) =>
+                              res.ok
+                                  ? res.json()
+                                  : Promise.reject("Seller fetch failed")
+                      )
+                    : Promise.reject("No seller");
 
-        const [relatedResult, sellerResult] = await Promise.allSettled([
-          relatedPromise,
-          sellerPromise,
-        ]);
+                const [relatedResult, sellerResult] = await Promise.allSettled([
+                    relatedPromise,
+                    sellerPromise,
+                ]);
 
-        if (relatedResult.status === "fulfilled") {
-          const res = relatedResult.value;
-          setRelatedProducts(
-            res.data?.filter((p: any) => p.id !== currentProduct.id) || []
-          );
-        } else {
-          console.warn("Lỗi tải sản phẩm liên quan:", relatedResult.reason);
-        }
+                if (relatedResult.status === "fulfilled") {
+                    const res = relatedResult.value;
+                    setRelatedProducts(
+                        res.data?.filter(
+                            (p: any) => p.id !== currentProduct.id
+                        ) || []
+                    );
+                } else {
+                    console.warn(
+                        "Lỗi tải sản phẩm liên quan:",
+                        relatedResult.reason
+                    );
+                }
 
-        if (sellerResult.status === "fulfilled") {
-          const res = sellerResult.value;
-          setSeller(res.data);
-        } else {
-          console.warn("Lỗi tải tên người bán:", sellerResult.reason);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
+                if (sellerResult.status === "fulfilled") {
+                    const res = sellerResult.value;
+                    setSeller(res.data);
+                } else {
+                    console.warn("Lỗi tải tên người bán:", sellerResult.reason);
+                }
+            } catch (err) {
+                setError(
+                    err instanceof Error ? err.message : "An error occurred"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
 
         loadAllData();
     }, [id]);
@@ -193,215 +219,274 @@ export const ProductDetail: React.FC = () => {
         fetchAutoBid();
     }, [isModalOpen, user, token, product]);
 
-  // Timer for countdown
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTick((prev) => prev + 1);
-    }, 1000);
+    // Timer for countdown
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTick((prev) => prev + 1);
+        }, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+        return () => clearInterval(timer);
+    }, []);
 
-  const handleBidClick = () => {
-    if (!user || !token) {
-      navigate("/signin");
-      return;
+    const handleBidClick = () => {
+        if (!user || !token) {
+            navigate("/signin");
+            return;
+        }
+        setIsModalOpen(true);
+    };
+
+    const timeRemaining = useMemo(() => {
+        if (!product?.end_date) return "00:00:00";
+        return getTimeRemaining(new Date(product.end_date));
+    }, [product?.end_date]);
+
+    const categoryName = useMemo(() => {
+        if (!product?.category) return "";
+        return typeof product.category === "object"
+            ? (product.category as { name: string }).name
+            : product.category;
+    }, [product?.category]);
+
+    const currentPrice = product?.current_price ?? product?.start_price ?? 0;
+
+    // Calculate minimum bid: if no one has bid yet (currentPrice = start_price), use start_price + step_price
+    const minimumBid = useMemo(() => {
+        if (!product) return 0;
+        const hasNoBid =
+            !product.current_price ||
+            product.current_price === product.start_price;
+        return hasNoBid
+            ? product.start_price + product.step_price
+            : currentPrice + product.step_price;
+    }, [product, currentPrice]);
+
+    const handleViewDetails = (productId: string) => {
+        navigate(`/product/${productId}`);
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <div className="w-10 h-10 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
+            </div>
+        );
     }
-    setIsModalOpen(true);
-  };
 
-  const timeRemaining = useMemo(() => {
-    if (!product?.end_date) return "00:00:00";
-    return getTimeRemaining(new Date(product.end_date));
-  }, [product?.end_date]);
-
-  const categoryName = useMemo(() => {
-    if (!product?.category) return "";
-    return typeof product.category === "object"
-      ? (product.category as { name: string }).name
-      : product.category;
-  }, [product?.category]);
-
-  const currentPrice = product?.current_price ?? product?.start_price ?? 0;
-
-  // Calculate minimum bid: if no one has bid yet (currentPrice = start_price), use start_price + step_price
-  const minimumBid = useMemo(() => {
-    if (!product) return 0;
-    const hasNoBid =
-      !product.current_price || product.current_price === product.start_price;
-    return hasNoBid
-      ? product.start_price + product.step_price
-      : currentPrice + product.step_price;
-  }, [product, currentPrice]);
-
-  const handleViewDetails = (productId: string) => {
-    navigate(`/product/${productId}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
-        <p className="text-lg text-gray-600">
-          Không thể tải thông tin sản phẩm
-        </p>
-        <button
-          onClick={() => navigate("/")}
-          className="px-6 py-3 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
-        >
-          Quay lại trang chủ
-        </button>
-      </div>
-    );
-  }
-
-  const mainImage =
-    product.images && product.images.length > 0
-      ? product.images[selectedImageIndex]
-      : "";
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-5">
-      <div className="max-w-7xl mx-auto px-5">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 mb-5 text-xs sm:text-sm text-gray-600">
-          <span
-            className="cursor-pointer hover:text-yellow-600 transition-colors"
-            onClick={() => navigate("/")}
-          >
-            Trang chủ
-          </span>
-          <span className="text-gray-400">›</span>
-          <span className="cursor-pointer hover:text-yellow-600 transition-colors">
-            {categoryName}
-          </span>
-          <span className="text-gray-400">›</span>
-          <span className="text-gray-800 font-medium">{product.name}</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
-          {/* Left: Product Images */}
-          <div className="flex flex-col gap-4">
-            <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden">
-              {mainImage && (
-                <img
-                  src={mainImage}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto">
-                {product.images.map((image, index) => (
-                  <div
-                    key={index}
-                    className={`w-20 h-15 rounded border-2 overflow-hidden cursor-pointer transition-colors ${
-                      index === selectedImageIndex
-                        ? "border-yellow-600"
-                        : "border-transparent hover:border-yellow-600"
-                    }`}
-                    onClick={() => setSelectedImageIndex(index)}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Right: Product Info */}
-          <div className="flex flex-col gap-4">
-            <div className="border-b border-gray-200 pb-4">
-              <h1 className="text-2xl font-semibold mb-2 text-gray-800">
-                {product.name}
-              </h1>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="flex gap-0.5">
-                  <span className="text-gray-600">Người bán:</span>
-                  <span className="text-yellow-600 font-medium">
-                    {seller?.full_name}
-                  </span>
-                </div>
-                <span className="flex justify-center items-center text-orange-400">
-                  <Star></Star>
-                  {seller?.rating_percentage || 0}%
-                </span>
-                <div className="flex gap-0.5">
-                  <span className="text-gray-600 hidden sm:inline">
-                    Ngày đăng:
-                  </span>
-                  <span className="text-gray-600">
-                    {formatDate(product.createdAt)}
-                  </span>
-                </div>
-              </div>
-            </div>
-            {/* Timer */}
-            <div className="bg-gray-100 p-4 rounded-xl">
-              <span className="block text-sm text-gray-600 mb-2">
-                Thời gian còn lại
-              </span>
-              <div className="flex items-center gap-2">
-                <AccessTime className="text-black text-sm sm:text-xl" />
-                <span className="text-sm sm:text-2xl font-semibold text-black">
-                  {timeRemaining}
-                </span>
-              </div>
-            </div>
-
-            {/* Price Info */}
-            <div className=" p-4 rounded-xl border border-gray-200">
-              <div className="flex flex-col mb-4">
-                <span className="text-sm text-gray-600 mb-1">Giá hiện tại</span>
-                <span className="text-3xl font-bold text-[#D5AD41]">
-                  {formatCurrency(currentPrice)}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-600">Người đặt giá cao nhất:</span>
-                  <span className="text-gray-800 font-medium">
-                    {product.highest_bidder_name || "Chưa có ai đặt giá"}
-                  </span>
-                  <span className="text-gray-600 ml-auto">
-                    {product.bid_count} lượt đặt giá
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bid Form */}
-            <div className="grid grid-cols-4 gap-4 items-center">
-              <div className="col-span-3 flex flex-col gap-2">
+    if (error || !product) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
+                <p className="text-lg text-gray-600">
+                    Không thể tải thông tin sản phẩm
+                </p>
                 <button
-                  className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base font-medium bg-gray-50 hover:bg-gray-100 transition-colors"
-                  onClick={handleBidClick}
-                  disabled={product.status !== "active"}
+                    onClick={() => navigate("/")}
+                    className="px-6 py-3 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
                 >
-                  Tối thiểu: {formatCurrency(minimumBid)}
+                    Quay lại trang chủ
                 </button>
-              </div>
-              <button
-                className="flex justify-between items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleBidClick}
-                disabled={product.status !== "active"}
-              >
-                <span>Đặt giá</span>
-                <Gavel />
-              </button>
             </div>
+        );
+    }
+
+    const mainImage =
+        product.images && product.images.length > 0
+            ? product.images[selectedImageIndex]
+            : "";
+
+    return (
+        <div className="min-h-screen bg-gray-50 py-5">
+            <div className="max-w-7xl mx-auto px-5">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 mb-5 text-xs sm:text-sm text-gray-600">
+                    <span
+                        className="cursor-pointer hover:text-yellow-600 transition-colors"
+                        onClick={() => navigate("/")}
+                    >
+                        Trang chủ
+                    </span>
+                    <span className="text-gray-400">›</span>
+                    <span className="cursor-pointer hover:text-yellow-600 transition-colors">
+                        {categoryName}
+                    </span>
+                    <span className="text-gray-400">›</span>
+                    <span className="text-gray-800 font-medium">
+                        {product.name}
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
+                    {/* Left: Product Images */}
+                    <div className="flex flex-col gap-4">
+                        <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden">
+                            {mainImage && (
+                                <img
+                                    src={mainImage}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                        </div>
+                        {product.images && product.images.length > 1 && (
+                            <div className="flex gap-2 overflow-x-auto">
+                                {product.images.map((image, index) => (
+                                    <div
+                                        key={index}
+                                        className={`w-20 h-15 rounded border-2 overflow-hidden cursor-pointer transition-colors ${
+                                            index === selectedImageIndex
+                                                ? "border-yellow-600"
+                                                : "border-transparent hover:border-yellow-600"
+                                        }`}
+                                        onClick={() =>
+                                            setSelectedImageIndex(index)
+                                        }
+                                    >
+                                        <img
+                                            src={image}
+                                            alt={`${product.name} ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: Product Info */}
+                    <div className="flex flex-col gap-4">
+                        <div className="border-b border-gray-200 pb-4">
+                            <h1 className="text-2xl font-semibold mb-2 text-gray-800">
+                                {product.name}
+                            </h1>
+                            <div className="flex items-center gap-2 text-sm justify-between">
+                                <div className="flex gap-2">
+                                    <span className="text-gray-600">
+                                        Người bán:
+                                    </span>
+                                    <span className="text-yellow-600 font-medium">
+                                        {seller?.full_name}
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-xs ml-2">
+                                        <ThumbsUp
+                                            fill="#D5AD41"
+                                            strokeWidth={0.5}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-yellow-600 font-semibold">
+                                            {seller?.rating_summary
+                                                .positive_count || 0}
+                                        </span>
+                                        <ThumbsDown
+                                            fill="#45556c"
+                                            strokeWidth={0.5}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-slate-600 font-semibold">
+                                            {seller?.rating_summary
+                                                .negative_count || 0}
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div className="flex gap-1">
+                                    <span className="text-gray-600 hidden sm:inline">
+                                        Ngày đăng:
+                                    </span>
+                                    <span className="text-gray-600">
+                                        {formatDate(product.createdAt)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Timer */}
+                        <div className="bg-gray-100 p-4 rounded-xl">
+                            <span className="block text-sm text-gray-600 mb-2">
+                                Thời gian còn lại
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <AccessTime className="text-black text-sm sm:text-xl" />
+                                <span className="text-sm sm:text-2xl font-semibold text-black">
+                                    {timeRemaining}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Price Info */}
+                        <div className=" p-4 rounded-xl border border-gray-200">
+                            <div className="flex flex-col mb-4">
+                                <span className="text-sm text-gray-600 mb-1">
+                                    Giá hiện tại
+                                </span>
+                                <span className="text-3xl font-bold text-[#D5AD41]">
+                                    {formatCurrency(currentPrice)}
+                                </span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="text-gray-600">
+                                        Người đặt giá cao nhất:
+                                    </span>
+                                    <span className="text-gray-800 font-medium">
+                                        {typeof product.current_bidder ===
+                                            "object" &&
+                                        product.current_bidder?.full_name
+                                            ? product.current_bidder.full_name
+                                            : "Chưa có ai đặt giá"}
+                                    </span>
+                                    {typeof product.current_bidder ===
+                                        "object" &&
+                                        product.current_bidder
+                                            ?.rating_summary && (
+                                            <span className="flex items-center gap-1.5 text-xs ml-2">
+                                                <ThumbsUp
+                                                    fill="#D5AD41"
+                                                    strokeWidth={0.5}
+                                                    className="w-4 h-4"
+                                                />
+                                                <span className="text-yellow-600 font-semibold">
+                                                    {product.current_bidder
+                                                        .rating_summary
+                                                        .positive_count || 0}
+                                                </span>
+                                                <ThumbsDown
+                                                    fill="#45556c"
+                                                    strokeWidth={0.5}
+                                                    className="w-4 h-4"
+                                                />
+                                                <span className="text-slate-600 font-semibold">
+                                                    {product.current_bidder
+                                                        .rating_summary
+                                                        .negative_count || 0}
+                                                </span>
+                                            </span>
+                                        )}
+                                    <span className="text-gray-600 ml-auto">
+                                        {product.bid_count} lượt đặt giá
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bid Form */}
+                        <div className="grid grid-cols-4 gap-4 items-center">
+                            <div className="col-span-3 flex flex-col gap-2">
+                                <button
+                                    className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base font-medium bg-gray-50 hover:bg-gray-100 transition-colors"
+                                    onClick={handleBidClick}
+                                    disabled={product.status !== "active"}
+                                >
+                                    Tối thiểu: {formatCurrency(minimumBid)}
+                                </button>
+                            </div>
+                            <button
+                                className="flex justify-between items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleBidClick}
+                                disabled={product.status !== "active"}
+                            >
+                                <span>Đặt giá</span>
+                                <Gavel />
+                            </button>
+                        </div>
 
                         {/* Place Bid Modal */}
                         <PlaceBidModal
@@ -528,17 +613,17 @@ export const ProductDetail: React.FC = () => {
                     </div>
                 </div>
 
-        {/* Related Products */}
-        <ProductList
-          title="Sản phẩm cùng chuyên mục"
-          subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
-          products={relatedProducts}
-          onBidClick={handleBidClick}
-          onViewDetails={handleViewDetails}
-        />
-      </div>
-    </div>
-  );
+                {/* Related Products */}
+                <ProductList
+                    title="Sản phẩm cùng chuyên mục"
+                    subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
+                    products={relatedProducts}
+                    onBidClick={handleBidClick}
+                    onViewDetails={handleViewDetails}
+                />
+            </div>
+        </div>
+    );
 };
 
 export default ProductDetail;
