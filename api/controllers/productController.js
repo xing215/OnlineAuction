@@ -1,9 +1,18 @@
 const Product = require("../models/Product");
 const { uploadMultipleToCloudinary } = require("../utils/cloudinary");
 const Category = require("../models/Category");
-const { sendBannedBidderEmail } = require('../utils/emailService');
-const { sendUnbannedBidderEmail } = require('../utils/emailService');
-const User = require('../models/User');
+const { sendBannedBidderEmail } = require("../utils/emailService");
+const { sendUnbannedBidderEmail } = require("../utils/emailService");
+const User = require("../models/User");
+
+// Helper function to mask user name
+function maskUserName(fullName) {
+    if (!fullName) return "****User";
+    const name = fullName.trim();
+    const parts = name.split(" ");
+    const lastName = parts[parts.length - 1];
+    return `****${lastName}`;
+}
 
 // Create product handler supporting multipart uploads (req.files)
 exports.createProduct = async (req, res) => {
@@ -135,16 +144,23 @@ async function getAllSubcategories(categoryId) {
 
 exports.getProducts = async (req, res) => {
     try {
-        const { page = 1, limit = 8, search, category, sort, status } = req.query;
+        const {
+            page = 1,
+            limit = 8,
+            search,
+            category,
+            sort,
+            status,
+        } = req.query;
 
         // FILTER CƠ BẢN
         const filter = {
-            status: { $ne: 'deleted' }
+            status: { $ne: "deleted" },
         };
-        if (status && status !== 'all') {
+        if (status && status !== "all") {
             filter.status = status;
         } else if (!status) {
-            filter.status = "active"; 
+            filter.status = "active";
         }
         // 1. FULL-TEXT SEARCH
         if (search && search.trim() !== "") {
@@ -194,6 +210,7 @@ exports.getProducts = async (req, res) => {
         const [products, totalDocs] = await Promise.all([
             Product.find(filter, projection)
                 .populate("category", "name")
+                .populate("current_bidder", "full_name")
                 .sort(sortOption)
                 .skip(skip)
                 .limit(limitNum),
@@ -253,7 +270,7 @@ exports.getTopPrice = async (req, res) => {
         const products = await Product.findTopPrice(parseInt(limit));
 
         // Ensure current_price is set (fallback to start_price if not set)
-        const productData = products.toObject ? products.toObject() : products;
+        const productData = product.toObject ? product.toObject() : product;
         if (!productData.current_price || productData.current_price === 0) {
             productData.current_price = productData.start_price;
         }
@@ -275,6 +292,7 @@ exports.getProductById = async (req, res) => {
                 .status(404)
                 .json({ success: false, message: "Product not found" });
         }
+
         res.json({ success: true, data: product });
     } catch (error) {
         console.error("Error in getProductById:", error);
@@ -301,7 +319,10 @@ exports.getProductsByCategory = async (req, res) => {
         const products = await Product.find({
             category: categoryId,
             status: "active",
-        }).populate("category", "name");
+        })
+            .populate("category", "name")
+            .populate("current_bidder", "full_name");
+
         res.json({ success: true, data: products });
     } catch (error) {
         console.error("Error in getProductsByCategory:", error);
@@ -328,23 +349,26 @@ exports.deleteProduct = async (req, res) => {
         const product = await Product.findById(id);
 
         if (!product) {
-            return res.status(404).json({ success: false, message: 'Sản phẩm không tồn tại' });
+            return res
+                .status(404)
+                .json({ success: false, message: "Sản phẩm không tồn tại" });
         }
 
         // KIỂM TRA ĐIỀU KIỆN AN TOÀN
         const hasBids = product.bid_count > 0;
-        const isSold = product.status === 'sold';
+        const isSold = product.status === "sold";
 
         // SOFT DELETE
         if (hasBids || isSold) {
-            product.status = 'deleted';
+            product.status = "deleted";
             await product.save();
 
-            return res.json({ 
-                success: true, 
-                message: 'Sản phẩm đã có người tham gia/đã bán. Đã chuyển sang trạng thái "Đã xóa" (Soft Delete).' 
+            return res.json({
+                success: true,
+                message:
+                    'Sản phẩm đã có người tham gia/đã bán. Đã chuyển sang trạng thái "Đã xóa" (Soft Delete).',
             });
-            
+
             /*
             return res.status(400).json({
                 success: false,
@@ -356,13 +380,16 @@ exports.deleteProduct = async (req, res) => {
         // HARD DELETE
         await Product.findByIdAndDelete(id);
         // if (product.images && product.images.length > 0) { ... deleteImagesFromCloud(product.images) ... }
-        return res.json({ 
-            success: true, 
-            message: 'Đã xóa sản phẩm vĩnh viễn.' 
+        return res.json({
+            success: true,
+            message: "Đã xóa sản phẩm vĩnh viễn.",
         });
     } catch (error) {
-        console.error('Lỗi xóa sản phẩm:', error);
-        res.status(500).json({ success: false, message: 'Lỗi server khi xóa sản phẩm' });
+        console.error("Lỗi xóa sản phẩm:", error);
+        res.status(500).json({
+            success: false,
+            message: "Lỗi server khi xóa sản phẩm",
+        });
     }
 };
 
@@ -374,15 +401,18 @@ exports.banBidder = async (req, res) => {
         if (!productId || !userId) {
             return res.status(400).json({
                 success: false,
-                message: 'productId and userId are required'
+                message: "productId and userId are required",
             });
         }
 
-        const product = await Product.findById(productId).populate('seller', 'full_name email');
+        const product = await Product.findById(productId).populate(
+            "seller",
+            "full_name email"
+        );
         if (!product) {
             return res.status(404).json({
                 success: false,
-                message: 'Product not found'
+                message: "Product not found",
             });
         }
 
@@ -390,7 +420,7 @@ exports.banBidder = async (req, res) => {
         if (product.banned_bidders.includes(userId)) {
             return res.status(400).json({
                 success: false,
-                message: 'User is already banned from bidding'
+                message: "User is already banned from bidding",
             });
         }
 
@@ -398,7 +428,7 @@ exports.banBidder = async (req, res) => {
         product.banned_bidders.push(userId);
         await product.save();
 
-        // Get banned user info for email      
+        // Get banned user info for email
         const bannedUser = await User.findById(userId);
 
         // Send email notification
@@ -408,18 +438,18 @@ exports.banBidder = async (req, res) => {
                 userName: bannedUser.full_name,
                 productName: product.name,
                 productId: product._id,
-                sellerName: product.seller.full_name
+                sellerName: product.seller.full_name,
             });
         }
 
         res.json({
             success: true,
-            message: 'User has been banned from bidding',
+            message: "User has been banned from bidding",
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Server error while banning user'
+            message: "Server error while banning user",
         });
     }
 };
@@ -432,21 +462,24 @@ exports.unbanBidder = async (req, res) => {
         if (!productId || !userId) {
             return res.status(400).json({
                 success: false,
-                message: 'productId and userId are required'
+                message: "productId and userId are required",
             });
         }
 
-        const product = await Product.findById(productId).populate('seller', 'full_name email');
+        const product = await Product.findById(productId).populate(
+            "seller",
+            "full_name email"
+        );
         if (!product) {
             return res.status(404).json({
                 success: false,
-                message: 'Product not found'
+                message: "Product not found",
             });
         }
 
         // Remove user from banned list
         product.banned_bidders = product.banned_bidders.filter(
-            id => id.toString() !== userId.toString()
+            (id) => id.toString() !== userId.toString()
         );
         await product.save();
 
@@ -460,42 +493,44 @@ exports.unbanBidder = async (req, res) => {
                 userName: unbannedUser.full_name,
                 productName: product.name,
                 productId: product._id,
-                sellerName: product.seller.full_name
+                sellerName: product.seller.full_name,
             });
         }
 
         res.json({
             success: true,
-            message: 'User has been unbanned from bidding',
+            message: "User has been unbanned from bidding",
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Server error while unbanning user'
+            message: "Server error while unbanning user",
         });
     }
 };
 
 exports.getBannedList = async (req, res) => {
     try {
-        const { productId } = req.params;   
-        const product = await Product.findById(productId).select('banned_bidders');
+        const { productId } = req.params;
+        const product = await Product.findById(productId).select(
+            "banned_bidders"
+        );
         if (!product) {
-            return res.status(404).json({  
+            return res.status(404).json({
                 success: false,
-                message: 'Product not found'
+                message: "Product not found",
             });
         }
         res.json({
             success: true,
-            data: product.banned_bidders
+            data: product.banned_bidders,
         });
     } catch (error) {
         res.status(500).json({
-            success: false, 
-            message: 'Server error while fetching banned list'
+            success: false,
+            message: "Server error while fetching banned list",
         });
-    }   
+    }
 };
 
 // Update product description
@@ -505,9 +540,10 @@ exports.updateProductDescription = async (req, res) => {
         const { newDescription } = req.body;
 
         if (!newDescription || newDescription.trim() === "") {
-            return res
-                .status(400)
-                .json({ success: false, message: "New description is required" });
+            return res.status(400).json({
+                success: false,
+                message: "New description is required",
+            });
         }
 
         const updatedProduct = await Product.updateProductDescription(
@@ -525,4 +561,4 @@ exports.updateProductDescription = async (req, res) => {
         }
         res.status(500).json({ success: false, message: error.message });
     }
-}
+};
