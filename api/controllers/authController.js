@@ -41,6 +41,13 @@ exports.login = async (req, res, next) => {
             });
         }
 
+        if (user.status === 'locked'){
+            return res.status(403).json({
+                success: false,
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+            });
+        }
+
         // First try bcrypt compare
         let valid = await user.verifyPassword(password);
 
