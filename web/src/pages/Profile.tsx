@@ -22,10 +22,12 @@ export default function ProfilePage() {
     // Dựa trên cấu trúc từ ProductCard.example.tsx
     const biddingProducts: Product[] = [
         {
+            _id: "1",
             id: "1",
             name: "MacBook Pro 16-inch M3 Max",
             description: "Mẫu laptop cấu hình cao dành cho nhà sáng tạo.",
             category: "Electronics",
+            category_name: "Electronics",
             seller: "TechStore VN",
             images: [
                 "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop",
@@ -45,10 +47,12 @@ export default function ProfilePage() {
             current_bidder: "pro_creator",
         },
         {
+            _id: "2",
             id: "2",
             name: "Đồng hồ cổ Rolex Submariner",
             description: "Phiên bản sưu tầm hiếm với tình trạng như mới.",
             category: "Watches",
+            category_name: "Watches",
             seller: "LuxuryWatch",
             images: [
                 "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&auto=format&fit=crop",
@@ -73,10 +77,12 @@ export default function ProfilePage() {
     // Logic hiển thị "Ended" đã có sẵn trong ProductCard.tsx
     const wonProducts: Product[] = [
         {
+            _id: "3",
             id: "3",
             name: "Bộ sưu tập sách Harry Potter",
             description: "Trọn bộ 7 tập bản in tiếng Anh nguyên bản.",
             category: "Books",
+            category_name: "Books",
             seller: "BookWorm",
             images: [
                 "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop",
@@ -96,10 +102,12 @@ export default function ProfilePage() {
             current_bidder: "booklover",
         },
         {
+            _id: "4",
             id: "4",
             name: "Guitar Gibson Les Paul 1959",
             description: "Chiếc guitar vintage dành cho nhà sưu tầm âm nhạc.",
             category: "Instruments",
+            category_name: "Instruments",
             seller: "MusicWorld",
             images: [
                 "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=800&auto=format&fit=crop",

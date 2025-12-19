@@ -25,7 +25,7 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
     const [reason, setReason] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const { token, user } = useUser();
+    const { token } = useUser();
 
     useEffect(() => {
         if (userRole) {

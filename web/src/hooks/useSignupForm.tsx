@@ -22,7 +22,6 @@ export const useRegisterForm = () => {
         agreeToTerms: false,
     });
 
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
@@ -101,10 +100,10 @@ export const useRegisterForm = () => {
 
         if (Object.keys(newErrors).length === 0) {
             try {
-                let recaptchaToken: string | undefined;
+                let recaptchaToken: string | undefined = undefined;
                 if (recaptchaSiteKey) {
                     // Get reCAPTCHA token
-                    recaptchaToken = await recaptchaRef.current?.executeAsync();
+                    recaptchaToken = await recaptchaRef.current?.executeAsync() ?? undefined;
                     if (!recaptchaToken) {
                         setRegErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
                         return;
@@ -130,7 +129,6 @@ export const useRegisterForm = () => {
                     const message = data.message || "Đăng ký thất bại";
                     alert(message);
                     // Reset reCAPTCHA on error
-                    setRecaptchaToken(null);
                     recaptchaRef.current?.reset();
                     return;
                 }
@@ -142,7 +140,6 @@ export const useRegisterForm = () => {
                 console.error("Register error:", error);
                 alert("Lỗi đăng ký. Vui lòng thử lại.");
                 // Reset reCAPTCHA on error
-                setRecaptchaToken(null);
                 recaptchaRef.current?.reset();
             }
         }
