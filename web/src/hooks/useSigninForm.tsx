@@ -13,7 +13,6 @@ export const useLoginForm = () => {
         email: "",
         password: "",
     });
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
     const { login } = useUser();
     const navigate = useNavigate();
@@ -48,10 +47,10 @@ export const useLoginForm = () => {
         setErrors({});
 
         try {
-            let recaptchaToken: string | undefined;
+            let recaptchaToken: string | undefined = undefined;
             if (recaptchaSiteKey) {
                 // Get reCAPTCHA token
-                recaptchaToken = await recaptchaRef.current?.executeAsync();
+                recaptchaToken = await recaptchaRef.current?.executeAsync() ?? undefined;
                 if (!recaptchaToken) {
                     setErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
                     return;
