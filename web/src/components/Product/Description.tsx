@@ -51,8 +51,7 @@ export const Description: React.FC<DescriptionProps> = ({
             "Authorization": `Bearer ${token}`, 
           },
           body: JSON.stringify({
-            content: newDescription.trim(), 
-            created_at: new Date().toISOString(),
+            newDescription: newDescription.trim(),
           }),
         }
       );
