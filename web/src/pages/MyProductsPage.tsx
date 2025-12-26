@@ -63,7 +63,7 @@ export default function MyProductsPage() {
           <button
             type="button"
             onClick={() => navigate('/my-products/new')}
-            className="my-products-page__cta rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
+            className="my-products-page__cta rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg cursor-pointer"
           >
             + Đăng sản phẩm mới
           </button>
@@ -93,7 +93,7 @@ export default function MyProductsPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                  className={`rounded-2xl px-4 py-2 text-sm font-medium transition cursor-pointer ${
                     isActive ? "bg-white text-[#3E3C31] shadow" : "text-[#3E3C31]/70 hover:bg-white/60"
                   }`}
                 >
@@ -146,7 +146,7 @@ export default function MyProductsPage() {
                     <button
                       type="button"
                       onClick={() => navigate(`/products/${product.id}`)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[#3E3C31]/15 bg-neutral-50 px-4 py-2 text-sm text-[#3E3C31] transition hover:bg-neutral-100"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-[#3E3C31]/15 bg-neutral-50 px-4 py-2 text-sm text-[#3E3C31] transition hover:bg-neutral-100 cursor-pointer"
                     >
                       <VisibilityRounded fontSize="small" />
                       <span>Xem</span>
@@ -154,7 +154,7 @@ export default function MyProductsPage() {
                     <button
                       type="button"
                       onClick={() => navigate(`/orders?productId=${product.id}`)}
-                      className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37]"
+                      className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
                     >
                       Xem giao dịch
                     </button>
