@@ -12,6 +12,7 @@ interface MyProductItem {
   bidCount: number;
   highestBidder: string;
   status: MyProductStatus;
+  orderId?: string; // For completed products
 }
 
 interface StatCard {
@@ -37,6 +38,7 @@ interface BackendOrder {
   final_price: number;
   status: string;
   winner: string;
+  seller: string;
 }
 
 interface BackendProduct {
@@ -58,7 +60,7 @@ interface BackendProduct {
 const TABS: TabOption[] = [
   { id: "ongoing", label: "Đang đấu giá" },
   { id: "sold", label: "Đã bán" },
-  { id: "completed", label: "Thành công" },
+  { id: "completed", label: "Đã đấu giá xong" },
 ];
 
 export const useMyProducts = () => {
@@ -101,6 +103,7 @@ export const useMyProducts = () => {
       bidCount: 0, // Not available in order
       highestBidder: "", // Not needed
       status: "completed",
+      orderId: order._id,
     };
   };
 
@@ -139,13 +142,14 @@ export const useMyProducts = () => {
         }
 
         const data = await response.json();
+        let myProducts: BackendProduct[] = [];
         if (data.success && data.data) {
           console.log("Total products fetched:", data.data.length);
           console.log("Current user ID:", user._id);
           
           // Filter products by current user as seller
           // Convert both to strings for comparison since seller might be ObjectId
-          const myProducts = data.data.filter(
+          myProducts = data.data.filter(
             (product: BackendProduct) => {
               const sellerStr = typeof product.seller === 'object' && product.seller !== null 
                 ? (product.seller as any)._id?.toString() || (product.seller as any).toString()
@@ -183,6 +187,24 @@ export const useMyProducts = () => {
             );
             const mappedWonProducts = wonOrders.map(mapOrderToProduct);
             setWonProducts(mappedWonProducts);
+
+            // Create map of productId to orderId for sold products
+            const productToOrderMap: { [key: string]: string } = {};
+            ordersData.data.forEach((order: BackendOrder) => {
+              if (order.seller === user._id) {
+                productToOrderMap[order.product] = order._id;
+              }
+            });
+
+            // Update products with orderId if sold
+            const updatedProducts = myProducts.map((product: BackendProduct) => {
+              const mapped = mapProduct(product);
+              if (mapped.status === "sold" && productToOrderMap[product._id]) {
+                mapped.orderId = productToOrderMap[product._id];
+              }
+              return mapped;
+            });
+            setProducts(updatedProducts);
           }
         }
       } catch (err) {

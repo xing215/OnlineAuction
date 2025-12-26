@@ -151,13 +151,15 @@ export default function MyProductsPage() {
                       <VisibilityRounded fontSize="small" />
                       <span>Xem</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/orders`)}
-                      className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
-                    >
-                      Xem giao dịch
-                    </button>
+                    {product.status !== "ongoing" && (
+                      <button
+                        type="button"
+                        onClick={() => navigate(product.orderId ? `/orders/${product.orderId}` : `/orders`)}
+                        className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
+                      >
+                        Xem giao dịch
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>
