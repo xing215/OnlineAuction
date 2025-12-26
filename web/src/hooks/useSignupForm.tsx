@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
 
 export const useRegisterForm = () => {
     const [showRegPassword, setShowRegPassword] = useState(false);
@@ -127,18 +128,17 @@ export const useRegisterForm = () => {
 
                 if (!response.ok) {
                     const message = data.message || "Đăng ký thất bại";
-                    alert(message);
+                    toast.error(message);
                     // Reset reCAPTCHA on error
                     recaptchaRef.current?.reset();
                     return;
                 }
 
                 // Success - redirect to login or home
-                alert("Đăng ký thành công! Vui lòng đăng nhập.");
+                toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
                 window.location.href = "/signin";
             } catch (error) {
-                console.error("Register error:", error);
-                alert("Lỗi đăng ký. Vui lòng thử lại.");
+                toast.error("Lỗi đăng ký. Vui lòng thử lại.");
                 // Reset reCAPTCHA on error
                 recaptchaRef.current?.reset();
             }

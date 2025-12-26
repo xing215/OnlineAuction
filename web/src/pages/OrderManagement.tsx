@@ -4,6 +4,7 @@ import OrderCard from "../components/Order/OrderCard";
 import type { OrderView, OrderResponse } from "../types";
 import { useUser } from "../context/useUser";
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
 
 const OrderManagement: React.FC = () => {
   // Lấy user và token từ Context
@@ -42,9 +43,11 @@ const OrderManagement: React.FC = () => {
         if (response.ok) {
           const data: OrderResponse = await response.json();
           if (data.success) setOrders(data.data);
+        } else {
+          toast.error("Không thể tải danh sách đơn hàng");
         }
       } catch (err) {
-        console.error("Lỗi fetch đơn hàng:", err);
+        toast.error("Lỗi kết nối. Vui lòng thử lại.");
       } finally {
         setLoading(false);
       }

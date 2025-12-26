@@ -16,6 +16,7 @@ import {
 import { BannedBidderModal } from "../../components/ProductDetail/BannedBidderModal";
 import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
 import { BidHistoryTable } from "../../components/ProductDetail/History";
+import toast from "react-hot-toast";
 
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -84,7 +85,7 @@ export const ProductDetail: React.FC = () => {
                 : isAutoBid
                 ? "Đặt giá tự động thành công!"
                 : "Đặt giá thành công!";
-            alert(successMessage);
+            toast.success(successMessage);
 
             // Refresh auto-bid data if it was an auto-bid
             if (isAutoBid && maxBid) {
@@ -97,18 +98,17 @@ export const ProductDetail: React.FC = () => {
                         setCurrentAutoBid(autoBidResponse.data);
                     }
                 } catch (error) {
-                    console.error("Error refreshing auto-bid:", error);
+                    // Silent error for auto-bid refresh
                 }
             }
         } catch (error) {
-            console.error("Bid error:", error);
 
             // Check if user is banned
             if (error instanceof Error && error.message.includes("banned")) {
                 setIsModalOpen(false);
                 setIsBannedModalOpen(true);
             } else {
-                alert(
+                toast.error(
                     error instanceof Error
                         ? error.message
                         : "Đặt giá thất bại. Vui lòng thử lại."

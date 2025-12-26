@@ -17,6 +17,7 @@ import OrderChat from "../components/Order/OrderChat";
 import type { OrderView, OrderDetailResponse } from "../types";
 import { useUser } from "../context/useUser";
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
 
 const OrderDetailPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -96,7 +97,7 @@ const OrderDetailPage: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (!file.type.startsWith("image/"))
-        return alert("Chỉ chấp nhận file ảnh");
+        return toast.error("Chỉ chấp nhận file ảnh");
       setProofFile(file);
       setProofPreview(URL.createObjectURL(file));
     }
@@ -107,7 +108,7 @@ const OrderDetailPage: React.FC = () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (!file.type.startsWith("image/"))
-        return alert("Chỉ chấp nhận file ảnh");
+        return toast.error("Chỉ chấp nhận file ảnh");
       setProofFile(file);
       setProofPreview(URL.createObjectURL(file));
     }
@@ -124,7 +125,7 @@ const OrderDetailPage: React.FC = () => {
 
   // 1. Seller Hủy đơn
   const submitCancellation = async () => {
-    if (!cancelReason.trim()) return alert("Vui lòng nhập lý do hủy đơn.");
+    if (!cancelReason.trim()) return toast.error("Vui lòng nhập lý do hủy đơn.");
     if (!window.confirm("Hành động này không thể hoàn tác. Bạn chắc chắn chứ?"))
       return;
 
@@ -140,13 +141,13 @@ const OrderDetailPage: React.FC = () => {
       });
       const resData = await response.json();
       if (response.ok) {
-        alert("Đã hủy đơn thành công.");
+        toast.success("Đã hủy đơn thành công.");
         window.location.reload();
       } else {
-        alert(resData.message || "Lỗi khi hủy đơn.");
+        toast.error(resData.message || "Lỗi khi hủy đơn.");
       }
     } catch (err) {
-      alert("Lỗi kết nối.");
+      toast.error("Lỗi kết nối.");
     } finally {
       setActionLoading(false);
       setIsCancelModalOpen(false);
@@ -155,8 +156,8 @@ const OrderDetailPage: React.FC = () => {
 
   // 2. Buyer Thanh toán (Gửi FormData)
   const handleBuyerPay = async () => {
-    if (!address.trim()) return alert("Vui lòng nhập địa chỉ");
-    if (!proofFile) return alert("Vui lòng tải lên ảnh chuyển khoản");
+    if (!address.trim()) return toast.error("Vui lòng nhập địa chỉ");
+    if (!proofFile) return toast.error("Vui lòng tải lên ảnh chuyển khoản");
 
     setActionLoading(true);
     try {
@@ -173,10 +174,10 @@ const OrderDetailPage: React.FC = () => {
       if (response.ok) window.location.reload();
       else {
         const data = await response.json();
-        alert(data.message || "Lỗi khi cập nhật thanh toán");
+        toast.error(data.message || "Lỗi khi cập nhật thanh toán");
       }
     } catch (e) {
-      alert("Lỗi kết nối");
+      toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
     }
@@ -184,7 +185,7 @@ const OrderDetailPage: React.FC = () => {
 
   // 3. Seller Gửi hàng (Gửi FormData)
   const handleSellerShip = async () => {
-    if (!proofFile) return alert("Vui lòng tải lên ảnh vận đơn");
+    if (!proofFile) return toast.error("Vui lòng tải lên ảnh vận đơn");
 
     setActionLoading(true);
     try {
@@ -200,10 +201,10 @@ const OrderDetailPage: React.FC = () => {
       if (response.ok) window.location.reload();
       else {
         const data = await response.json();
-        alert(data.message || "Lỗi khi cập nhật vận chuyển");
+        toast.error(data.message || "Lỗi khi cập nhật vận chuyển");
       }
     } catch (e) {
-      alert("Lỗi kết nối");
+      toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
     }
@@ -230,9 +231,9 @@ const OrderDetailPage: React.FC = () => {
         }
       );
       if (response.ok) window.location.reload();
-      else alert("Lỗi xác nhận");
+      else toast.error("Lỗi xác nhận");
     } catch (e) {
-      alert("Lỗi kết nối");
+      toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
     }
@@ -241,7 +242,7 @@ const OrderDetailPage: React.FC = () => {
   // 5. Gửi Đánh giá
   const submitFeedback = async () => {
     if (!feedbackComment.trim())
-      return alert("Vui lòng nhập nội dung đánh giá");
+      return toast.error("Vui lòng nhập nội dung đánh giá");
     setActionLoading(true);
     try {
       const response = await fetch(apiUrl(`api/orders/${orderId}/feedback`), {
@@ -257,11 +258,11 @@ const OrderDetailPage: React.FC = () => {
       });
       const resData = await response.json();
       if (response.ok) {
-        alert("Đánh giá thành công!");
+        toast.success("Đánh giá thành công!");
         window.location.reload();
-      } else alert(resData.message || "Lỗi gửi đánh giá");
+      } else toast.error(resData.message || "Lỗi gửi đánh giá");
     } catch (e) {
-      alert("Lỗi kết nối");
+      toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
       setIsFeedbackModalOpen(false);

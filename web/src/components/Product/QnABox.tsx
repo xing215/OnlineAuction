@@ -4,6 +4,7 @@ import { apiUrl } from '../../config/api';
 import { useUser } from '../../context/useUser';
 import { formatDate } from '../../utilities/FormatDate';
 import type { ProductQuestion } from '../../types';
+import toast from 'react-hot-toast';
 
 interface QnABoxProps {
   productId: string;
@@ -44,12 +45,12 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
   // Submit new question
   const handleAskQuestion = async () => {
     if (!newQuestion.trim()) {
-      alert('Vui lòng nhập câu hỏi!');
+      toast.error('Vui lòng nhập câu hỏi!');
       return;
     }
 
     if (!token) {
-      alert('Vui lòng đăng nhập để đặt câu hỏi!');
+      toast.error('Vui lòng đăng nhập để đặt câu hỏi!');
       return;
     }
 
@@ -67,16 +68,15 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        alert('Đã gửi câu hỏi thành công!');
+        toast.success('Đã gửi câu hỏi thành công!');
         setNewQuestion('');
         setShowAskForm(false);
         fetchQuestions(); // Reload
       } else {
-        alert((data.message || 'Không thể gửi câu hỏi'));
+        toast.error(data.message || 'Không thể gửi câu hỏi');
       }
     } catch (error) {
-      console.error('Lỗi khi gửi câu hỏi:', error);
-      alert('Lỗi khi gửi câu hỏi!');
+      toast.error('Lỗi khi gửi câu hỏi!');
     } finally {
       setSubmitting(false);
     }
@@ -87,12 +87,12 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
     const answer = answerForms[questionId];
     
     if (!answer || !answer.trim()) {
-      alert('Vui lòng nhập câu trả lời!');
+      toast.error('Vui lòng nhập câu trả lời!');
       return;
     }
 
     if (!token) {
-      alert('Vui lòng đăng nhập!');
+      toast.error('Vui lòng đăng nhập!');
       return;
     }
 
@@ -110,7 +110,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        alert('Đã trả lời thành công!');
+        toast.success('Đã trả lời thành công!');
         setAnswerForms(prev => {
           const newForms = { ...prev };
           delete newForms[questionId];
@@ -118,11 +118,10 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
         });
         fetchQuestions(); // Reload
       } else {
-        alert((data.message || 'Không thể trả lời'));
+        toast.error(data.message || 'Không thể trả lời');
       }
     } catch (error) {
-      console.error('Lỗi khi trả lời:', error);
-      alert('Lỗi khi trả lời câu hỏi!');
+      toast.error('Lỗi khi trả lời câu hỏi!');
     } finally {
       setAnsweringId(null);
     }

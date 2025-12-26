@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { useUser } from "../../context/useUser";
+import toast from "react-hot-toast";
 
 interface Bidder {
     _id: string;
@@ -99,7 +100,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                 setBannedUsers(rollback);
 
                 const data = await response.json();
-                alert(data.message || "Cannot ban user");
+                toast.error(data.message || "Cannot ban user");
             } else {
             await fetchBannedList(); 
         }
@@ -109,7 +110,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
         rollback.delete(userId);
         setBannedUsers(rollback);
 
-        alert("An error occurred while banning the user");
+        toast.error("An error occurred while banning the user");
     }
     };
 
@@ -141,7 +142,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
             setBannedUsers(rollback);
 
             const data = await response.json();
-            alert(data.message || "Cannot unban user");
+            toast.error(data.message || "Cannot unban user");
         } else {
             await fetchBannedList(); 
         }
@@ -151,7 +152,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
         rollback.add(userId);
         setBannedUsers(rollback);
 
-        alert("An error occurred while unbanning the user");
+        toast.error("An error occurred while unbanning the user");
     }
     };
 
