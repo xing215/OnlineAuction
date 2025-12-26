@@ -367,11 +367,203 @@ const sendUnbannedBidderEmail = async ({
     }
 };
 
+const sendNewBidToSellerEmail = async ({
+    sellerEmail,
+    sellerName,
+    productName,
+    productId,
+    bidderName,
+    bidAmount,
+    bidCount,
+}) => {
+    try {
+        const transporter = createTransport();
+        const maskedBidderName = maskName(bidderName);
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: sellerEmail,
+            subject: `Có lượt đặt giá mới cho sản phẩm "${productName}"`,
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background-color: #f59e0b; height: 6px; width: 100%;"></div>
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Lượt đặt giá mới!
+                </h2>
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Xin chào <strong>${sellerName}</strong>,<br>
+                    <strong>${maskedBidderName}</strong> vừa đặt giá cho sản phẩm <strong style="color: #d97706;">${productName}</strong>.
+                </p>
+                <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #92400e; font-weight: 600; font-size: 14px;">Giá đặt mới:</p>
+                    <p style="margin-top: 8px; margin-bottom: 0; color: #111827; font-size: 24px; font-weight: 700;">
+                    ${bidAmount.toLocaleString('vi-VN')}đ
+                    </p>
+                    <p style="margin-top: 8px; margin-bottom: 0; color: #6b7280; font-size: 14px;">
+                    Tổng số lượt đặt giá: <strong>${bidCount}</strong>
+                    </p>
+                </div>
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <a href="${productUrl}" 
+                    style="display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);">
+                    Xem chi tiết sản phẩm
+                    </a>
+                </div>
+                </div>
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá.<br>
+                    Vui lòng không trả lời trực tiếp email này.
+                </p>
+                </div>
+            </div>
+            </div>
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error("Lỗi khi gửi email cho người bán:", error);
+    }
+};
+
+const sendNewBidToCurrentBidderEmail = async ({
+    bidderEmail,
+    bidderName,
+    productName,
+    productId,
+    bidAmount,
+    isLeading,
+}) => {
+    try {
+        const transporter = createTransport();
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: bidderEmail,
+            subject: `Xác nhận đặt giá: ${productName}`,
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background-color: #10b981; height: 6px; width: 100%;"></div>
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Đặt giá thành công!
+                </h2>
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Xin chào <strong>${bidderName}</strong>,<br>
+                    Bạn đã đặt giá thành công cho sản phẩm <strong style="color: #059669;">${productName}</strong>.
+                </p>
+                <div style="background-color: ${isLeading ? '#ecfdf5' : '#fef3c7'}; border-left: 4px solid ${isLeading ? '#10b981' : '#f59e0b'}; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: ${isLeading ? '#065f46' : '#92400e'}; font-weight: 600; font-size: 14px;">Giá của bạn:</p>
+                    <p style="margin-top: 8px; margin-bottom: 0; color: #111827; font-size: 24px; font-weight: 700;">
+                    ${bidAmount.toLocaleString('vi-VN')}đ
+                </div>
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <a href="${productUrl}" 
+                    style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
+                    Theo dõi sản phẩm
+                    </a>
+                </div>
+                </div>
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá.<br>
+                    Vui lòng không trả lời trực tiếp email này.
+                </p>
+                </div>
+            </div>
+            </div>
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error("Lỗi khi gửi email xác nhận đặt giá:", error);
+    }
+};
+
+const sendOutbidEmail = async ({
+    bidderEmail,
+    bidderName,
+    productName,
+    productId,
+    previousBidAmount,
+    newBidAmount,
+}) => {
+    try {
+        const transporter = createTransport();
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: bidderEmail,
+            subject: `Có người đặt giá cao hơn: ${productName}`,
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background-color: #ef4444; height: 6px; width: 100%;"></div>
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Bạn không còn dẫn đầu!
+                </h2>
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Xin chào <strong>${bidderName}</strong>,<br>
+                    Có người vừa đặt giá cao hơn bạn cho sản phẩm <strong style="color: #dc2626;">${productName}</strong>.
+                </p>
+                <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 4px; margin-bottom: 20px;">
+                    <div style="margin-bottom: 12px;">
+                        <p style="margin: 0; color: #991b1b; font-weight: 600; font-size: 13px;">Giá của bạn:</p>
+                        <p style="margin-top: 4px; margin-bottom: 0; color: #6b7280; font-size: 18px; font-weight: 600;">
+                        ${previousBidAmount.toLocaleString('vi-VN')}đ
+                        </p>
+                    </div>
+                    <div>
+                        <p style="margin: 0; color: #991b1b; font-weight: 600; font-size: 13px;">Giá hiện tại:</p>
+                        <p style="margin-top: 4px; margin-bottom: 0; color: #111827; font-size: 20px; font-weight: 700;">
+                        ${newBidAmount.toLocaleString('vi-VN')}đ
+                        </p>
+                    </div>
+                </div>
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                    Đặt giá ngay để tiếp tục cạnh tranh cho sản phẩm này!
+                </p>
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <a href="${productUrl}" 
+                    style="display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">
+                    Đặt giá ngay
+                    </a>
+                </div>
+                </div>
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá.<br>
+                    Vui lòng không trả lời trực tiếp email này.
+                </p>
+                </div>
+            </div>
+            </div>
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo outbid:", error);
+    }
+};
+
 module.exports = {
     sendNewQuestionEmail,
     sendOTPEmail,
     sendAnswerEmail,
     sendBannedBidderEmail,
     sendUnbannedBidderEmail,
+    sendNewBidToSellerEmail,
+    sendNewBidToCurrentBidderEmail,
+    sendOutbidEmail,
     maskName,
 };
