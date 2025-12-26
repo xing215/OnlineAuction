@@ -18,7 +18,34 @@ const formatBidder = (value: string) =>
 
 export default function MyProductsPage() {
   const navigate = useNavigate();
-  const { activeTab, setActiveTab, stats, tabOptions, products } = useMyProducts();
+  const { activeTab, setActiveTab, stats, tabOptions, products, loading, error } = useMyProducts();
+
+  if (loading) {
+    return (
+      <div className="my-products-page">
+        <div className="my-products-page__inner">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#D5AD41] border-r-transparent"></div>
+              <p className="mt-4 text-sm text-[#6B6B6B]">Đang tải sản phẩm...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="my-products-page">
+        <div className="my-products-page__inner">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center">
+            <p className="text-sm text-red-600">Lỗi: {error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="my-products-page">
@@ -113,11 +140,12 @@ export default function MyProductsPage() {
                 </div>
                 <div className="my-products-page__product-actions">
                   <span className="inline-flex items-center rounded-2xl bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">
-                    Đang đấu giá
+                    {product.status === "ongoing" ? "Đang đấu giá" : product.status === "sold" ? "Đã bán" : "Hoàn tất"}
                   </span>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
+                      onClick={() => navigate(`/products/${product.id}`)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-[#3E3C31]/15 bg-neutral-50 px-4 py-2 text-sm text-[#3E3C31] transition hover:bg-neutral-100"
                     >
                       <VisibilityRounded fontSize="small" />
@@ -125,6 +153,7 @@ export default function MyProductsPage() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => navigate(`/orders?productId=${product.id}`)}
                       className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37]"
                     >
                       Xem giao dịch
