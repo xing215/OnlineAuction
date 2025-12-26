@@ -302,7 +302,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                 {(isCategoriesHover || categoryClicked) &&
                     !isSidebarCollapsed && (
                         <div
-                            className="absolute top-0 left-[256px] z-50 bg-white shadow-lg rounded-r-lg p-4 min-w-[200px] h-screen overflow-y-auto"
+                            className="fixed top-0 left-[256px] z-50 bg-white shadow-lg rounded-r-lg p-4 min-w-[200px] h-screen overflow-y-auto"
                             onMouseEnter={() => {
                                 if (!categoryClicked) {
                                     if (hoverTimeoutRef.current) {
