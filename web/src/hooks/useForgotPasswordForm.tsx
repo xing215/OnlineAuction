@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
 
 interface ForgotPasswordErrors {
     email?: string;
@@ -75,9 +76,8 @@ export const useForgotPasswordForm = () => {
 
             // Success - move to OTP verification step
             setStep("verify");
-            alert(data.message || "Mã OTP đã được gửi đến email của bạn");
+            toast.success(data.message || "Mã OTP đã được gửi đến email của bạn");
         } catch (error) {
-            console.error("Request OTP error:", error);
             setErrors({ general: "Không thể kết nối đến máy chủ" });
         } finally {
             setLoading(false);
@@ -141,10 +141,9 @@ export const useForgotPasswordForm = () => {
             }
 
             // Success
-            alert(data.message || "Đặt lại mật khẩu thành công");
+            toast.success(data.message || "Đặt lại mật khẩu thành công");
             window.location.href = "/signin";
         } catch (error) {
-            console.error("Reset password error:", error);
             setErrors({ general: "Không thể kết nối đến máy chủ" });
         } finally {
             setLoading(false);

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { apiUrl } from "../config/api";
 import { useUser } from "../context/useUser";
+import toast from "react-hot-toast";
 
 interface ChangePasswordFormData {
     currentPassword: string;
@@ -111,7 +112,7 @@ export const useChangePasswordForm = () => {
             }
 
             // Success
-            setSuccessMessage(data.message || "Đổi mật khẩu thành công!");
+            toast.success(data.message || "Đổi mật khẩu thành công!");
             setFormData({
                 currentPassword: "",
                 newPassword: "",
@@ -119,8 +120,8 @@ export const useChangePasswordForm = () => {
             });
 
         } catch (err) {
-            console.error("Change password error:", err);
             const message = err instanceof Error ? err.message : "Có lỗi xảy ra. Vui lòng thử lại.";
+            toast.error(message);
             setErrors({ general: message });
         } finally {
             setIsSubmitting(false);

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { type Category } from '../types';
 import { buildTree } from '../utilities/buildTree';
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
 
 export const useCategoryManagement = () => {
   // --- STATE ---
@@ -33,10 +34,10 @@ export const useCategoryManagement = () => {
           .map((c: Category) => c.id);
         setExpandedIds(new Set(rootIds));
       } else {
-        alert('Lỗi tải dữ liệu: ' + json.message);
+        toast.error('Lỗi tải dữ liệu: ' + json.message);
       }
     } catch (error) {
-      console.error("Lỗi:", error);
+      toast.error('Không thể tải dữ liệu danh mục');
     } finally {
       setLoading(false);
     }
@@ -63,10 +64,10 @@ export const useCategoryManagement = () => {
         setSelectedId(json.data.id);
         setMode('edit');
       } else {
-        alert('Tạo thất bại: ' + json.message);
+        toast.error('Tạo thất bại: ' + json.message);
       }
     } catch (error) {
-      console.error("Lỗi tạo mới:", error);
+      toast.error('Không thể tạo danh mục mới');
     }
   };
 
@@ -82,12 +83,12 @@ export const useCategoryManagement = () => {
 
       if (json.success) {
         setCategories(prev => prev.map(cat => cat.id === selectedId ? json.data : cat));
-        alert('Đã cập nhật!');
+        toast.success('Đã cập nhật!');
       } else {
-        alert('Cập nhật thất bại: ' + json.message);
+        toast.error('Cập nhật thất bại: ' + json.message);
       }
     } catch (error) {
-      console.error("Lỗi cập nhật:", error);
+      toast.error('Không thể cập nhật danh mục');
     }
   };
 
@@ -106,10 +107,10 @@ export const useCategoryManagement = () => {
         setSelectedId(null);
         setMode('view');
       } else {
-        alert('Xóa thất bại: ' + json.message);
+        toast.error('Xóa thất bại: ' + json.message);
       }
     } catch (error) {
-      console.error("Lỗi xóa:", error);
+      toast.error('Không thể xóa danh mục');
     }
   };
 

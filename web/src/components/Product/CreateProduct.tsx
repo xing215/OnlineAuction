@@ -4,6 +4,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 // TYPES
 type ProductForm = {
@@ -103,7 +104,7 @@ const CreateProduct: React.FC = () => {
         const currentCount = images.length;
         const availableSlots = limit - currentCount;
 
-        if (availableSlots <= 0) return alert('Đã đạt giới hạn 10 ảnh!');
+        if (availableSlots <= 0) return toast.error('Đã đạt giới hạn 10 ảnh!');
 
         const arr: Array<{ file?: File; preview: string }> = [];
         const countToAdd = Math.min(files.length, availableSlots);
@@ -162,10 +163,10 @@ const CreateProduct: React.FC = () => {
         e.preventDefault();
 
         // Validate cơ bản
-        if (images.length < 3) return alert('Vui lòng tải lên ít nhất 3 ảnh minh họa');
-        if (!form.category) return alert('Vui lòng chọn danh mục');
-        if (!form.end_date) return alert('Vui lòng chọn thời gian kết thúc');
-        if (Number(form.start_price) <= 0 || Number(form.step_price) <= 0) return alert('Giá tiền không hợp lệ');
+        if (images.length < 3) return toast.error('Vui lòng tải lên ít nhất 3 ảnh minh họa');
+        if (!form.category) return toast.error('Vui lòng chọn danh mục');
+        if (!form.end_date) return toast.error('Vui lòng chọn thời gian kết thúc');
+        if (Number(form.start_price) <= 0 || Number(form.step_price) <= 0) return toast.error('Giá tiền không hợp lệ');
 
         setSubmitting(true);
 
@@ -173,7 +174,7 @@ const CreateProduct: React.FC = () => {
             const id = user?._id || user?.id || "";
 
             if (!id) {
-                alert("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!");
+                toast.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!");
                 return; 
             }
             const fd = new FormData();
@@ -213,7 +214,7 @@ const CreateProduct: React.FC = () => {
                 const data = JSON.parse(text);
                 if (!res.ok) throw new Error(data.message || 'Lỗi server');
                 
-                alert('Đăng sản phẩm thành công!');
+                toast.success('Đăng sản phẩm thành công!');
                 
                 // Reset Form
                 setForm({ name: '', category: '', description: '', start_price: '', step_price: '', buy_now_price: '', end_date: '' });
@@ -229,11 +230,9 @@ const CreateProduct: React.FC = () => {
 
         } catch (err) {
             if (err instanceof Error) {
-                console.error(err);
-                alert('Lỗi: ' + err.message);
+                toast.error('Lỗi: ' + err.message);
             } else {
-                console.error('Unexpected error during product creation', err);
-                alert('Đã xảy ra lỗi không xác định');
+                toast.error('Đã xảy ra lỗi không xác định');
             }
         } finally {
             setSubmitting(false);

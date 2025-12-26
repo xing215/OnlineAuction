@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useUser } from "../context/useUser";
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
+import toast from "react-hot-toast";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -70,10 +71,9 @@ export const useLoginForm = () => {
                 navigate("/");
             }
         } catch (err) {
-            console.error("Login error:", err);
             const message =
                 err instanceof Error ? err.message : "Lỗi đăng nhập";
-            alert(message);
+            toast.error(message);
             // Reset reCAPTCHA on error
             recaptchaRef.current?.reset();
         }

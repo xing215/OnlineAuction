@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, User } from "lucide-react";
 import { apiUrl } from "../../config/api";
+import toast from "react-hot-toast";
 
 interface OrderChatProps {
   orderId: string;
@@ -72,7 +73,7 @@ const OrderChat: React.FC<OrderChatProps> = ({
         setInput("");
       }
     } catch (err) {
-      alert("Lỗi gửi tin nhắn");
+      toast.error("Lỗi gửi tin nhắn");
       console.error(err);
     }
   };

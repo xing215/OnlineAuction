@@ -4,6 +4,7 @@ import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
 import { useUser } from "../../context/useUser";
 import AdminLayout from "../../components/Admin/AdminLayout";
+import toast from "react-hot-toast";
 
 interface UpgradeRequestItem {
     _id: string;
@@ -134,18 +135,17 @@ export const UpgradeRequest: React.FC = () => {
             );
 
             if (response.ok) {
-                alert("Đã chấp nhận yêu cầu nâng cấp!");
+                toast.success("Đã chấp nhận yêu cầu nâng cấp!");
                 fetchRequests();
                 setIsModalOpen(false);
                 setSelectedRequest(null);
                 setAdminNote("");
             } else {
                 const data = await response.json();
-                alert(data.message || "Không thể chấp nhận yêu cầu");
+                toast.error(data.message || "Không thể chấp nhận yêu cầu");
             }
         } catch (error) {
-            console.error("Failed to approve request:", error);
-            alert("Lỗi kết nối. Vui lòng thử lại.");
+            toast.error("Lỗi kết nối. Vui lòng thử lại.");
         }
     };
 
@@ -153,7 +153,7 @@ export const UpgradeRequest: React.FC = () => {
         if (!selectedRequest) return;
 
         if (!adminNote.trim()) {
-            alert("Vui lòng nhập lý do từ chối");
+            toast.error("Vui lòng nhập lý do từ chối");
             return;
         }
 
@@ -173,18 +173,17 @@ export const UpgradeRequest: React.FC = () => {
             );
 
             if (response.ok) {
-                alert("Đã từ chối yêu cầu");
+                toast.success("Đã từ chối yêu cầu");
                 fetchRequests();
                 setIsModalOpen(false);
                 setSelectedRequest(null);
                 setAdminNote("");
             } else {
                 const data = await response.json();
-                alert(data.message || "Không thể từ chối yêu cầu");
+                toast.error(data.message || "Không thể từ chối yêu cầu");
             }
         } catch (error) {
-            console.error("Failed to reject request:", error);
-            alert("Lỗi kết nối. Vui lòng thử lại.");
+            toast.error("Lỗi kết nối. Vui lòng thử lại.");
         }
     };
 
