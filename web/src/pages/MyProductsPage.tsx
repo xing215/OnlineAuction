@@ -145,7 +145,7 @@ export default function MyProductsPage() {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => navigate(`/products/${product.id}`)}
+                      onClick={() => navigate(`/product/${product.id}`)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-[#3E3C31]/15 bg-neutral-50 px-4 py-2 text-sm text-[#3E3C31] transition hover:bg-neutral-100 cursor-pointer"
                     >
                       <VisibilityRounded fontSize="small" />
@@ -153,7 +153,7 @@ export default function MyProductsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate(`/orders?productId=${product.id}`)}
+                      onClick={() => navigate(`/orders`)}
                       className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
                     >
                       Xem giao dịch
