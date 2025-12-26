@@ -16,6 +16,9 @@ import { UserProvider } from "./context/UserContext";
 import { ProductDetail } from "./pages/ProductDetail/ProductDetail";
 import FavList from "./pages/FavList";
 import ManageUser from "./pages/Admin/ManageUser";
+import ProductManagement from "./pages/Admin/ProductManagement";
+import CategoryManagement from "./pages/Admin/CategoryManagement";
+import UpgradeRequest from "./pages/Admin/UpgradeRequest";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrderManagement from "./pages/OrderManagement";
 
@@ -114,6 +117,18 @@ function App() {
                         <Route
                             path="/admin/manage-user"
                             element={<ManageUser />}
+                        />
+                        <Route
+                            path="/admin/manage-product"
+                            element={<ProductManagement />}
+                        />
+                        <Route
+                            path="/admin/manage-category"
+                            element={<CategoryManagement />}
+                        />
+                        <Route
+                            path="/admin/upgrade-requests"
+                            element={<UpgradeRequest />}
                         />
                         <Route
                             path="*"
