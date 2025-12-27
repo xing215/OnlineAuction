@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { formatCurrency } from "../../utilities";
+import { apiUrl } from "../../config/api";
 
 interface BidRecord {
     _id: string;
@@ -36,7 +37,9 @@ export const BidHistoryTable: React.FC<BidHistoryTableProps> = ({
 
         try {
             const response = await fetch(
-                `/api/bids/product/${productId}?page=${page}&limit=${limit}`
+                apiUrl(
+                    `/api/bids/product/${productId}?page=${page}&limit=${limit}`
+                )
             );
 
             if (!response.ok) {
