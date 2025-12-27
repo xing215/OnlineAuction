@@ -2,7 +2,6 @@ import type { SvgIconComponent } from "@mui/icons-material";
 import {
   AccountCircleRounded,
   FavoriteBorderRounded,
-  HistoryRounded,
   HomeRounded,
   Inventory2Rounded,
   LockResetRounded,
@@ -21,7 +20,6 @@ export const WEB_PAGE = {
   HOME: { path: "/", label: "Trang chủ", Icon: HomeRounded },
   CATEGORIES: { path: "/categories", label: "Danh mục", Icon: MenuRounded },
   FAVORITES: { path: "/favorites", label: "Yêu thích", Icon: FavoriteBorderRounded },
-  BID_HISTORY: { path: "/bid-history", label: "Lịch sử đấu giá", Icon: HistoryRounded },
   MY_PRODUCTS: { path: "/my-products", label: "Sản phẩm của tôi", Icon: Inventory2Rounded },
   PROFILE: { path: "/profile", label: "Hồ sơ", Icon: AccountCircleRounded },
   CHANGE_PASSWORD: { path: "/change-password", label: "Đổi mật khẩu", Icon: LockResetRounded },
@@ -36,7 +34,6 @@ export const PRIMARY_NAV_KEYS: WebPageKey[] = [
   "HOME",
   "CATEGORIES",
   "FAVORITES",
-  "BID_HISTORY",
   "MY_PRODUCTS",
   "ORDER"
 ];

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PackageOpen } from "lucide-react";
 import OrderCard from "../components/Order/OrderCard";
+import { OrderLoginPrompt } from "../components/Order/OrderLoginPrompt";
 import type { OrderView, OrderResponse } from "../types";
 import { useUser } from "../context/useUser";
 import { apiUrl } from "../config/api";
@@ -62,11 +63,7 @@ const OrderManagement: React.FC = () => {
 
   // Nếu tải xong mà không có user
   if (!user)
-    return (
-      <div className="p-10 text-center text-red-500">
-        Vui lòng đăng nhập để xem đơn hàng.
-      </div>
-    );
+    return <OrderLoginPrompt />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">

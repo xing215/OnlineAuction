@@ -23,19 +23,6 @@ import UpgradeRequest from "./pages/Admin/UpgradeRequest";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrderManagement from "./pages/OrderManagement";
 
-interface PlaceholderPageProps {
-    title: string;
-}
-
-const PlaceholderPage = ({ title }: PlaceholderPageProps) => (
-    <div className="p-6 text-white">
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p className="mt-2 text-sm text-white/70">
-            Nội dung đang được cập nhật.
-        </p>
-    </div>
-);
-
 const AUTH_ROUTES = {
     SIGNIN: "/signin",
     SIGNUP: "/signup",
@@ -90,14 +77,6 @@ function App() {
                             <Route
                                 path={WEB_PAGE.FAVORITES.path}
                                 element={<FavList />}
-                            />
-                            <Route
-                                path={WEB_PAGE.BID_HISTORY.path}
-                                element={
-                                    <PlaceholderPage
-                                        title={WEB_PAGE.BID_HISTORY.label}
-                                    />
-                                }
                             />
                             <Route
                                 path={WEB_PAGE.MY_PRODUCTS.path}
