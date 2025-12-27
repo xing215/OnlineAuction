@@ -81,9 +81,9 @@ const OrderDetailPage: React.FC = () => {
         } else {
           throw new Error("Không tải được dữ liệu.");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Lỗi tải chi tiết:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -146,7 +146,7 @@ const OrderDetailPage: React.FC = () => {
       } else {
         toast.error(resData.message || "Lỗi khi hủy đơn.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Lỗi kết nối.");
     } finally {
       setActionLoading(false);
@@ -176,7 +176,7 @@ const OrderDetailPage: React.FC = () => {
         const data = await response.json();
         toast.error(data.message || "Lỗi khi cập nhật thanh toán");
       }
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -203,7 +203,7 @@ const OrderDetailPage: React.FC = () => {
         const data = await response.json();
         toast.error(data.message || "Lỗi khi cập nhật vận chuyển");
       }
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -232,7 +232,7 @@ const OrderDetailPage: React.FC = () => {
       );
       if (response.ok) window.location.reload();
       else toast.error("Lỗi xác nhận");
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -261,7 +261,7 @@ const OrderDetailPage: React.FC = () => {
         toast.success("Đánh giá thành công!");
         window.location.reload();
       } else toast.error(resData.message || "Lỗi gửi đánh giá");
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -537,7 +537,6 @@ const OrderDetailPage: React.FC = () => {
                         <p className="text-gray-700">
                           <strong>Ảnh thanh toán:</strong>
                         </p>
-                        {/* @ts-ignore */}
                         {order.payment_proof ? (
                           <a
                             href={order.payment_proof}
@@ -585,7 +584,6 @@ const OrderDetailPage: React.FC = () => {
                         <p className="mb-2 text-gray-700">
                           <strong>Vận đơn gửi hàng:</strong>
                         </p>
-                        {/* @ts-ignore */}
                         {order.shipping_proof ? (
                           <a
                             href={order.shipping_proof}

@@ -2,9 +2,9 @@ export interface Product {
     _id: string;
     id: string;
     name: string;
-    category: string; // ObjectId ref to Category
+    category: string | Category; // ObjectId ref to Category or populated Category
     category_name: string;
-    seller: string; // ObjectId ref to User
+    seller: string | { _id: string; full_name: string }; // ObjectId ref to User or populated
     images: string[];
     description?: string;
     description_updates: {
@@ -73,7 +73,7 @@ export interface Feedback {
 
 export interface Message {
     id: string;
-    sender: string; // ObjectId ref to User
+    sender: string | { _id: string; full_name: string }; // ObjectId ref to User or populated
     content: string;
     sent_at: Date;
 }
@@ -167,6 +167,7 @@ export interface SellerDetails {
 
 export interface User {
     id: string;
+    _id?: string;
     full_name: string;
     email: string;
     password?: string;

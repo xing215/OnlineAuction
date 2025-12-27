@@ -21,13 +21,7 @@ export const Description: React.FC<DescriptionProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Logic kiểm tra seller giữ nguyên
-  const isSeller =
-    user &&
-    product?.seller &&
-    (typeof product.seller === "object"
-      ? (product.seller as any)?._id === user.id ||
-        (product.seller as any)?.id === user.id
-      : product.seller === user.id);
+  const isSeller = user && product?.seller === user.id;
 
   const handleUpdateDescription = async () => {
     if (!newDescription.trim()) {

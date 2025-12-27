@@ -97,7 +97,7 @@ export const ProductDetail: React.FC = () => {
                     if (autoBidResponse.data) {
                         setCurrentAutoBid(autoBidResponse.data);
                     }
-                } catch (error) {
+                } catch {
                     // Silent error for auto-bid refresh
                 }
             }
@@ -170,7 +170,7 @@ export const ProductDetail: React.FC = () => {
                     const res = relatedResult.value;
                     setRelatedProducts(
                         res.data?.filter(
-                            (p: any) => p.id !== currentProduct.id
+                            (p: Product) => p.id !== currentProduct.id
                         ) || []
                     );
                 } else {
@@ -601,9 +601,7 @@ export const ProductDetail: React.FC = () => {
                                         productId={product.id}
                                         sellerId={
                                             typeof product.seller === "object"
-                                                ? (product.seller as any)
-                                                      ?._id ||
-                                                  (product.seller as any)?.id
+                                                ? product.seller._id
                                                 : product.seller
                                         }
                                     />

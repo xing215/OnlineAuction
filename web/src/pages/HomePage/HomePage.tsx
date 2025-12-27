@@ -73,7 +73,7 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-4">
-            Chào mừng đến với BiddenBid
+            Chào mừng đến với GoldenBid
           </h1>
           <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
             Nền tảng đấu giá trực tuyến uy tín, đáng tin cậy

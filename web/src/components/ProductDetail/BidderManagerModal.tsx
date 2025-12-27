@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
@@ -35,14 +35,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
     const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
     const { token } = useUser();
 
-    useEffect(() => {
-        if (isOpen && productId) {
-            fetchBidders();
-            fetchBannedList();
-        }
-    }, [isOpen, productId]);
-
-    const fetchBidders = async () => {
+    const fetchBidders = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(
@@ -56,24 +49,31 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                 );
                 setBidders(sortedBidders || []);
             }
-        } catch (error) {
-            console.error("Failed to fetch bidders:", error);
+        } catch {
+            console.error("Failed to fetch bidders");
         } finally {
             setLoading(false);
         }
-    };
+    }, [productId]);
 
-    const fetchBannedList = async () => {
+    const fetchBannedList = useCallback(async () => {
         try {
             const res = await fetch(apiUrl(`/api/products/banned/${productId}`));
             if (res.ok) {
                 const data = await res.json();
                 setBannedUsers(new Set(data.data || []));
             }
-        } catch (e) {
-            console.error("Failed to load banned list:", e);
+        } catch {
+            console.error("Failed to load banned list");
         }
-    };
+    }, [productId]);
+
+    useEffect(() => {
+        if (isOpen && productId) {
+            fetchBidders();
+            fetchBannedList();
+        }
+    }, [isOpen, productId, fetchBidders, fetchBannedList]);
 
     const handleBanBidder = async (userId: string) => {
         const newBanned = new Set(bannedUsers);
@@ -104,7 +104,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
             } else {
             await fetchBannedList(); 
         }
-        } catch (error) {
+        } catch {
         // rollback
         const rollback = new Set(bannedUsers);
         rollback.delete(userId);
@@ -146,7 +146,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
         } else {
             await fetchBannedList(); 
         }
-    } catch (error) {
+    } catch {
         // rollback
         const rollback = new Set(bannedUsers);
         rollback.add(userId);

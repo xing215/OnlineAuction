@@ -33,20 +33,18 @@ router.delete(
 // ============================================================
 
 // Get all upgrade requests (with filtering)
-router.get("/all", authMiddleware, upgradeRequestController.getAllRequests);
+router.get("/all", authMiddleware, authMiddleware.adminMiddleware, upgradeRequestController.getAllRequests);
 
 // Get pending requests
 router.get(
     "/pending",
-    authMiddleware,
-    upgradeRequestController.getPendingRequests
+    authMiddleware, authMiddleware.adminMiddleware, upgradeRequestController.getPendingRequests
 );
 
 // Approve a request
 router.patch(
     "/:id/approve",
-    authMiddleware,
-    upgradeRequestController.approveRequest
+    authMiddleware, authMiddleware.adminMiddleware, upgradeRequestController.approveRequest
 );
 
 // Reject a request

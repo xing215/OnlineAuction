@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { formatCurrency } from "../../utilities";
 import { apiUrl } from "../../config/api";
 
@@ -27,11 +27,7 @@ export const BidHistoryTable: React.FC<BidHistoryTableProps> = ({
 
     const limit = 10;
 
-    useEffect(() => {
-        fetchBidHistory();
-    }, [productId, page]);
-
-    const fetchBidHistory = async () => {
+    const fetchBidHistory = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -57,15 +53,15 @@ export const BidHistoryTable: React.FC<BidHistoryTableProps> = ({
             }
         } catch (err) {
             console.error("Fetch bid history error:", err);
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to load bid history"
-            );
+            setError(err instanceof Error ? err.message : "Failed to load bid history");
         } finally {
             setLoading(false);
         }
-    };
+    }, [productId, page]);
+
+    useEffect(() => {
+        fetchBidHistory();
+    }, [fetchBidHistory]);
 
     const formatDateTime = (dateString: string) => {
         const date = new Date(dateString);

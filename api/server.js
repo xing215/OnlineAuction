@@ -1,5 +1,3 @@
-import { startAuctionSettlementJob } from "./utils/auctionSettlement";
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -12,6 +10,9 @@ const connectDatabase = require("./config/database");
 // Import middleware
 const errorHandler = require("./middleware/errorHandler");
 const logger = require("./middleware/logger");
+
+// Import utils
+const { startAuctionSettlementJob } = require("./utils/auctionSettlement");
 
 // Import routes
 const exampleRoutes = require("./routes/exampleRoutes");

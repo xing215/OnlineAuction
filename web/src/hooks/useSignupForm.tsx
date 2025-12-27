@@ -137,7 +137,7 @@ export const useRegisterForm = () => {
                 // Success - redirect to login or home
                 toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
                 window.location.href = "/signin";
-            } catch (error) {
+            } catch {
                 toast.error("Lỗi đăng ký. Vui lòng thử lại.");
                 // Reset reCAPTCHA on error
                 recaptchaRef.current?.reset();

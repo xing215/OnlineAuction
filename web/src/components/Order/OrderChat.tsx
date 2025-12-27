@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Send, User } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Send, User as UserIcon } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import toast from "react-hot-toast";
+import type { Message } from "../../types";
+import type { AuthUser } from "../../context/UserContext.types";
 
 interface OrderChatProps {
   orderId: string;
-  currentUser: any;
+  currentUser: AuthUser;
   token: string | null;
 }
 
@@ -14,11 +16,11 @@ const OrderChat: React.FC<OrderChatProps> = ({
   currentUser,
   token,
 }) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       const response = await fetch(apiUrl(`api/orders/${orderId}/chat`), {
         method: "GET",
@@ -37,14 +39,14 @@ const OrderChat: React.FC<OrderChatProps> = ({
     } catch (err) {
       console.error("Lỗi tải tin nhắn:", err);
     }
-  };
+  }, [orderId, token]);
 
   // Polling 3s
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
-  }, [orderId]);
+  }, [fetchMessages]);
 
   // Auto scroll
   useEffect(() => {
@@ -83,7 +85,7 @@ const OrderChat: React.FC<OrderChatProps> = ({
       <div className="bg-yellow-500 p-4 flex items-center justify-between text-white shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-            <User size={20} className="text-white" />
+            <UserIcon size={20} className="text-white" />
           </div>
           <div>
             <h3 className="font-bold text-lg leading-tight">

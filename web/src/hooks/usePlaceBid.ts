@@ -30,7 +30,6 @@ export const placeBid = async (
     isAutoBid: boolean = false,
     maxBid?: number
 ): Promise<PlaceBidResponse> => {
-    try {
         const response = await fetch(apiUrl("/api/bids/place"), {
             method: "POST",
             headers: {
@@ -52,9 +51,6 @@ export const placeBid = async (
         }
 
         return data;
-    } catch (error) {
-        throw error;
-    }
 };
 
 export interface MyAutoBidResponse {
@@ -75,7 +71,6 @@ export const getMyAutoBid = async (
     productId: string,
     token: string
 ): Promise<MyAutoBidResponse> => {
-    try {
         const response = await fetch(
             apiUrl(`/api/bids/product/${productId}/my-auto-bid`),
             {
@@ -93,7 +88,4 @@ export const getMyAutoBid = async (
         }
 
         return data;
-    } catch (error) {
-        throw error;
-    }
 };

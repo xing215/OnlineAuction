@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
@@ -33,11 +33,7 @@ export const ManageUser: React.FC = () => {
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const { token } = useUser();
 
-    useEffect(() => {
-        fetchUsers();
-    }, [token]);
-
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(apiUrl("/api/users"), {
@@ -56,7 +52,11 @@ export const ManageUser: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     const filteredUsers = useMemo(() => {
         return users.filter((user) => {
