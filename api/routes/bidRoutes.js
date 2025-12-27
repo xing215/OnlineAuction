@@ -15,4 +15,10 @@ router.get("/product/:productId/current", bidController.getCurrentBid);
 // GET /api/bids/product/:productId/my-auto-bid - Get user's auto-bid for this product
 router.get("/product/:productId/my-auto-bid", authMiddleware, bidController.getMyAutoBid);
 
+// GET /api/bids/my-bidding-products - Get products user has bid on that are still active
+router.get("/my-bidding-products", authMiddleware, bidController.getMyBiddingProducts);
+
+// GET /api/bids/my-won-products - Get products user has won
+router.get("/my-won-products", authMiddleware, bidController.getMyWonProducts);
+
 module.exports = router;
