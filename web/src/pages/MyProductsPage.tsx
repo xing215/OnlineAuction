@@ -1,8 +1,11 @@
-import { Inventory2Rounded, VisibilityRounded } from "@mui/icons-material";
+import { Inventory2Rounded, VisibilityRounded, RateReview, CancelRounded } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useMyProducts } from "../hooks/useMyProducts";
 import { useUser } from "../context/useUser";
 import { MyProductsLoginPrompt } from "../components/Product/MyProductsLoginPrompt";
+import { RatingModal } from "../components/Product/RatingModal";
+import { CancelOrderModal } from "../components/Product/CancelOrderModal";
 import { formatCurrency } from "../utilities";
 import "./MyProductsPage.css";
 
@@ -20,8 +23,12 @@ const formatBidder = (value: string) =>
 
 export default function MyProductsPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useUser();
+  const { user, loading: authLoading, token } = useUser();
   const { activeTab, setActiveTab, stats, tabOptions, products, loading, error } = useMyProducts();
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string>("");
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<string>("");
 
   if (authLoading) {
     return (
@@ -174,13 +181,41 @@ export default function MyProductsPage() {
                       <span>Xem</span>
                     </button>
                     {product.status !== "ongoing" && (
-                      <button
-                        type="button"
-                        onClick={() => navigate(product.orderId ? `/orders/${product.orderId}` : `/orders`)}
-                        className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
-                      >
-                        Xem giao dịch
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => navigate(product.orderId ? `/orders/${product.orderId}` : `/orders`)}
+                          className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
+                        >
+                          Xem giao dịch
+                        </button>
+                        {product.orderId && activeTab === "sold" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedOrderId(product.orderId!);
+                                setRatingModalOpen(true);
+                              }}
+                              title="Đánh giá"
+                              className="inline-flex items-center justify-center rounded-2xl bg-[#D5AD41] p-2 text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
+                            >
+                              <RateReview fontSize="small" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCancelOrderId(product.orderId!);
+                                setIsCancelModalOpen(true);
+                              }}
+                              title="Hủy giao dịch"
+                              className="inline-flex items-center justify-center rounded-2xl bg-red-600 p-2 text-white transition hover:bg-red-700 cursor-pointer"
+                            >
+                              <CancelRounded fontSize="small" />
+                            </button>
+                          </>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -189,6 +224,28 @@ export default function MyProductsPage() {
           )}
         </div>
       </div>
+      {token && (
+        <>
+          <RatingModal
+            isOpen={ratingModalOpen}
+            onClose={() => {
+              setRatingModalOpen(false);
+              setSelectedOrderId("");
+            }}
+            orderId={selectedOrderId}
+            token={token}
+          />
+          <CancelOrderModal
+            isOpen={isCancelModalOpen}
+            onClose={() => {
+              setIsCancelModalOpen(false);
+              setCancelOrderId("");
+            }}
+            orderId={cancelOrderId}
+            token={token}
+          />
+        </>
+      )}
     </div>
   );
 }
