@@ -168,9 +168,33 @@ export default function MyProductsPage() {
                   </div>
                 </div>
                 <div className="my-products-page__product-actions">
-                  <span className="inline-flex items-center rounded-2xl bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">
-                    {product.status === "ongoing" ? "Đang đấu giá" : product.status === "sold" ? "Đã bán" : "Hoàn tất"}
-                  </span>
+                  {activeTab === "sold" && (
+                    <span className={`inline-flex items-center rounded-2xl px-3 py-1 text-xs font-medium ${
+                      product.orderStatus === "pending"
+                        ? "bg-blue-50 text-blue-600"
+                        : product.orderStatus === "paid"
+                        ? "bg-yellow-50 text-yellow-600"
+                        : product.orderStatus === "shipped"
+                        ? "bg-purple-50 text-purple-600"
+                        : product.orderStatus === "completed"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : product.orderStatus === "cancelled"
+                        ? "bg-red-50 text-red-600"
+                        : "bg-gray-50 text-gray-600"
+                    }`}>
+                      {product.orderStatus === "pending"
+                        ? "Chờ xử lý"
+                        : product.orderStatus === "paid"
+                        ? "Đã thanh toán"
+                        : product.orderStatus === "shipped"
+                        ? "Đang vận chuyển"
+                        : product.orderStatus === "completed"
+                        ? "Hoàn tất"
+                        : product.orderStatus === "cancelled"
+                        ? "Đã hủy"
+                        : "Đã bán"}
+                    </span>
+                  )}
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
@@ -208,8 +232,13 @@ export default function MyProductsPage() {
                                 setCancelOrderId(product.orderId!);
                                 setIsCancelModalOpen(true);
                               }}
-                              title="Hủy giao dịch"
-                              className="inline-flex items-center justify-center rounded-2xl bg-red-600 p-2 text-white transition hover:bg-red-700 cursor-pointer"
+                              disabled={product.orderStatus !== "pending"}
+                              title={product.orderStatus === "pending" ? "Hủy giao dịch" : "Chỉ có thể hủy đơn đang chờ xử lý"}
+                              className={`inline-flex items-center justify-center rounded-2xl p-2 text-white transition ${
+                                product.orderStatus === "pending"
+                                  ? "bg-red-600 hover:bg-red-700 cursor-pointer"
+                                  : "bg-gray-400 cursor-not-allowed opacity-50"
+                              }`}
                             >
                               <CancelRounded fontSize="small" />
                             </button>
