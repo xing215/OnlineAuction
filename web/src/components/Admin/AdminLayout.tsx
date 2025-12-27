@@ -181,6 +181,16 @@ export const AdminLayout = ({ children }: PropsWithChildren) => {
                             )}
                         </div>
 
+                        {!isSidebarCollapsed && (
+                            <button
+                                type="button"
+                                onClick={() => navigate("/")}
+                                className="flex w-full items-center justify-center rounded-2xl py-3 px-4 text-sm font-medium text-gray-800 bg-gray-100 border border-gray-300 hover:bg-gray-200 transition-all cursor-pointer"
+                            >
+                                <span>Về trang chủ</span>
+                            </button>
+                        )}
+
                         <div className="space-y-2">
                             {navLinks.map((link) => renderNavButton(link))}
                         </div>

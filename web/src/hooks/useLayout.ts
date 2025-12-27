@@ -58,8 +58,8 @@ export const useLayout = () => {
       // Seller: Same as bidder + MY_PRODUCTS
       navKeys = ["HOME", "CATEGORIES", "FAVORITES", "MY_PRODUCTS", "ORDER"];
     } else if (userRole === "admin") {
-      // Admin: Same as seller + ADMIN_MANAGEMENT
-      navKeys = ["HOME", "CATEGORIES", "FAVORITES", "MY_PRODUCTS", "ORDER", "ADMIN_MANAGEMENT"];
+      // Admin: Same as seller
+      navKeys = ["HOME", "CATEGORIES", "FAVORITES", "MY_PRODUCTS", "ORDER"];
     }
 
     return navKeys.map((key) => ({
