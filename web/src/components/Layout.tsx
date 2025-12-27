@@ -32,7 +32,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
         toggleSidebar,
     } = useLayout();
 
-    const { user } = useUser();
+    const { user, token, refreshUser } = useUser();
     const { categoriesTree } = useCategories();
     const navigate = useNavigate();
     const [isCategoriesHover, setIsCategoriesHover] = useState(false);
@@ -60,6 +60,12 @@ export const Layout = ({ children }: PropsWithChildren) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [categoryClicked]);
+
+    useEffect(() => {
+        if (!user && token) {
+            refreshUser();
+        }
+    }, [user, token, refreshUser]);
 
     const renderPrimaryButton = (key: WebPageKey, label: string) => {
         const isActive = activePage === key;
@@ -303,7 +309,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                 <span className="flex items-center gap-2">
                                     <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
                                     {isLoggedIn
-                                        ? accountName || "Tài khoản"
+                                        ? accountName || (user?.role === 'admin' ? 'Admin' : 'Tài khoản')
                                         : "Đăng nhập"}
                                 </span>
                                 {isLoggedIn && (
