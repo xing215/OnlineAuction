@@ -1,3 +1,5 @@
+import { startAuctionSettlementJob } from "./jobs/auctionSettlementJob";
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -78,7 +80,7 @@ const startServer = async () => {
         await connectDatabase();
 
         // Start background job: auto-create orders when auctions end
-        //startAuctionSettlementJob();
+        startAuctionSettlementJob();
 
         // Start server after successful database connection
         app.listen(PORT, () => {
