@@ -1,6 +1,8 @@
 import { Inventory2Rounded, VisibilityRounded } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useMyProducts } from "../hooks/useMyProducts";
+import { useUser } from "../context/useUser";
+import { MyProductsLoginPrompt } from "../components/Product/MyProductsLoginPrompt";
 import { formatCurrency } from "../utilities";
 import "./MyProductsPage.css";
 
@@ -18,7 +20,27 @@ const formatBidder = (value: string) =>
 
 export default function MyProductsPage() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useUser();
   const { activeTab, setActiveTab, stats, tabOptions, products, loading, error } = useMyProducts();
+
+  if (authLoading) {
+    return (
+      <div className="my-products-page">
+        <div className="my-products-page__inner">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#D5AD41] border-r-transparent"></div>
+              <p className="mt-4 text-sm text-[#6B6B6B]">Đang tải...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <MyProductsLoginPrompt />;
+  }
 
   if (loading) {
     return (
