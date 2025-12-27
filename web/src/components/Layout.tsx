@@ -244,7 +244,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                             )}
                         </div>
 
-                        {!isSidebarCollapsed && (
+                        {!isSidebarCollapsed && user?.role === 'admin' && (
                             <button
                                 type="button"
                                 onClick={() => navigate("/admin/manage-user")}
