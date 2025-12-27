@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useUser } from "../context/useUser";
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
+import toast from "react-hot-toast";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +14,6 @@ export const useLoginForm = () => {
         email: "",
         password: "",
     });
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
     const { login } = useUser();
     const navigate = useNavigate();
@@ -48,10 +48,10 @@ export const useLoginForm = () => {
         setErrors({});
 
         try {
-            let recaptchaToken: string | undefined;
+            let recaptchaToken: string | undefined = undefined;
             if (recaptchaSiteKey) {
                 // Get reCAPTCHA token
-                recaptchaToken = await recaptchaRef.current?.executeAsync();
+                recaptchaToken = await recaptchaRef.current?.executeAsync() ?? undefined;
                 if (!recaptchaToken) {
                     setErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
                     return;
@@ -71,10 +71,9 @@ export const useLoginForm = () => {
                 navigate("/");
             }
         } catch (err) {
-            console.error("Login error:", err);
             const message =
                 err instanceof Error ? err.message : "Lỗi đăng nhập";
-            alert(message);
+            toast.error(message);
             // Reset reCAPTCHA on error
             recaptchaRef.current?.reset();
         }

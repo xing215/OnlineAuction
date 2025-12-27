@@ -12,7 +12,7 @@ import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
 import { useUser } from "../context/useUser";
 import { useCategories } from "../hooks/useCategories";
 import { useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const sectionTitleStyles = "text-xs uppercase tracking-[0.2em] text-white/60";
 
@@ -38,8 +38,28 @@ export const Layout = ({ children }: PropsWithChildren) => {
     const [isCategoriesHover, setIsCategoriesHover] = useState(false);
     const [categoryClicked, setCategoryClicked] = useState(false);
     const hoverTimeoutRef = useRef<number | null>(null);
+    const categoryPanelRef = useRef<HTMLDivElement | null>(null);
     const accountName = user?.full_name || user?.fullName || user?.name || "";
     const isLoggedIn = !!user;
+
+    // Close category panel when clicking outside
+    useEffect(() => {
+        if (!categoryClicked) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                categoryPanelRef.current &&
+                !categoryPanelRef.current.contains(event.target as Node)
+            ) {
+                setCategoryClicked(false);
+            }
+        };
+        setIsCategoriesHover(false);    
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [categoryClicked]);
 
     const renderPrimaryButton = (key: WebPageKey, label: string) => {
         const isActive = activePage === key;
@@ -302,7 +322,8 @@ export const Layout = ({ children }: PropsWithChildren) => {
                 {(isCategoriesHover || categoryClicked) &&
                     !isSidebarCollapsed && (
                         <div
-                            className="absolute top-0 left-[256px] z-50 bg-white shadow-lg rounded-r-lg p-4 min-w-[200px] h-screen overflow-y-auto"
+                            ref={categoryPanelRef}
+                            className="fixed top-0 left-[256px] z-50 bg-white shadow-lg rounded-r-lg p-4 min-w-[200px] h-screen overflow-y-auto"
                             onMouseEnter={() => {
                                 if (!categoryClicked) {
                                     if (hoverTimeoutRef.current) {

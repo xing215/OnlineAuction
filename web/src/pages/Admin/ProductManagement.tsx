@@ -5,6 +5,7 @@ import ProductItem from "../../components/Product/ProductItem";
 import ProductFilters from "../../components/Product/ProductFilter";
 import Pagination from "../../components/Product/Pagination";
 import AdminLayout from "../../components/Admin/AdminLayout";
+import toast from "react-hot-toast";
 
 const ProductManagement = () => {
     const { categories } = useCategories();
@@ -39,14 +40,13 @@ const ProductManagement = () => {
             const json = await res.json();
 
             if (json.success) {
-                alert(json.message);
+                toast.success(json.message);
                 refresh();
             } else {
-                alert(json.message || "Xóa thất bại");
+                toast.error(json.message || "Xóa thất bại");
             }
         } catch (error) {
-            console.error("Lỗi xóa:", error);
-            alert("Đã xảy ra lỗi kết nối");
+            toast.error("Đã xảy ra lỗi kết nối");
         }
     };
 

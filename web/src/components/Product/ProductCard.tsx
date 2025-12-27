@@ -10,6 +10,7 @@ import {
 } from "@mui/icons-material";
 import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
+import toast from "react-hot-toast";
 
 export interface ProductCardProps {
     product: Product;
@@ -107,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         console.log("Heart clicked! User:", user, "Token:", !!token);
 
         if (!user || !token) {
-            alert(
+            toast.error(
                 "Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích"
             );
             return;
@@ -150,7 +151,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             console.log("Refreshed user:", refreshedUser);
         } catch (err) {
             console.error("Error toggling favorite:", err);
-            alert(
+            toast.error(
                 "Không thể cập nhật danh sách yêu thích: " +
                     (err instanceof Error ? err.message : "Lỗi không xác định")
             );

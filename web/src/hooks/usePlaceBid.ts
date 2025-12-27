@@ -53,7 +53,6 @@ export const placeBid = async (
 
         return data;
     } catch (error) {
-        console.error("Place bid error:", error);
         throw error;
     }
 };
@@ -95,7 +94,6 @@ export const getMyAutoBid = async (
 
         return data;
     } catch (error) {
-        console.error("Get my auto-bid error:", error);
         throw error;
     }
 };

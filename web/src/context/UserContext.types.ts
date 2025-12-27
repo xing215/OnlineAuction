@@ -10,7 +10,7 @@ export type AuthUser = Partial<User> & {
 export type LoginPayload = {
   email: string;
   password: string;
-  recaptchaToken: string;
+  recaptchaToken?: string;
 };
 
 export type UserContextValue = {
