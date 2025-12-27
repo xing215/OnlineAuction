@@ -55,6 +55,7 @@ export default function ProfilePage() {
                             title="Sản phẩm đang tham gia"
                             onBid={handleBid}
                             onView={handleView}
+                            onTransactionDetails={handleTransactionDetails}
                             loading={bidsLoading}
                             error={bidsError}
                         />
@@ -131,8 +132,10 @@ const ProductGrid = ({ products, title, onBid, onView, onTransactionDetails, sho
                         product={product}
                         onBidClick={onBid}
                         onViewDetails={onView}
-                        showTransactionDetails={showTransactionDetails || false}
-                        onTransactionDetails={onTransactionDetails}
+                        {...(showTransactionDetails && onTransactionDetails ? {
+                            showTransactionDetails: true,
+                            onTransactionDetails
+                        } : {})}
                     />
                 ))}
             </div>

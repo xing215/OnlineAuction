@@ -79,7 +79,7 @@ const OrderManagement: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                   activeTab === tab.id
                     ? "bg-yellow-500 text-white shadow"
                     : "text-gray-600 hover:bg-gray-100"

@@ -171,7 +171,7 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6 cursor-pointer"
                 >
                     <Zap className="w-5 h-5" />
                     <span>Gửi yêu cầu nâng cấp mới</span>
@@ -213,7 +213,7 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
 
             <button
                 onClick={() => setShowModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6 cursor-pointer"
             >
                 <Zap className="w-5 h-5" />
                 <span>Nâng cấp thành Người bán</span>
