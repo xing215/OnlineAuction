@@ -113,7 +113,7 @@ ProductSchema.statics.findTopBidding = function (limit = 5) {
 };
 
 // Lấy Top 5 sản phẩm giá cao nhất
-ProductSchema.statics.findTopPrice = function (limit = 5) {
+ProductSchema.statics.findTopPrice = function (limit = 10) {
     return this.find({ status: "active" })
         .sort({ current_price: -1 })
         .limit(limit)
