@@ -19,7 +19,7 @@ export default function ProfileTabs({
                 <button
                     key={tab.id}
                     onClick={() => onTabChange(tab.id)}
-                    className={`flex-1 py-3 text-sm font-semibold rounded-full transition-all duration-200 ${
+                    className={`flex-1 py-3 text-sm font-semibold rounded-full transition-all duration-200 cursor-pointer ${
                         activeTab === tab.id
                             ? "bg-white text-gray-800 shadow-sm"
                             : "text-gray-500 hover:text-gray-700"

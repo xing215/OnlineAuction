@@ -22,7 +22,7 @@ export default function ProfileForm() {
                 <button
                     type="button"
                     onClick={() => setIsEditMode(!isEditMode)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center cursor-pointer"
                     title={isEditMode ? "Hủy chỉnh sửa" : "Chỉnh sửa"}
                 >
                     <svg
@@ -104,7 +104,7 @@ export default function ProfileForm() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#D5AD41] text-white px-10 py-3.5 rounded-2xl font-semibold hover:bg-[#c29d3b] transition-all shadow-md active:scale-95 disabled:opacity-70 flex items-center gap-2"
+                            className="bg-[#D5AD41] text-white px-10 py-3.5 rounded-2xl font-semibold hover:bg-[#c29d3b] transition-all shadow-md active:scale-95 disabled:opacity-70 flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                         >
                             {isSubmitting && (
                                 // Icon loading quay quay (Spinner)
