@@ -81,9 +81,9 @@ const OrderDetailPage: React.FC = () => {
         } else {
           throw new Error("Không tải được dữ liệu.");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Lỗi tải chi tiết:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -146,7 +146,7 @@ const OrderDetailPage: React.FC = () => {
       } else {
         toast.error(resData.message || "Lỗi khi hủy đơn.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Lỗi kết nối.");
     } finally {
       setActionLoading(false);
@@ -176,7 +176,7 @@ const OrderDetailPage: React.FC = () => {
         const data = await response.json();
         toast.error(data.message || "Lỗi khi cập nhật thanh toán");
       }
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -203,7 +203,7 @@ const OrderDetailPage: React.FC = () => {
         const data = await response.json();
         toast.error(data.message || "Lỗi khi cập nhật vận chuyển");
       }
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -232,7 +232,7 @@ const OrderDetailPage: React.FC = () => {
       );
       if (response.ok) window.location.reload();
       else toast.error("Lỗi xác nhận");
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -261,7 +261,7 @@ const OrderDetailPage: React.FC = () => {
         toast.success("Đánh giá thành công!");
         window.location.reload();
       } else toast.error(resData.message || "Lỗi gửi đánh giá");
-    } catch (e) {
+    } catch {
       toast.error("Lỗi kết nối");
     } finally {
       setActionLoading(false);
@@ -291,7 +291,7 @@ const OrderDetailPage: React.FC = () => {
             <button
               type="button"
               onClick={clearFile}
-              className="absolute top-2 right-2 bg-red-100 text-red-600 p-1.5 rounded-full hover:bg-red-200 transition"
+              className="absolute top-2 right-2 bg-red-100 text-red-600 p-1.5 rounded-full hover:bg-red-200 transition cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -335,7 +335,7 @@ const OrderDetailPage: React.FC = () => {
         </div>
         <button
           onClick={() => navigate("/order")}
-          className="flex items-center gap-2 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100"
+          className="flex items-center gap-2 px-4 py-2 bg-white border rounded shadow-sm hover:bg-gray-100 cursor-pointer"
         >
           <ChevronLeft size={16} /> Quay lại danh sách
         </button>
@@ -364,7 +364,7 @@ const OrderDetailPage: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate("/order")}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition cursor-pointer"
           >
             <ChevronLeft size={20} /> Quay lại
           </button>
@@ -511,7 +511,7 @@ const OrderDetailPage: React.FC = () => {
                           <button
                             onClick={handleBuyerPay}
                             disabled={actionLoading}
-                            className="w-full bg-yellow-500 text-white font-bold py-3 rounded-lg hover:bg-yellow-600 transition"
+                            className="w-full bg-yellow-500 text-white font-bold py-3 rounded-lg hover:bg-yellow-600 transition cursor-pointer disabled:cursor-not-allowed"
                           >
                             {actionLoading
                               ? "Đang xử lý..."
@@ -537,7 +537,6 @@ const OrderDetailPage: React.FC = () => {
                         <p className="text-gray-700">
                           <strong>Ảnh thanh toán:</strong>
                         </p>
-                        {/* @ts-ignore */}
                         {order.payment_proof ? (
                           <a
                             href={order.payment_proof}
@@ -560,7 +559,7 @@ const OrderDetailPage: React.FC = () => {
                           <button
                             onClick={handleSellerShip}
                             disabled={actionLoading}
-                            className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition"
+                            className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition cursor-pointer disabled:cursor-not-allowed"
                           >
                             {actionLoading
                               ? "Đang xử lý..."
@@ -585,7 +584,6 @@ const OrderDetailPage: React.FC = () => {
                         <p className="mb-2 text-gray-700">
                           <strong>Vận đơn gửi hàng:</strong>
                         </p>
-                        {/* @ts-ignore */}
                         {order.shipping_proof ? (
                           <a
                             href={order.shipping_proof}
@@ -608,7 +606,7 @@ const OrderDetailPage: React.FC = () => {
                         <button
                           onClick={handleConfirmReceipt}
                           disabled={actionLoading}
-                          className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition"
+                          className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition cursor-pointer disabled:cursor-not-allowed"
                         >
                           {actionLoading
                             ? "Đang xử lý..."
@@ -684,14 +682,14 @@ const OrderDetailPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsCancelModalOpen(false)}
-                className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700"
+                className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700 cursor-pointer"
               >
                 Đóng
               </button>
               <button
                 onClick={submitCancellation}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-bold"
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-bold cursor-pointer disabled:cursor-not-allowed"
               >
                 {actionLoading ? "Đang xử lý..." : "Hủy đơn"}
               </button>
@@ -710,7 +708,7 @@ const OrderDetailPage: React.FC = () => {
             <div className="flex justify-center gap-4 mb-6">
               <button
                 onClick={() => setFeedbackScore(1)}
-                className={`flex flex-col items-center p-4 rounded-lg border-2 transition ${
+                className={`flex flex-col items-center p-4 rounded-lg border-2 transition cursor-pointer ${
                   feedbackScore === 1
                     ? "border-green-500 bg-green-50"
                     : "border-gray-100"
@@ -723,7 +721,7 @@ const OrderDetailPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setFeedbackScore(-1)}
-                className={`flex flex-col items-center p-4 rounded-lg border-2 transition ${
+                className={`flex flex-col items-center p-4 rounded-lg border-2 transition cursor-pointer ${
                   feedbackScore === -1
                     ? "border-red-500 bg-red-50"
                     : "border-gray-100"
@@ -744,14 +742,14 @@ const OrderDetailPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsFeedbackModalOpen(false)}
-                className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700"
+                className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700 cursor-pointer"
               >
                 Đóng
               </button>
               <button
                 onClick={submitFeedback}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-bold"
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-bold cursor-pointer disabled:cursor-not-allowed"
               >
                 {actionLoading ? "Đang gửi..." : "Gửi đánh giá"}
               </button>

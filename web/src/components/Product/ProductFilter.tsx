@@ -49,7 +49,7 @@ export default function ProductFilters({
           </span>
           <span className="text-sm font-medium text-gray-500 whitespace-nowrap mr-2">Danh mục:</span>
             {categories.map((cat) => {
-              const categoryId = cat.id || (cat as any)._id;
+              const categoryId = cat.id;
 
               return (
                 <button

@@ -11,6 +11,9 @@ const connectDatabase = require("./config/database");
 const errorHandler = require("./middleware/errorHandler");
 const logger = require("./middleware/logger");
 
+// Import utils
+const { startAuctionSettlementJob } = require("./utils/auctionSettlement");
+
 // Import routes
 const exampleRoutes = require("./routes/exampleRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -78,7 +81,7 @@ const startServer = async () => {
         await connectDatabase();
 
         // Start background job: auto-create orders when auctions end
-        //startAuctionSettlementJob();
+        startAuctionSettlementJob();
 
         // Start server after successful database connection
         app.listen(PORT, () => {

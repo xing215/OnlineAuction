@@ -8,6 +8,7 @@ import {
   LogoutRounded,
   MenuRounded,
   Receipt,
+  AdminPanelSettingsRounded,
 } from "@mui/icons-material";
 
 export interface WebPageConfig {
@@ -26,6 +27,7 @@ export const WEB_PAGE = {
   LOGOUT: { path: "/logout", label: "Đăng xuất", Icon: LogoutRounded },
   CREATE_PRODUCT: { path: "/my-products/new", label: "Đăng sản phẩm", Icon: Inventory2Rounded },
   ORDER: { path: "/order", label: "Đơn hàng", Icon: Receipt},
+  ADMIN_MANAGEMENT: { path: "/admin/manage-user", label: "Quản lý hệ thống", Icon: AdminPanelSettingsRounded },
 } as const satisfies Record<string, WebPageConfig>;
 
 export type WebPageKey = keyof typeof WEB_PAGE;

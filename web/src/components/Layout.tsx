@@ -2,7 +2,6 @@ import type { PropsWithChildren } from "react";
 import {
     ExpandMoreRounded,
     PersonOutlineRounded,
-    SearchRounded,
     ChevronRightRounded,
 } from "@mui/icons-material";
 import GavelIcon from "@mui/icons-material/Gavel";
@@ -21,18 +20,16 @@ export const Layout = ({ children }: PropsWithChildren) => {
         activePage,
         primaryNav,
         secondaryNav,
-        searchValue,
         isAccountOpen,
         isSidebarCollapsed,
         isSidebarAnimating,
         isMobile,
         handleNavigate,
-        handleSearchChange,
         toggleAccount,
         toggleSidebar,
     } = useLayout();
 
-    const { user } = useUser();
+    const { user, token, refreshUser } = useUser();
     const { categoriesTree } = useCategories();
     const navigate = useNavigate();
     const [isCategoriesHover, setIsCategoriesHover] = useState(false);
@@ -60,6 +57,12 @@ export const Layout = ({ children }: PropsWithChildren) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [categoryClicked]);
+
+    useEffect(() => {
+        if (!user && token) {
+            refreshUser();
+        }
+    }, [user, token, refreshUser]);
 
     const renderPrimaryButton = (key: WebPageKey, label: string) => {
         const isActive = activePage === key;
@@ -241,18 +244,14 @@ export const Layout = ({ children }: PropsWithChildren) => {
                             )}
                         </div>
 
-                        {!isSidebarCollapsed && (
-                            <label className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm text-[#99A1AF] focus-within:border-[#f4d799] cursor-text">
-                                <SearchRounded className="h-4 w-4 text-[#99A1AF]" />
-                                <input
-                                    className="flex-1 bg-transparent text-white placeholder:text-[#99A1AF] focus:outline-none"
-                                    placeholder="Tìm kiếm sản phẩm..."
-                                    value={searchValue}
-                                    onChange={(event) =>
-                                        handleSearchChange(event.target.value)
-                                    }
-                                />
-                            </label>
+                        {!isSidebarCollapsed && user?.role === 'admin' && (
+                            <button
+                                type="button"
+                                onClick={() => navigate("/admin/manage-user")}
+                                className="flex w-full items-center justify-center rounded-2xl py-3 px-4 text-sm font-medium text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all cursor-pointer"
+                            >
+                                <span>Quản lý hệ thống</span>
+                            </button>
                         )}
 
                         <div className="space-y-2">
@@ -303,7 +302,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                 <span className="flex items-center gap-2">
                                     <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
                                     {isLoggedIn
-                                        ? accountName || "Tài khoản"
+                                        ? accountName || (user?.role === 'admin' ? 'Admin' : 'Tài khoản')
                                         : "Đăng nhập"}
                                 </span>
                                 {isLoggedIn && (

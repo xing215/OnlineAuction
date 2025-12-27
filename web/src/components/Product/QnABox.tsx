@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Send, ChevronUp, User, Store, ShieldCheck, Clock } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import { useUser } from '../../context/useUser';
@@ -22,7 +22,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
   const [answeringId, setAnsweringId] = useState<string | null>(null);
 
   // Fetch Q&A list
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(apiUrl(`/api/products/${productId}/questions`));
@@ -31,16 +31,16 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       if (data.success) {
         setQuestions(data.data);
       }
-    } catch (error) {
-      console.error('Lỗi khi tải câu hỏi:', error);
+    } catch {
+      console.error('Lỗi khi tải câu hỏi');
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
 
   useEffect(() => {
     fetchQuestions();
-  }, [productId]);
+  }, [fetchQuestions]);
 
   // Submit new question
   const handleAskQuestion = async () => {
@@ -75,7 +75,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       } else {
         toast.error(data.message || 'Không thể gửi câu hỏi');
       }
-    } catch (error) {
+    } catch {
       toast.error('Lỗi khi gửi câu hỏi!');
     } finally {
       setSubmitting(false);
@@ -120,7 +120,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       } else {
         toast.error(data.message || 'Không thể trả lời');
       }
-    } catch (error) {
+    } catch {
       toast.error('Lỗi khi trả lời câu hỏi!');
     } finally {
       setAnsweringId(null);
@@ -277,7 +277,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
                       <span className="text-gray-300">•</span>
                       <span className="text-xs text-gray-500 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {formatDate(q.asked_at as any)}
+                        {formatDate(q.asked_at)}
                       </span>
                     </div>
 
@@ -306,7 +306,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
                                   </span>
                                   <span className="text-gray-300">•</span>
                                   <span className="text-xs text-gray-400">
-                                    {formatDate(q.answered_at as any)}
+                                    {formatDate(q.answered_at)}
                                   </span>
                                 </div>
                                 <div className="text-gray-700 bg-yellow-50/50 p-3 rounded-xl border border-yellow-100 text-sm leading-relaxed">

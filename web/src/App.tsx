@@ -14,6 +14,7 @@ import CreateProduct from "./components/Product/CreateProduct";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
 import { UserProvider } from "./context/UserContext";
+import { useUser } from "./context/useUser";
 import { ProductDetail } from "./pages/ProductDetail/ProductDetail";
 import FavList from "./pages/FavList";
 import ManageUser from "./pages/Admin/ManageUser";
@@ -28,6 +29,20 @@ const AUTH_ROUTES = {
     SIGNUP: "/signup",
     FORGOT_PASSWORD: "/forgot-password",
 } as const;
+
+const AdminGuard = ({ children }: { children: React.ReactNode }) => {
+    const { token, loading } = useUser();
+
+    if (loading) {
+        return <div>Loading...</div>; // or a proper loading component
+    }
+
+    if (!token) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <>{children}</>;
+};
 
 function App() {
     return (
@@ -121,20 +136,29 @@ function App() {
                         />
                         {/* Admin */}
                         <Route
-                            path="/admin/manage-user"
-                            element={<ManageUser />}
-                        />
-                        <Route
-                            path="/admin/manage-product"
-                            element={<ProductManagement />}
-                        />
-                        <Route
-                            path="/admin/manage-category"
-                            element={<CategoryManagement />}
-                        />
-                        <Route
-                            path="/admin/upgrade-requests"
-                            element={<UpgradeRequest />}
+                            path="/admin/*"
+                            element={
+                                <AdminGuard>
+                                    <Routes>
+                                        <Route
+                                            path="manage-user"
+                                            element={<ManageUser />}
+                                        />
+                                        <Route
+                                            path="manage-product"
+                                            element={<ProductManagement />}
+                                        />
+                                        <Route
+                                            path="manage-category"
+                                            element={<CategoryManagement />}
+                                        />
+                                        <Route
+                                            path="upgrade-requests"
+                                            element={<UpgradeRequest />}
+                                        />
+                                    </Routes>
+                                </AdminGuard>
+                            }
                         />
                         <Route
                             path="*"

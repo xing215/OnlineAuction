@@ -16,6 +16,8 @@ export interface ProductCardProps {
     product: Product;
     onBidClick?: (productId: string) => void;
     onViewDetails?: (productId: string) => void;
+    showTransactionDetails?: boolean;
+    onTransactionDetails?: (orderId: string) => void;
 }
 
 const NEW_THRESHOLD_MINUTES = 120;
@@ -24,6 +26,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     product,
     onBidClick,
     onViewDetails,
+    showTransactionDetails = false,
+    onTransactionDetails,
 }) => {
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
@@ -49,7 +53,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     const categoryName =
         product.category && typeof product.category === "object"
-            ? (product.category as any).name // Nếu là object (API trả về), lấy .name
+            ? product.category.name // Nếu là object (API trả về), lấy .name
             : product.category; // Nếu là string (Mock data), giữ nguyên
 
     const isNew = useMemo(() => {
@@ -101,6 +105,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             return;
         } else if (onViewDetails) {
             onViewDetails(productId);
+        }
+    };
+
+    const handleTransactionDetails = () => {
+        if (showTransactionDetails && onTransactionDetails && (product as any).order_id) {
+            onTransactionDetails((product as any).order_id);
         }
     };
 
@@ -255,28 +265,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </p>
 
                 <div className="mt-2 flex gap-2">
-                    <button
-                        type="button"
-                        className={
-                            isAuctionEnded
-                                ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
-                                : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
-                        }
-                        onClick={handleBidClick}
-                        disabled={isAuctionEnded}
-                    >
-                        <span>
-                            {isAuctionEnded ? "Đã kết thúc" : "Mua ngay"}
-                        </span>
-                        {!isAuctionEnded && buyNowPrice !== null && (
-                            <span className="font-bold">
-                                {formatCurrency(buyNowPrice)}
+                    {showTransactionDetails ? (
+                        <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
+                            onClick={handleTransactionDetails}
+                        >
+                            <span>Chi tiết giao dịch</span>
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            className={
+                                isAuctionEnded
+                                    ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
+                                    : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
+                            }
+                            onClick={handleBidClick}
+                            disabled={isAuctionEnded}
+                        >
+                            <span>
+                                {isAuctionEnded ? "Đã kết thúc" : "Mua ngay"}
                             </span>
-                        )}
-                    </button>
+                            {!isAuctionEnded && buyNowPrice !== null && (
+                                <span className="font-bold">
+                                    {formatCurrency(buyNowPrice)}
+                                </span>
+                            )}
+                        </button>
+                    )}
                 </div>
 
-                {!isAuctionEnded && (
+                {!isAuctionEnded && !showTransactionDetails && (
                     <button
                         type="button"
                         className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 cursor-pointer"
