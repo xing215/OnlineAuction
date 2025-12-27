@@ -81,7 +81,7 @@ const HomePage = () => {
           <button
             className="px-8 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={() => {
-              navigate("#topBidding");
+              navigate("/categories");
             }}
           >
             Khám phá ngay
