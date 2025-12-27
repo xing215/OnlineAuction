@@ -1,4 +1,4 @@
-import { startAuctionSettlementJob } from "./jobs/auctionSettlementJob";
+import { startAuctionSettlementJob } from "./utils/auctionSettlement";
 
 const express = require("express");
 const cors = require("cors");
