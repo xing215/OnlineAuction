@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  PRIMARY_NAV_KEYS,
   SECONDARY_NAV_KEYS,
   WEB_PAGE,
   type WebPageKey,
 } from "../constants/webPages";
+import { useUser } from "../context/useUser";
 
 export interface LayoutNavItem {
   key: WebPageKey;
@@ -14,9 +14,9 @@ export interface LayoutNavItem {
 }
 
 const getPageKeyFromPath = (path: string): WebPageKey => {
-  const visibleNavKeys = [...PRIMARY_NAV_KEYS, ...SECONDARY_NAV_KEYS];
+  const allNavKeys = Object.keys(WEB_PAGE) as WebPageKey[];
 
-  const sortedKeys = visibleNavKeys.sort((a, b) => {
+  const sortedKeys = allNavKeys.sort((a, b) => {
     return WEB_PAGE[b].path.length - WEB_PAGE[a].path.length;
   });
 
@@ -36,6 +36,7 @@ const getPageKeyFromPath = (path: string): WebPageKey => {
 export const useLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useUser();
 
   const [activePage, setActivePage] = useState<WebPageKey>(() => getPageKeyFromPath(location.pathname));
   const [searchValue, setSearchValue] = useState("");
@@ -46,15 +47,27 @@ export const useLayout = () => {
   const [isMobile, setIsMobile] = useState(false);
   const sidebarAnimationTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const primaryNav = useMemo<LayoutNavItem[]>(
-    () =>
-      PRIMARY_NAV_KEYS.map((key) => ({
-        key,
-        label: WEB_PAGE[key].label,
-        path: WEB_PAGE[key].path,
-      })),
-    []
-  );
+  const primaryNav = useMemo<LayoutNavItem[]>(() => {
+    const userRole = user?.role;
+    let navKeys: WebPageKey[] = [];
+
+    if (!user || userRole === "bidder") {
+      // Not logged in or bidder: HOME, CATEGORIES, FAVORITES, ORDER
+      navKeys = ["HOME", "CATEGORIES", "FAVORITES", "ORDER"];
+    } else if (userRole === "seller") {
+      // Seller: Same as bidder + MY_PRODUCTS
+      navKeys = ["HOME", "CATEGORIES", "FAVORITES", "MY_PRODUCTS", "ORDER"];
+    } else if (userRole === "admin") {
+      // Admin: Same as seller + ADMIN_MANAGEMENT
+      navKeys = ["HOME", "CATEGORIES", "FAVORITES", "MY_PRODUCTS", "ORDER", "ADMIN_MANAGEMENT"];
+    }
+
+    return navKeys.map((key) => ({
+      key,
+      label: WEB_PAGE[key].label,
+      path: WEB_PAGE[key].path,
+    }));
+  }, [user?.role]);
 
   const secondaryNav = useMemo<LayoutNavItem[]>(
     () =>
