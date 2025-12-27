@@ -120,6 +120,7 @@ ProductSchema.statics.findTopPrice = function (limit = 5) {
         .populate("category", "name")
         .populate("current_bidder", "full_name rating_summary");
 };
+
 // Lấy sản phẩm theo ID
 ProductSchema.statics.getProductById = function (productId) {
     return this.findById(productId)
