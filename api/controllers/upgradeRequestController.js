@@ -176,6 +176,14 @@ exports.cancelMyRequest = async (req, res) => {
  */
 exports.getAllRequests = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const { status, page = 1, limit = 10 } = req.query;
         const query = {};
 
@@ -221,6 +229,14 @@ exports.getAllRequests = async (req, res) => {
  */
 exports.getPendingRequests = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const requests = await UpgradeRequest.findPendingRequests();
 
         return res.json({
@@ -244,6 +260,14 @@ exports.getPendingRequests = async (req, res) => {
  */
 exports.approveRequest = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const { id } = req.params;
         const { admin_note, expiry_days = 365 } = req.body;
 

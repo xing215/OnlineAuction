@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController'); 
+const authMiddleware = require('../middleware/authMiddleware');
 
 // GET /api/categories/roots
 router.get('/roots', categoryController.getRoots);
@@ -12,13 +13,13 @@ router.get('/tree', categoryController.getTree);
 router.get('/', categoryController.getAllCategories);
 
 // POST /api/categories
-router.post('/', categoryController.createCategory);
+router.post('/', authMiddleware, authMiddleware.adminMiddleware, categoryController.createCategory);
 
 // PUT /api/categories/:id
-router.put('/:id', categoryController.updateCategory);
+router.put('/:id', authMiddleware, authMiddleware.adminMiddleware, categoryController.updateCategory);
 
 // DELETE /api/categories/:id
-router.delete('/:id', categoryController.deleteCategory);
+router.delete('/:id', authMiddleware, authMiddleware.adminMiddleware, categoryController.deleteCategory);
 
 
 module.exports = router;

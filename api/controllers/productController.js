@@ -345,6 +345,14 @@ exports.getSellerById = async (req, res) => {
 // Delete product
 exports.deleteProduct = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const { id } = req.params;
         const product = await Product.findById(id);
 
@@ -396,6 +404,14 @@ exports.deleteProduct = async (req, res) => {
 // Ban bidder from product
 exports.banBidder = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const { productId, userId } = req.body;
 
         if (!productId || !userId) {
@@ -457,6 +473,14 @@ exports.banBidder = async (req, res) => {
 // Unban bidder from product
 exports.unbanBidder = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const { productId, userId } = req.body;
 
         if (!productId || !userId) {
@@ -511,6 +535,14 @@ exports.unbanBidder = async (req, res) => {
 
 exports.getBannedList = async (req, res) => {
     try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
         const { productId } = req.params;
         const product = await Product.findById(productId).select(
             "banned_bidders"
@@ -543,6 +575,23 @@ exports.updateProductDescription = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "New description is required",
+            });
+        }
+
+        // Find the product to check ownership
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found",
+            });
+        }
+
+        // Check if user is the seller or admin
+        if (product.seller.toString() !== req.user._id && req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Only the seller or admin can update the description.",
             });
         }
 

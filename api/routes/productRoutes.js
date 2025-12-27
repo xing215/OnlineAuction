@@ -63,15 +63,15 @@ router.get('/:productId/questions', questionController.getQuestions);
 router.put('/:productId/description', authMiddleware, productController.updateProductDescription);
 
 // POST /api/products/ban-bidder - ban a bidder from a product
-router.post('/ban-bidder', productController.banBidder);
+router.post('/ban-bidder', authMiddleware, authMiddleware.adminMiddleware, productController.banBidder);
 
 // POST /api/products/unban-bidder - unban a bidder from a product
-router.post('/unban-bidder', productController.unbanBidder);
+router.post('/unban-bidder', authMiddleware, authMiddleware.adminMiddleware, productController.unbanBidder);
 
 // POST /api/products/banned/:productId - get banned bidders for a product
-router.get('/banned/:productId', productController.getBannedList);
+router.get('/banned/:productId', authMiddleware, authMiddleware.adminMiddleware, productController.getBannedList);
 
 // DELETE /api/products/:id
-router.delete('/:id', productController.deleteProduct);
+router.delete('/:id', authMiddleware, authMiddleware.adminMiddleware, productController.deleteProduct);
 
 module.exports = router;
