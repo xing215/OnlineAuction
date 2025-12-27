@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Search, ChevronDown, Check, X, AlertCircle } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
@@ -35,13 +35,7 @@ export const UpgradeRequest: React.FC = () => {
     );
     const { token } = useUser();
 
-    useEffect(() => {
-        if (token) {
-            fetchRequests();
-        }
-    }, [token, filterStatus]);
-
-    const fetchRequests = async () => {
+    const fetchRequests = useCallback(async () => {
         if (!token) return;
 
         setLoading(true);
@@ -71,7 +65,13 @@ export const UpgradeRequest: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, filterStatus]);
+
+    useEffect(() => {
+        if (token) {
+            fetchRequests();
+        }
+    }, [fetchRequests, token]);
 
     const filteredRequests = React.useMemo(() => {
         return requests.filter((request) => {
@@ -144,7 +144,7 @@ export const UpgradeRequest: React.FC = () => {
                 const data = await response.json();
                 toast.error(data.message || "Không thể chấp nhận yêu cầu");
             }
-        } catch (error) {
+        } catch {
             toast.error("Lỗi kết nối. Vui lòng thử lại.");
         }
     };
@@ -182,7 +182,7 @@ export const UpgradeRequest: React.FC = () => {
                 const data = await response.json();
                 toast.error(data.message || "Không thể từ chối yêu cầu");
             }
-        } catch (error) {
+        } catch {
             toast.error("Lỗi kết nối. Vui lòng thử lại.");
         }
     };

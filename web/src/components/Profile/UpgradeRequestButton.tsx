@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Zap, AlertCircle, CheckCircle } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { useUser } from "../../context/useUser";
@@ -27,13 +27,7 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
     const [successMessage, setSuccessMessage] = useState("");
     const { token } = useUser();
 
-    useEffect(() => {
-        if (userRole) {
-            checkRequestStatus();
-        }
-    }, [userRole, token]);
-
-    const checkRequestStatus = async () => {
+    const checkRequestStatus = useCallback(async () => {
         try {
             const response = await fetch(apiUrl("/api/upgrade/my-request"), {
                 headers: {
@@ -52,7 +46,13 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
         } catch (error) {
             console.error("Failed to check request status:", error);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        if (userRole) {
+            checkRequestStatus();
+        }
+    }, [userRole, checkRequestStatus]);
 
     const handleSubmitRequest = async () => {
         if (!reason.trim() || reason.trim().length < 10) {
@@ -82,7 +82,7 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
             const data = await response.json();
 
             if (response.ok) {
-                setRequestData("pending" as any);
+                setRequestData({ status: "pending", createdAt: new Date().toISOString() });
                 setSuccessMessage("Yêu cầu của bạn đã được gửi thành công!");
                 setShowModal(false);
                 setReason("");

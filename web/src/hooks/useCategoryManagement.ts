@@ -23,9 +23,9 @@ export const useCategoryManagement = () => {
       const json = await res.json();
       
       if (json.success) {
-        const normalizedData = json.data.map((item: any) => ({
+        const normalizedData = json.data.map((item: Category) => ({
           ...item,
-          id: item.id || item._id,
+          id: item.id || (item as any)._id,
           parent_id: (item.parent_id && item.parent_id !== "") ? item.parent_id : null
         }));
         setCategories(normalizedData);
@@ -36,7 +36,7 @@ export const useCategoryManagement = () => {
       } else {
         toast.error('Lỗi tải dữ liệu: ' + json.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Không thể tải dữ liệu danh mục');
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ export const useCategoryManagement = () => {
       } else {
         toast.error('Tạo thất bại: ' + json.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Không thể tạo danh mục mới');
     }
   };
@@ -87,7 +87,7 @@ export const useCategoryManagement = () => {
       } else {
         toast.error('Cập nhật thất bại: ' + json.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Không thể cập nhật danh mục');
     }
   };
@@ -109,7 +109,7 @@ export const useCategoryManagement = () => {
       } else {
         toast.error('Xóa thất bại: ' + json.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Không thể xóa danh mục');
     }
   };

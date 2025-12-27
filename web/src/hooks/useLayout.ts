@@ -67,7 +67,7 @@ export const useLayout = () => {
       label: WEB_PAGE[key].label,
       path: WEB_PAGE[key].path,
     }));
-  }, [user?.role]);
+  }, [user]);
 
   const secondaryNav = useMemo<LayoutNavItem[]>(
     () =>

@@ -47,7 +47,7 @@ const OrderManagement: React.FC = () => {
         } else {
           toast.error("Không thể tải danh sách đơn hàng");
         }
-      } catch (err) {
+      } catch {
         toast.error("Lỗi kết nối. Vui lòng thử lại.");
       } finally {
         setLoading(false);

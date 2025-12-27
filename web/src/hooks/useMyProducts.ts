@@ -52,7 +52,7 @@ interface BackendProduct {
     _id: string;
     full_name: string;
   } | null;
-  seller: string | { _id: string } | any; // Can be ObjectId string or object
+  seller: string | { _id: string }; // Can be ObjectId string or object
   status: "active" | "sold" | "expired";
   end_date: string;
 }
@@ -152,7 +152,7 @@ export const useMyProducts = () => {
           myProducts = data.data.filter(
             (product: BackendProduct) => {
               const sellerStr = typeof product.seller === 'object' && product.seller !== null 
-                ? (product.seller as any)._id?.toString() || (product.seller as any).toString()
+                ? product.seller._id?.toString() || product.seller.toString()
                 : String(product.seller);
               const userIdStr = String(user._id);
               return sellerStr === userIdStr;

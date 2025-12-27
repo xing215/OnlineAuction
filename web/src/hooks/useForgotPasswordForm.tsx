@@ -77,7 +77,7 @@ export const useForgotPasswordForm = () => {
             // Success - move to OTP verification step
             setStep("verify");
             toast.success(data.message || "Mã OTP đã được gửi đến email của bạn");
-        } catch (error) {
+        } catch {
             setErrors({ general: "Không thể kết nối đến máy chủ" });
         } finally {
             setLoading(false);
@@ -143,7 +143,7 @@ export const useForgotPasswordForm = () => {
             // Success
             toast.success(data.message || "Đặt lại mật khẩu thành công");
             window.location.href = "/signin";
-        } catch (error) {
+        } catch {
             setErrors({ general: "Không thể kết nối đến máy chủ" });
         } finally {
             setLoading(false);

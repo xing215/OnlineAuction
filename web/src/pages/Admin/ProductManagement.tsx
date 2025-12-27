@@ -45,7 +45,7 @@ const ProductManagement = () => {
             } else {
                 toast.error(json.message || "Xóa thất bại");
             }
-        } catch (error) {
+        } catch {
             toast.error("Đã xảy ra lỗi kết nối");
         }
     };
