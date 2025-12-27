@@ -117,9 +117,17 @@ async function processAutoBid(productId, newBidder, product, session) {
 
     // Scenario 2: Self-update - Current leader increasing their max bid
     if (currentHighestBid.user.toString() === newBidder.userId.toString()) {
-        // Update the maximum_bid_limit without changing current price
-        currentLeaderAutoBid.maximum_bid_limit = newBidder.maxBid;
-        await currentLeaderAutoBid.save({ session });
+        // Create a new bid record for history tracking
+        const newBid = new Bid({
+            product: productId,
+            user: newBidder.userId,
+            price: currentHighestBid.price, // Price stays the same
+            is_auto_bid: true,
+            maximum_bid_limit: newBidder.maxBid,
+            created_at: new Date(),
+        });
+
+        await newBid.save({ session });
 
         return {
             newPrice: currentHighestBid.price, // Price stays the same
@@ -145,17 +153,29 @@ async function processAutoBid(productId, newBidder, product, session) {
     // Compare and determine winner
     const result = compareAutoBids(currentLeader, challenger, stepPrice);
 
+    // Create bid record for the loser first (for history)
+    const loserBid = new Bid({
+        product: productId,
+        user: result.loser.userId,
+        price: result.loser.maxBid < result.newPrice ? result.loser.maxBid : currentHighestBid.price,
+        is_auto_bid: true,
+        maximum_bid_limit: result.loser.maxBid,
+        created_at: new Date(),
+    });
+
+    await loserBid.save({ session });
+
     // Create new bid record for the winner
-    const newBid = new Bid({
+    const winnerBid = new Bid({
         product: productId,
         user: result.winner.userId,
         price: result.newPrice,
         is_auto_bid: true,
         maximum_bid_limit: result.winner.maxBid,
-        created_at: new Date(),
+        created_at: new Date(Date.now() + 1), // Ensure winner's bid is after loser's
     });
 
-    await newBid.save({ session });
+    await winnerBid.save({ session });
 
     return {
         newPrice: result.newPrice,

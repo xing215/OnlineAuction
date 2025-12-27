@@ -52,10 +52,6 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
 
     const handleMaxBidAmountChange = (value: string) => {
         const numericValue = value.replace(/[^0-9]/g, "");
-        if (parseFloat(numericValue) % stepPrice !== 0) {
-            setError(`Giá tối đa phải là bội số của ${formatCurrency(stepPrice)}`);
-            return;
-        }
         setMaxBidAmount(numericValue);
         setError("");
     };
@@ -107,6 +103,11 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
 
             if (maxBidAmountNum < minimumBid) {
                 setError(`Giá tối đa phải ít nhất là ${formatCurrency(minimumBid)}`);
+                return;
+            }
+
+            if (maxBidAmountNum % stepPrice !== 0) {
+                setError(`Giá tối đa phải là bội số của ${formatCurrency(stepPrice)}`);
                 return;
             }
 
@@ -194,16 +195,6 @@ export const PlaceBidModal: React.FC<PlaceBidModalProps> = ({
                             </span>
                         </span>
                     </label>
-                    {bidMode === "auto" && (
-                        <div className="ml-7 mt-2 text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
-                            <p className="font-medium text-blue-700 mb-1">💡 Đặt giá tự động hoạt động như thế nào?</p>
-                            <ul className="space-y-1 list-disc list-inside">
-                                <li>Hệ thống sẽ tự động đặt giá thay bạn cho đến khi đạt giá tối đa</li>
-                                <li>Bạn sẽ luôn ở vị trí cao nhất với giá thấp nhất có thể</li>
-                                <li>Giá tối đa của bạn sẽ được giữ bí mật</li>
-                            </ul>
-                        </div>
-                    )}
                 </div>
 
                 {/* Price Input */}
