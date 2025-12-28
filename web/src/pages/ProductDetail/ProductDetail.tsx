@@ -119,6 +119,78 @@ export const ProductDetail: React.FC = () => {
         }
     };
 
+    const handleBuyNow = async () => {
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
+            navigate("/signin");
+            return;
+        }
+
+        if (!product?.buy_now_price) {
+            toast.error("Sản phẩm này không hỗ trợ mua ngay");
+            return;
+        }
+
+        if (product.status !== "active") {
+            toast.error("Sản phẩm không còn hoạt động");
+            return;
+        }
+
+        if (seller && user.id === seller.id) {
+            toast.error("Bạn không thể mua sản phẩm của chính mình");
+            return;
+        }
+
+        // Confirm before buy now
+        const confirmed = window.confirm(
+            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(product.buy_now_price)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
+        );
+
+        if (!confirmed) return;
+
+        setIsBidLoading(true);
+        try {
+            const response = await fetch(
+                apiUrl(`/api/products/${product.id}/buy-now`),
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Mua ngay thất bại");
+            }
+
+            // Update product state with new data
+            if (data.data && data.data.product) {
+                setProduct(data.data.product);
+            }
+
+            toast.success(
+                data.message || "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
+            );
+        } catch (error) {
+            // Check if user is banned
+            if (error instanceof Error && error.message.includes("bị cấm")) {
+                setIsBannedModalOpen(true);
+            } else {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : "Mua ngay thất bại. Vui lòng thử lại."
+                );
+            }
+        } finally {
+            setIsBidLoading(false);
+        }
+    };
+
     useEffect(() => {
         const loadAllData = async () => {
             if (!id) return;
@@ -502,12 +574,16 @@ export const ProductDetail: React.FC = () => {
 
                         {/* Buy Now */}
                         {product.buy_now_price && (
-                            <div className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg">
+                            <button
+                                className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleBuyNow}
+                                disabled={product.status !== "active" || isBidLoading}
+                            >
                                 <span>Mua ngay</span>
                                 <span className="text-2xl">
                                     {formatCurrency(product.buy_now_price)}
                                 </span>
-                            </div>
+                            </button>
                         )}
 
                         {/* Bidder Manager Button - Only show for product owner */}
