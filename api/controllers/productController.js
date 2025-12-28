@@ -211,6 +211,7 @@ exports.getProducts = async (req, res) => {
         const [products, totalDocs] = await Promise.all([
             Product.find(filter, projection)
                 .populate("category", "name")
+                .populate("seller", "full_name")
                 .populate("current_bidder", "full_name")
                 .sort(sortOption)
                 .skip(skip)

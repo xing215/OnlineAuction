@@ -8,12 +8,18 @@ export const useCategories = () => {
 
   useEffect(() => {
     // Fetch roots for flat list
-    fetch(apiUrl('/api/categories/roots'))
     fetch(apiUrl('/api/categories'))
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setCategories([{ _id: 'all', name: 'Tất cả' }, ...data.data]);
+          // Transform _id to id for consistency and filter only active categories
+          const transformedCategories = data.data
+            .filter((cat: any) => cat.is_active === true)
+            .map((cat: any) => ({
+              ...cat,
+              id: cat._id
+            }));
+          setCategories([{ id: 'all', name: 'Tất cả', is_active: true, createdAt: new Date(), updatedAt: new Date() }, ...transformedCategories]);
         }
       })
       .catch(err => console.error("Lỗi lấy danh mục:", err));
