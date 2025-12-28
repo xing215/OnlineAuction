@@ -168,7 +168,7 @@ export default function MyProductsPage() {
                   </div>
                 </div>
                 <div className="my-products-page__product-actions">
-                  {activeTab === "sold" && (
+                  {activeTab !== "ongoing" && (
                     <span className={`inline-flex items-center rounded-2xl px-3 py-1 text-xs font-medium ${
                       product.orderStatus === "pending"
                         ? "bg-blue-50 text-blue-600"
@@ -213,8 +213,7 @@ export default function MyProductsPage() {
                         >
                           Xem giao dịch
                         </button>
-                        {product.orderId && activeTab === "sold" && (
-                          <>
+                        {product.orderId && activeTab !== "ongoing" && (
                             <button
                               type="button"
                               onClick={() => {
@@ -226,6 +225,8 @@ export default function MyProductsPage() {
                             >
                               <RateReview fontSize="small" />
                             </button>
+                        )}
+                        {product.orderId && activeTab === "sold" && (
                             <button
                               type="button"
                               onClick={() => {
@@ -242,7 +243,6 @@ export default function MyProductsPage() {
                             >
                               <CancelRounded fontSize="small" />
                             </button>
-                          </>
                         )}
                       </>
                     )}
