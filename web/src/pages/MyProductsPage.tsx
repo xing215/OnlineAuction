@@ -1,8 +1,11 @@
-import { Inventory2Rounded, VisibilityRounded } from "@mui/icons-material";
+import { Inventory2Rounded, VisibilityRounded, RateReview, CancelRounded } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useMyProducts } from "../hooks/useMyProducts";
 import { useUser } from "../context/useUser";
 import { MyProductsLoginPrompt } from "../components/Product/MyProductsLoginPrompt";
+import { RatingModal } from "../components/Product/RatingModal";
+import { CancelOrderModal } from "../components/Product/CancelOrderModal";
 import { formatCurrency } from "../utilities";
 import "./MyProductsPage.css";
 
@@ -20,8 +23,12 @@ const formatBidder = (value: string) =>
 
 export default function MyProductsPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useUser();
+  const { user, loading: authLoading, token } = useUser();
   const { activeTab, setActiveTab, stats, tabOptions, products, loading, error } = useMyProducts();
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string>("");
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<string>("");
 
   if (authLoading) {
     return (
@@ -161,9 +168,33 @@ export default function MyProductsPage() {
                   </div>
                 </div>
                 <div className="my-products-page__product-actions">
-                  <span className="inline-flex items-center rounded-2xl bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">
-                    {product.status === "ongoing" ? "Đang đấu giá" : product.status === "sold" ? "Đã bán" : "Hoàn tất"}
-                  </span>
+                  {activeTab !== "ongoing" && (
+                    <span className={`inline-flex items-center rounded-2xl px-3 py-1 text-xs font-medium ${
+                      product.orderStatus === "pending"
+                        ? "bg-blue-50 text-blue-600"
+                        : product.orderStatus === "paid"
+                        ? "bg-yellow-50 text-yellow-600"
+                        : product.orderStatus === "shipped"
+                        ? "bg-purple-50 text-purple-600"
+                        : product.orderStatus === "completed"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : product.orderStatus === "cancelled"
+                        ? "bg-red-50 text-red-600"
+                        : "bg-gray-50 text-gray-600"
+                    }`}>
+                      {product.orderStatus === "pending"
+                        ? "Chờ xử lý"
+                        : product.orderStatus === "paid"
+                        ? "Đã thanh toán"
+                        : product.orderStatus === "shipped"
+                        ? "Đang vận chuyển"
+                        : product.orderStatus === "completed"
+                        ? "Hoàn tất"
+                        : product.orderStatus === "cancelled"
+                        ? "Đã hủy"
+                        : "Đã bán"}
+                    </span>
+                  )}
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
@@ -174,13 +205,46 @@ export default function MyProductsPage() {
                       <span>Xem</span>
                     </button>
                     {product.status !== "ongoing" && (
-                      <button
-                        type="button"
-                        onClick={() => navigate(product.orderId ? `/orders/${product.orderId}` : `/orders`)}
-                        className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
-                      >
-                        Xem giao dịch
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => navigate(product.orderId ? `/orders/${product.orderId}` : `/orders`)}
+                          className="rounded-2xl bg-[#D5AD41] px-4 py-2 text-sm font-medium text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
+                        >
+                          Xem giao dịch
+                        </button>
+                        {product.orderId && activeTab !== "ongoing" && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedOrderId(product.orderId!);
+                                setRatingModalOpen(true);
+                              }}
+                              title="Đánh giá"
+                              className="inline-flex items-center justify-center rounded-2xl bg-[#D5AD41] p-2 text-[#3E3C31] transition hover:bg-[#c49a37] cursor-pointer"
+                            >
+                              <RateReview fontSize="small" />
+                            </button>
+                        )}
+                        {product.orderId && activeTab === "sold" && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCancelOrderId(product.orderId!);
+                                setIsCancelModalOpen(true);
+                              }}
+                              disabled={product.orderStatus !== "pending"}
+                              title={product.orderStatus === "pending" ? "Hủy giao dịch" : "Chỉ có thể hủy đơn đang chờ xử lý"}
+                              className={`inline-flex items-center justify-center rounded-2xl p-2 text-white transition ${
+                                product.orderStatus === "pending"
+                                  ? "bg-red-600 hover:bg-red-700 cursor-pointer"
+                                  : "bg-gray-400 cursor-not-allowed opacity-50"
+                              }`}
+                            >
+                              <CancelRounded fontSize="small" />
+                            </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -189,6 +253,28 @@ export default function MyProductsPage() {
           )}
         </div>
       </div>
+      {token && (
+        <>
+          <RatingModal
+            isOpen={ratingModalOpen}
+            onClose={() => {
+              setRatingModalOpen(false);
+              setSelectedOrderId("");
+            }}
+            orderId={selectedOrderId}
+            token={token}
+          />
+          <CancelOrderModal
+            isOpen={isCancelModalOpen}
+            onClose={() => {
+              setIsCancelModalOpen(false);
+              setCancelOrderId("");
+            }}
+            orderId={cancelOrderId}
+            token={token}
+          />
+        </>
+      )}
     </div>
   );
 }

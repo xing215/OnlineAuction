@@ -13,6 +13,7 @@ interface MyProductItem {
   highestBidder: string;
   status: MyProductStatus;
   orderId?: string; // For completed products
+  orderStatus?: string; // Order status: pending|completed|cancelled
 }
 
 interface StatCard {
@@ -104,6 +105,7 @@ export const useMyProducts = () => {
       highestBidder: "", // Not needed
       status: "completed",
       orderId: order._id,
+      orderStatus: order.status,
     };
   };
 
@@ -188,19 +190,23 @@ export const useMyProducts = () => {
             const mappedWonProducts = wonOrders.map(mapOrderToProduct);
             setWonProducts(mappedWonProducts);
 
-            // Create map of productId to orderId for sold products
-            const productToOrderMap: { [key: string]: string } = {};
+            // Create map of productId to orderId and orderStatus for sold products
+            const productToOrderMap: { [key: string]: { orderId: string; orderStatus: string } } = {};
             ordersData.data.forEach((order: BackendOrder) => {
               if (order.seller === user._id) {
-                productToOrderMap[order.product] = order._id;
+                productToOrderMap[order.product] = {
+                  orderId: order._id,
+                  orderStatus: order.status,
+                };
               }
             });
 
-            // Update products with orderId if sold
+            // Update products with orderId and orderStatus if sold
             const updatedProducts = myProducts.map((product: BackendProduct) => {
               const mapped = mapProduct(product);
               if (mapped.status === "sold" && productToOrderMap[product._id]) {
-                mapped.orderId = productToOrderMap[product._id];
+                mapped.orderId = productToOrderMap[product._id].orderId;
+                mapped.orderStatus = productToOrderMap[product._id].orderStatus;
               }
               return mapped;
             });
@@ -223,7 +229,8 @@ export const useMyProducts = () => {
     if (activeTab === "completed") {
       return wonProducts;
     }
-    return products.filter((item) => item.status === activeTab);
+    const filtered = products.filter((item) => item.status === activeTab);
+    return filtered;
   }, [activeTab, products, wonProducts]);
 
   // Calculate statistics

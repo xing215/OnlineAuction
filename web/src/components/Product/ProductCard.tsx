@@ -11,6 +11,7 @@ import {
 import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
 import toast from "react-hot-toast";
+import { RatingModal } from "./RatingModal";
 
 export interface ProductCardProps {
     product: Product;
@@ -31,6 +32,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
     const { user, token, refreshUser } = useUser();
 
     // Get product ID from _id field
@@ -109,7 +111,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleTransactionDetails = () => {
-        if (showTransactionDetails && onTransactionDetails && (product as any).order_id) {
+        if (
+            showTransactionDetails &&
+            onTransactionDetails &&
+            (product as any).order_id
+        ) {
             onTransactionDetails((product as any).order_id);
         }
     };
@@ -296,6 +302,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     )}
                 </div>
 
+                {showTransactionDetails && (
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#D5AD41] bg-white px-4 py-2.5 text-sm font-semibold text-[#D5AD41] shadow-md transition-all duration-200 hover:bg-yellow-50 hover:shadow-lg cursor-pointer"
+                            onClick={() => setIsFeedbackModalOpen(true)}
+                        >
+                            <span>Đánh giá</span>
+                        </button>
+                    </div>
+                )}
+
                 {!isAuctionEnded && !showTransactionDetails && (
                     <button
                         type="button"
@@ -306,6 +324,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         <Gavel />
                     </button>
                 )}
+
+                <RatingModal
+                    isOpen={isFeedbackModalOpen}
+                    onClose={() => setIsFeedbackModalOpen(false)}
+                    orderId={(product as any).order_id || ""}
+                    token={token || ""}
+                />
             </div>
         </article>
     );
