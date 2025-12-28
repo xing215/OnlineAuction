@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
+const Bid = require("../models/Bid");
 const { uploadMultipleToCloudinary } = require("../utils/cloudinary");
 const Category = require("../models/Category");
 const { sendBannedBidderEmail } = require("../utils/emailService");
@@ -406,14 +407,6 @@ exports.deleteProduct = async (req, res) => {
 // Ban bidder from product
 exports.banBidder = async (req, res) => {
     try {
-        // Check if user is admin
-        if (req.user.role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Access denied. Admin only.",
-            });
-        }
-
         const { productId, userId } = req.body;
 
         if (!productId || !userId) {
@@ -444,6 +437,55 @@ exports.banBidder = async (req, res) => {
 
         // Add user to banned list
         product.banned_bidders.push(userId);
+        
+        // Delete all bids from this user on the product
+        await Bid.deleteMany({ product: productId, user: userId });
+
+        // Count unique users, excluding banned
+        const remainingBidders = await Bid.distinct("user", {
+            product: productId,
+            user: { $nin: product.banned_bidders },
+        });
+
+        if (remainingBidders.length === 0) {
+            // If no bidders left → reset to start_price
+            product.current_price = product.start_price;
+            product.current_bidder = null;
+        } else if (remainingBidders.length === 1) {
+            // Only 1 bidder left → Get the Highest bid of that user
+            const highestBid = await Bid.findOne({
+                product: productId,
+                user: remainingBidders[0],
+            })
+                .sort({ price: -1 }) // Sort descending to get highest bid
+                .populate("user", "full_name username email rating_summary");
+
+            if (highestBid) {
+                product.current_price = highestBid.price;
+                product.current_bidder = highestBid.user._id;
+            }
+        } else {
+            // Multiple bidders left → Get the highest bid among non-banned users
+            const highestBid = await Bid.findOne({
+                product: productId,
+                user: { $nin: product.banned_bidders },
+            })
+                .sort({ price: -1 })
+                .populate("user", "full_name username email rating_summary");
+
+            if (highestBid) {
+                product.current_price = highestBid.price;
+                product.current_bidder = highestBid.user._id;
+            }
+        }
+
+        // Update bid_count (excluding banned users)
+        const validBidCount = await Bid.countDocuments({
+            product: productId,
+            user: { $nin: product.banned_bidders },
+        });
+        product.bid_count = validBidCount;
+
         await product.save();
 
         // Get banned user info for email
@@ -460,11 +502,20 @@ exports.banBidder = async (req, res) => {
             });
         }
 
+        // Populate current bidder info for response
+        await product.populate("current_bidder", "full_name username rating_summary");
+
         res.json({
             success: true,
             message: "User has been banned from bidding",
+            data: {
+                currentPrice: product.current_price,
+                currentBidder: product.current_bidder,
+                bidCount: product.bid_count,
+            },
         });
     } catch (error) {
+        console.error("Error in banBidder:", error);
         res.status(500).json({
             success: false,
             message: "Server error while banning user",
@@ -475,14 +526,6 @@ exports.banBidder = async (req, res) => {
 // Unban bidder from product
 exports.unbanBidder = async (req, res) => {
     try {
-        // Check if user is admin
-        if (req.user.role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Access denied. Admin only.",
-            });
-        }
-
         const { productId, userId } = req.body;
 
         if (!productId || !userId) {
@@ -528,6 +571,7 @@ exports.unbanBidder = async (req, res) => {
             message: "User has been unbanned from bidding",
         });
     } catch (error) {
+        console.error("Error in unbanBidder:", error);
         res.status(500).json({
             success: false,
             message: "Server error while unbanning user",
@@ -537,29 +581,24 @@ exports.unbanBidder = async (req, res) => {
 
 exports.getBannedList = async (req, res) => {
     try {
-        // Check if user is admin
-        if (req.user.role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Access denied. Admin only.",
-            });
-        }
-
         const { productId } = req.params;
-        const product = await Product.findById(productId).select(
-            "banned_bidders"
-        );
+        const product = await Product.findById(productId)
+            .select("banned_bidders")
+            .populate("banned_bidders", "full_name username email");
+        
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found",
             });
         }
+        
         res.json({
             success: true,
             data: product.banned_bidders,
         });
     } catch (error) {
+        console.error("Error in getBannedList:", error);
         res.status(500).json({
             success: false,
             message: "Server error while fetching banned list",

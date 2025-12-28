@@ -602,6 +602,14 @@ export const ProductDetail: React.FC = () => {
                             onClose={() => setIsBidderManagerOpen(false)}
                             productId={product.id}
                             productName={product.name}
+                            onProductUpdate={(data) => {
+                                setProduct({
+                                    ...product,
+                                    current_price: data.currentPrice,
+                                    current_bidder: data.currentBidder,
+                                    bid_count: data.bidCount,
+                                });
+                            }}
                         />
 
                         {/* Banned Bidder Modal */}
