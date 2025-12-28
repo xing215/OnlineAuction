@@ -51,7 +51,7 @@ async function settleSingleProduct(productId) {
             {
               sender: product.seller,
               content:
-                "System: Order was created automatically after the auction ended.",
+                "System: Đơn hàng đã được tạo tự động sau khi phiên đấu giá kết thúc.",
               sent_at: new Date(),
             },
           ],

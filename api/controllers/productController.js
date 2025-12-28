@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const { uploadMultipleToCloudinary } = require("../utils/cloudinary");
 const Category = require("../models/Category");
@@ -609,5 +610,100 @@ exports.updateProductDescription = async (req, res) => {
                 .json({ success: false, message: "Product not found" });
         }
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Buy Now - Người mua trở thành người thắng cuộc và kết thúc đấu giá
+exports.buyNow = async (req, res) => {
+    const session = await mongoose.startSession();
+    
+    try {
+        await session.startTransaction();
+        
+        const { productId } = req.params;
+        const userId = req.user._id;
+
+        // Find product
+        const product = await Product.findById(productId).session(session);
+        if (!product) {
+            throw new Error("Không tìm thấy sản phẩm");
+        }
+
+        // Validate product status
+        if (product.status !== "active") {
+            throw new Error("Sản phẩm không còn hoạt động");
+        }
+
+        // Check if product has buy now price
+        if (!product.buy_now_price || product.buy_now_price <= 0) {
+            throw new Error("Sản phẩm này không hỗ trợ mua ngay");
+        }
+
+        // Check if buyer is the seller
+        if (product.seller.toString() === userId.toString()) {
+            throw new Error("Bạn không thể mua sản phẩm của chính mình");
+        }
+
+        // Check if user is banned
+        if (product.isBidderBanned(userId)) {
+            throw new Error("Bạn đã bị cấm đặt giá cho sản phẩm này");
+        }
+
+        // Check if order already exists
+        const Order = require("../models/Order");
+        const existingOrder = await Order.findOne({ product: productId }).session(session);
+        if (existingOrder) {
+            throw new Error("Sản phẩm này đã có đơn hàng");
+        }
+
+        // Update product: set winner, price, and status to sold
+        product.current_bidder = userId;
+        product.current_price = product.buy_now_price;
+        product.status = "sold";
+        await product.save({ session });
+
+        // Create order automatically
+        const newOrder = new Order({
+            product: productId,
+            seller: product.seller,
+            winner: userId,
+            final_price: product.buy_now_price,
+            status: "pending",
+            shipping_address: "Pending address (awaiting buyer)",
+            messages: [
+                {
+                    sender: product.seller,
+                    content: "System: Đơn hàng được tạo tự động từ chức năng Mua ngay.",
+                    sent_at: new Date(),
+                },
+            ],
+        });
+
+        await newOrder.save({ session });
+
+        await session.commitTransaction();
+
+        // Populate data for response
+        await product.populate("category", "name");
+        await product.populate("seller", "full_name email");
+        await product.populate("current_bidder", "full_name email");
+
+        res.json({
+            success: true,
+            message: "Mua ngay thành công! Đơn hàng đã được tạo.",
+            data: {
+                product: product,
+                order: newOrder,
+            },
+        });
+    } catch (error) {
+        await session.abortTransaction();
+        console.error("Error in buyNow:", error);
+        res.status(400).json({
+            success: false,
+            message: error.message || "Có lỗi xảy ra khi mua ngay",
+        });
+    } finally {
+        session.endSession();
     }
 };
