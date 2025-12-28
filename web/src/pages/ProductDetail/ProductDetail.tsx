@@ -17,6 +17,7 @@ import { BannedBidderModal } from "../../components/ProductDetail/BannedBidderMo
 import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
 import { BidHistoryTable } from "../../components/ProductDetail/History";
 import toast from "react-hot-toast";
+import { ConfirmModal } from "../../components/ConfirmModal";
 
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -40,6 +41,7 @@ export const ProductDetail: React.FC = () => {
     } | null>(null);
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
     const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
@@ -141,13 +143,14 @@ export const ProductDetail: React.FC = () => {
             return;
         }
 
-        // Confirm before buy now
-        const confirmed = window.confirm(
-            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(product.buy_now_price)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
-        );
+        // Show confirm modal
+        setIsConfirmModalOpen(true);
+    };
 
-        if (!confirmed) return;
-
+    const executeBuyNow = async () => {
+        if (!product?.buy_now_price) return;
+        
+        setIsConfirmModalOpen(false);
         setIsBidLoading(true);
         try {
             const response = await fetch(
@@ -702,6 +705,18 @@ export const ProductDetail: React.FC = () => {
                     products={relatedProducts}
                     onBidClick={handleBidClick}
                     onViewDetails={handleViewDetails}
+                />
+
+                {/* Confirm Modal for Buy Now */}
+                <ConfirmModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={executeBuyNow}
+                    title="Xác nhận mua ngay"
+                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(product?.buy_now_price || 0)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
+                    confirmText="Mua ngay"
+                    type="warning"
+                    isLoading={isBidLoading}
                 />
             </div>
         </div>

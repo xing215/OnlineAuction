@@ -12,6 +12,7 @@ import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
 import toast from "react-hot-toast";
 import { RatingModal } from "./RatingModal";
+import { ConfirmModal } from "../ConfirmModal";
 
 export interface ProductCardProps {
     product: Product;
@@ -33,6 +34,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const { user, token, refreshUser } = useUser();
 
     // Get product ID from _id field
@@ -92,22 +95,73 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         setImageError(true);
     };
 
-    const handleBidClick = () => {
+    const handleBidClick = async () => {
         if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
             navigate("/signin");
             return;
-        } else if (onBidClick) {
-            onBidClick(productId);
+        }
+
+        if (!buyNowPrice) {
+            toast.error("Sản phẩm này không hỗ trợ mua ngay");
+            return;
+        }
+
+        if (isAuctionEnded) {
+            toast.error("Sản phẩm đã kết thúc đấu giá");
+            return;
+        }
+
+        // Show confirm modal
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleBuyNowConfirm = async () => {
+        setIsConfirmModalOpen(false);
+        setIsBuyNowLoading(true);
+        try {
+            const response = await fetch(
+                apiUrl(`/api/products/${productId}/buy-now`),
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Mua ngay thất bại");
+            }
+
+            toast.success(
+                data.message || "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
+            );
+            
+            // Navigate to product detail to see updated status
+            navigate(`/product/${productId}`);
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Mua ngay thất bại. Vui lòng thử lại."
+            );
+        } finally {
+            setIsBuyNowLoading(false);
         }
     };
 
     const handleViewDetails = () => {
         if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để đặt giá");
             navigate("/signin");
             return;
-        } else if (onViewDetails) {
-            onViewDetails(productId);
         }
+        // Navigate to product detail page for bidding
+        navigate(`/product/${productId}`);
     };
 
     const handleTransactionDetails = () => {
@@ -285,15 +339,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             className={
                                 isAuctionEnded
                                     ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
-                                    : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
+                                    : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             }
                             onClick={handleBidClick}
-                            disabled={isAuctionEnded}
+                            disabled={isAuctionEnded || isBuyNowLoading}
                         >
                             <span>
-                                {isAuctionEnded ? "Đã kết thúc" : "Mua ngay"}
+                                {isAuctionEnded ? "Đã kết thúc" : isBuyNowLoading ? "Đang xử lý..." : "Mua ngay"}
                             </span>
-                            {!isAuctionEnded && buyNowPrice !== null && (
+                            {!isAuctionEnded && buyNowPrice !== null && !isBuyNowLoading && (
                                 <span className="font-bold">
                                     {formatCurrency(buyNowPrice)}
                                 </span>
@@ -330,6 +384,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     onClose={() => setIsFeedbackModalOpen(false)}
                     orderId={(product as any).order_id || ""}
                     token={token || ""}
+                />
+
+                <ConfirmModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={handleBuyNowConfirm}
+                    title="Xác nhận mua ngay"
+                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(buyNowPrice || 0)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
+                    confirmText="Mua ngay"
+                    type="warning"
+                    isLoading={isBuyNowLoading}
                 />
             </div>
         </article>

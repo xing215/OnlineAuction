@@ -6,9 +6,13 @@ import ProductFilters from "../../components/Product/ProductFilter";
 import Pagination from "../../components/Product/Pagination";
 import AdminLayout from "../../components/Admin/AdminLayout";
 import toast from "react-hot-toast";
+import { ConfirmModal } from "../../components/ConfirmModal";
+import { useState } from "react";
 
 const ProductManagement = () => {
     const { categories } = useCategories();
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
     const {
         currentProducts,
@@ -31,10 +35,17 @@ const ProductManagement = () => {
     } = useProductFiltering();
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+        setProductToDelete(id);
+        setIsConfirmModalOpen(true);
+    };
 
+    const executeDelete = async () => {
+        if (!productToDelete) return;
+        
+        setIsConfirmModalOpen(false);
+        setIsConfirmModalOpen(false);
         try {
-            const res = await fetch(apiUrl(`/api/products/${id}`), {
+            const res = await fetch(apiUrl(`/api/products/${productToDelete}`), {
                 method: "DELETE",
             });
             const json = await res.json();
@@ -47,6 +58,8 @@ const ProductManagement = () => {
             }
         } catch {
             toast.error("Đã xảy ra lỗi kết nối");
+        } finally {
+            setProductToDelete(null);
         }
     };
 
@@ -130,6 +143,20 @@ const ProductManagement = () => {
                         onPageChange={setCurrentPage}
                     />
                 </div>
+
+                {/* Confirm Modal */}
+                <ConfirmModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => {
+                        setIsConfirmModalOpen(false);
+                        setProductToDelete(null);
+                    }}
+                    onConfirm={executeDelete}
+                    title="Xác nhận xóa sản phẩm"
+                    message="Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác."
+                    confirmText="Xóa"
+                    type="danger"
+                />
             </div>
         </AdminLayout>
     );
