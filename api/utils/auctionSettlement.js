@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Bid = require("../models/Bid");
 const Order = require("../models/Order");
+const {
+  sendAuctionExpiredEmail,
+  sendAuctionEndedToSellerEmail,
+  sendAuctionWonEmail,
+} = require("./emailService");
 
 const CHECK_INTERVAL_MS = 60 * 1000; // 1 minute
 const PLACEHOLDER_ADDRESS = "Pending address (awaiting buyer)";
@@ -25,11 +30,24 @@ async function settleSingleProduct(productId) {
         .sort({ price: -1, created_at: 1 })
         .session(session);
 
+      // Populate seller
+      await product.populate("seller");
+
       // No bids: mark expired
       if (!highestBid) {
         if (product.status !== "expired") {
           product.status = "expired";
           await product.save({ session });
+
+          // Send email to seller about expired auction
+          if (product.seller && product.seller.email) {
+            sendAuctionExpiredEmail({
+              sellerEmail: product.seller.email,
+              sellerName: product.seller.full_name,
+              productName: product.name,
+              productId: product._id,
+            });
+          }
         }
         return;
       }
@@ -65,6 +83,33 @@ async function settleSingleProduct(productId) {
       product.current_bidder = highestBid.user;
       product.current_price = highestBid.price;
       await product.save({ session });
+
+      // Populate winner
+      await highestBid.populate("user");
+
+      // Send email to seller about auction ended
+      if (product.seller && product.seller.email) {
+        sendAuctionEndedToSellerEmail({
+          sellerEmail: product.seller.email,
+          sellerName: product.seller.full_name,
+          productName: product.name,
+          productId: product._id,
+          winnerName: highestBid.user.full_name,
+          finalPrice: highestBid.price,
+        });
+      }
+
+      // Send email to winner
+      if (highestBid.user && highestBid.user.email) {
+        sendAuctionWonEmail({
+          winnerEmail: highestBid.user.email,
+          winnerName: highestBid.user.full_name,
+          productName: product.name,
+          productId: product._id,
+          finalPrice: highestBid.price,
+          sellerName: product.seller.full_name,
+        });
+      }
     });
   } catch (error) {
     console.error("Auction settlement error:", error);
