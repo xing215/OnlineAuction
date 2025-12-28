@@ -26,8 +26,6 @@ const NEW_THRESHOLD_MINUTES = 120;
 
 export const ProductCard: React.FC<ProductCardProps> = ({
     product,
-    onBidClick,
-    onViewDetails,
     showTransactionDetails = false,
     onTransactionDetails,
 }) => {

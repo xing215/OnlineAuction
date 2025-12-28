@@ -27,7 +27,6 @@ const CategoryManagement = () => {
 
         createCategory,
         updateCategory,
-        deleteCategory,
         executeDelete,
     } = useCategoryManagement();
 
