@@ -17,11 +17,22 @@ interface Bidder {
     is_banned?: boolean;
 }
 
+interface BannedUser {
+    _id: string;
+    username: string;
+    full_name: string;
+}
+
 interface BidderManagerModalProps {
     isOpen: boolean;
     onClose: () => void;
     productId: string;
     productName: string;
+    onProductUpdate?: (data: {
+        currentPrice: number;
+        currentBidder: any;
+        bidCount: number;
+    }) => void;
 }
 
 export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
@@ -29,10 +40,11 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
     onClose,
     productId,
     productName,
+    onProductUpdate,
 }) => {
     const [bidders, setBidders] = useState<Bidder[]>([]);
     const [loading, setLoading] = useState(false);
-    const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
+    const [bannedUsers, setBannedUsers] = useState<BannedUser[]>([]);
     const { token } = useUser();
 
     const fetchBidders = useCallback(async () => {
@@ -58,15 +70,21 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
 
     const fetchBannedList = useCallback(async () => {
         try {
-            const res = await fetch(apiUrl(`/api/products/banned/${productId}`));
+            const res = await fetch(apiUrl(`/api/products/banned/${productId}`), {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             if (res.ok) {
                 const data = await res.json();
-                setBannedUsers(new Set(data.data || []));
+                setBannedUsers(data.data || []);
             }
         } catch {
             console.error("Failed to load banned list");
         }
-    }, [productId]);
+    }, [productId, token]);
 
     useEffect(() => {
         if (isOpen && productId) {
@@ -76,10 +94,6 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
     }, [isOpen, productId, fetchBidders, fetchBannedList]);
 
     const handleBanBidder = async (userId: string) => {
-        const newBanned = new Set(bannedUsers);
-        newBanned.add(userId);
-        setBannedUsers(newBanned);
-        
         try {
             const response = await fetch(apiUrl("/api/products/ban-bidder"), {
                 method: "POST",
@@ -94,31 +108,26 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
             });
 
             if (!response.ok) {
-                // rollback if API fail
-                const rollback = new Set(bannedUsers);
-                rollback.delete(userId);
-                setBannedUsers(rollback);
-
                 const data = await response.json();
                 toast.error(data.message || "Cannot ban user");
             } else {
-            await fetchBannedList(); 
-        }
+                const data = await response.json();
+                
+                // Update product data if callback provided
+                if (onProductUpdate && data.data) {
+                    onProductUpdate(data.data);
+                }
+                
+                await fetchBannedList();
+                await fetchBidders();
+                toast.success("Đã cấm người đặt giá");
+            }
         } catch {
-        // rollback
-        const rollback = new Set(bannedUsers);
-        rollback.delete(userId);
-        setBannedUsers(rollback);
-
-        toast.error("An error occurred while banning the user");
-    }
+            toast.error("An error occurred while banning the user");
+        }
     };
 
     const handleUnbanBidder = async (userId: string) => {
-        const newBanned = new Set(bannedUsers);
-        newBanned.delete(userId);
-        setBannedUsers(newBanned);
-
         try {
             const response = await fetch(
                 apiUrl("/api/products/unban-bidder"),
@@ -136,24 +145,16 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
             );
 
             if (!response.ok) {
-            // rollback
-            const rollback = new Set(bannedUsers);
-            rollback.add(userId);
-            setBannedUsers(rollback);
-
-            const data = await response.json();
-            toast.error(data.message || "Cannot unban user");
-        } else {
-            await fetchBannedList(); 
+                const data = await response.json();
+                toast.error(data.message || "Cannot unban user");
+            } else {
+                await fetchBannedList();
+                await fetchBidders();
+                toast.success("Đã mở cấm người đặt giá");
+            }
+        } catch {
+            toast.error("An error occurred while unbanning the user");
         }
-    } catch {
-        // rollback
-        const rollback = new Set(bannedUsers);
-        rollback.add(userId);
-        setBannedUsers(rollback);
-
-        toast.error("An error occurred while unbanning the user");
-    }
     };
 
     const formatTime = (dateString: string) => {
@@ -186,6 +187,33 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
 
     if (!isOpen) return null;
 
+    // Merge bidders with banned users
+    const allUsers = new Map();
+    
+    // Add all bidders
+    bidders.forEach(bidder => {
+        if (!allUsers.has(bidder.user._id)) {
+            allUsers.set(bidder.user._id, {
+                userId: bidder.user._id,
+                fullName: bidder.user.full_name,
+                username: bidder.user.username,
+                hasBids: true,
+            });
+        }
+    });
+    
+    // Add banned users (might not have bids anymore)
+    bannedUsers.forEach(bannedUser => {
+        if (!allUsers.has(bannedUser._id)) {
+            allUsers.set(bannedUser._id, {
+                userId: bannedUser._id,
+                fullName: bannedUser.full_name,
+                username: bannedUser.username,
+                hasBids: false,
+            });
+        }
+    });
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-[598px] rounded-3xl bg-white shadow-lg flex flex-col max-h-[80vh]">
@@ -201,7 +229,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
                         aria-label="Close"
                     >
                         <X size={20} />
@@ -214,30 +242,23 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                         <div className="flex justify-center items-center h-40">
                             <div className="w-8 h-8 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
                         </div>
-                    ) : bidders.length === 0 ? (
+                    ) : allUsers.size === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                             <p>Chưa có ai đặt giá cho sản phẩm này</p>
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {Array.from(
-                                new Map(
-                                    bidders.map((b) => [b.user._id, b])
-                                ).values()
-                            ).map((bidder) => {
-                                const isBanned = bannedUsers.has(
-                                    bidder.user._id
+                            {Array.from(allUsers.values()).map((user) => {
+                                const isBanned = bannedUsers.some(
+                                    (bu) => bu._id === user.userId
                                 );
-                                const userBidCount = bidCount(bidder.user._id);
-                                const highestBid = getHighestBid(
-                                    bidder.user._id
-                                );
-                                const highestBidDate = getHighestBidDate(
-                                    bidder.user._id
-                                );
+                                const userBidCount = bidCount(user.userId);
+                                const highestBid = getHighestBid(user.userId);
+                                const highestBidDate = getHighestBidDate(user.userId);
+                                
                                 return (
                                     <div
-                                        key={bidder._id}
+                                        key={user.userId}
                                         className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${
                                             isBanned
                                                 ? "bg-red-50 border-red-300"
@@ -272,7 +293,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                                 : "text-gray-800"
                                                         }`}
                                                     >
-                                                        {bidder.user.full_name}
+                                                        {user.fullName}
                                                     </span>
                                                     {isBanned && (
                                                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-semibold">
@@ -280,23 +301,28 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                                    <span>
-                                                        {userBidCount} lượt đặt
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span className="font-semibold text-yellow-600">
-                                                        {formatCurrency(
-                                                            highestBid
-                                                        )}
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span>
-                                                        {formatTime(
-                                                            highestBidDate
-                                                        )}
-                                                    </span>
-                                                </div>
+                                                {user.hasBids ? (
+                                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                                        <span>
+                                                            {userBidCount} lượt đặt
+                                                        </span>
+                                                        <span>•</span>
+                                                        <span className="font-semibold text-yellow-600">
+                                                            {formatCurrency(
+                                                                highestBid
+                                                            )}
+                                                        </span>
+                                                        <span>•</span>
+                                                        <span>
+                                                            {formatTime(
+                                                                highestBidDate
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-gray-500 italic">
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -305,10 +331,10 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                             <button
                                                 onClick={() =>
                                                     handleUnbanBidder(
-                                                        bidder.user._id
+                                                        user.userId
                                                     )
                                                 }
-                                                className="ml-4 flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors shrink-0"
+                                                className="ml-4 cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors shrink-0"
                                             >
                                                 <span>Bỏ cấm</span>
                                             </button>
@@ -316,10 +342,10 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                             <button
                                                 onClick={() =>
                                                     handleBanBidder(
-                                                        bidder.user._id
+                                                        user.userId
                                                     )
                                                 }
-                                                className="ml-4 flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-300 text-red-600 font-semibold text-sm hover:bg-red-100 transition-colors shrink-0"
+                                                className="ml-4 cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-300 text-red-600 font-semibold text-sm hover:bg-red-100 transition-colors shrink-0"
                                             >
                                                 <span>Cấm</span>
                                             </button>
