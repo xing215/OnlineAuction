@@ -12,11 +12,13 @@ export const useCategories = () => {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          // Transform _id to id for consistency
-          const transformedCategories = data.data.map((cat: any) => ({
-            ...cat,
-            id: cat._id
-          }));
+          // Transform _id to id for consistency and filter only active categories
+          const transformedCategories = data.data
+            .filter((cat: any) => cat.is_active === true)
+            .map((cat: any) => ({
+              ...cat,
+              id: cat._id
+            }));
           setCategories([{ id: 'all', name: 'Tất cả', is_active: true, createdAt: new Date(), updatedAt: new Date() }, ...transformedCategories]);
         }
       })

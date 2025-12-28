@@ -4,6 +4,11 @@ import { buildTree } from '../utilities/buildTree';
 import { apiUrl } from "../config/api";
 import toast from "react-hot-toast";
 
+// Helper function to get auth token
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
+
 export const useCategoryManagement = () => {
   // --- STATE ---
   const [categories, setCategories] = useState<Category[]>([]);
@@ -45,6 +50,7 @@ export const useCategoryManagement = () => {
 
   const createCategory = async (formData: Partial<Category>) => {
     try {
+      const token = getAuthToken();
       const payload = {
         ...formData,
         parent_id: parentIdForCreate || null,
@@ -52,7 +58,10 @@ export const useCategoryManagement = () => {
 
       const res = await fetch(apiUrl('/api/categories'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
@@ -74,9 +83,13 @@ export const useCategoryManagement = () => {
   const updateCategory = async (formData: Partial<Category>) => {
     if (!selectedId) return;
     try {
+      const token = getAuthToken();
       const res = await fetch(apiUrl(`/api/categories/${selectedId}`), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(formData),
       });
       const json = await res.json();
@@ -97,8 +110,12 @@ export const useCategoryManagement = () => {
     if (!window.confirm('Bạn có chắc muốn xóa?')) return;
 
     try {
+      const token = getAuthToken();
       const res = await fetch(apiUrl(`/api/categories/${selectedId}`), {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
       });
       const json = await res.json();
 

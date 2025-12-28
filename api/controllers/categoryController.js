@@ -25,6 +25,11 @@ exports.getAllCategories = async (req, res, next) => {
   try {
     const categories = await Category.aggregate([
       {
+        $match: {
+          is_active: true
+        }
+      },
+      {
         $lookup: {
           from: 'products',
           localField: '_id',
