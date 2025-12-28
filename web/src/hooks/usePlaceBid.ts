@@ -13,7 +13,14 @@ export interface PlaceBidResponse {
     data?: {
         currentPrice: number;
         bidCount: number;
-        highestBidder: string;
+        highestBidder: {
+            _id: string;
+            full_name: string;
+            rating_summary: {
+                positive_count: number;
+                negative_count: number;
+            };
+        };
         isLeading?: boolean;
         isAutoBid?: boolean;
         endDate?: string;

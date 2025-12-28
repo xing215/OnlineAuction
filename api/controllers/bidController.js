@@ -356,7 +356,7 @@ exports.placeBid = async (req, res) => {
         // Get updated highest bidder info
         const updatedHighestBid = await Bid.findOne({ product: productId })
             .sort({ price: -1 })
-            .populate("user", "full_name email");
+            .populate("user", "full_name email rating_summary");
 
         // Send emails to all parties after successful bid
         setImmediate(async () => {
@@ -417,7 +417,11 @@ exports.placeBid = async (req, res) => {
             data: {
                 currentPrice: result.newPrice,
                 bidCount: product.bid_count,
-                highestBidder: updatedHighestBid.user.full_name,
+                highestBidder: {
+                    _id: updatedHighestBid.user._id,
+                    full_name: updatedHighestBid.user.full_name,
+                    rating_summary: updatedHighestBid.user.rating_summary,
+                },
                 isLeading: result.isNewLeader,
                 isAutoBid: isAutoBid || false,
                 endDate: product.end_date,
