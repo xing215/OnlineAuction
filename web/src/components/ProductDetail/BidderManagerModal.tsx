@@ -39,7 +39,13 @@ interface BidderManagerModalProps {
     productName: string;
     onProductUpdate?: (data: {
         currentPrice: number;
-        currentBidder: any;
+        currentBidder: string | {
+            full_name: string;
+            rating_summary?: {
+                positive_count: number;
+                negative_count: number;
+            };
+        };
         bidCount: number;
     }) => void;
 }

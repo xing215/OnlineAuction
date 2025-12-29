@@ -6,6 +6,9 @@ import { useUser } from "../context/useUser";
 import { MyProductsLoginPrompt } from "../components/Product/MyProductsLoginPrompt";
 import { RatingModal } from "../components/Product/RatingModal";
 import { CancelOrderModal } from "../components/Product/CancelOrderModal";
+import { MyProductsStatsSkeleton } from "../components/Product/MyProductsStatsSkeleton";
+import { MyProductsTabsSkeleton } from "../components/Product/MyProductsTabsSkeleton";
+import { MyProductsCardSkeleton } from "../components/Product/MyProductsCardSkeleton";
 import { formatCurrency } from "../utilities";
 import "./MyProductsPage.css";
 
@@ -53,11 +56,29 @@ export default function MyProductsPage() {
     return (
       <div className="my-products-page">
         <div className="my-products-page__inner">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#D5AD41] border-r-transparent"></div>
-              <p className="mt-4 text-sm text-[#6B6B6B]">Đang tải sản phẩm...</p>
+          <div className="my-products-page__header">
+            <div className="my-products-page__title-block">
+              <div className="flex items-center gap-3 text-base font-medium text-[#3E3C31]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] text-[#3E3C31]">
+                  <Inventory2Rounded />
+                </div>
+                <h1 className="text-2xl font-semibold">Sản phẩm của tôi</h1>
+              </div>
+              <p className="text-sm text-[#6B6B6B]">Quản lý các sản phẩm bạn đã đăng</p>
             </div>
+            <div className="my-products-page__cta rounded-2xl bg-gradient-to-b from-[#D5AD41] to-[#F4D799] px-6 py-3 text-sm font-semibold text-white shadow-md">
+              + Đăng sản phẩm mới
+            </div>
+          </div>
+
+          <MyProductsStatsSkeleton />
+
+          <MyProductsTabsSkeleton />
+
+          <div className="my-products-page__products">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <MyProductsCardSkeleton key={index} />
+            ))}
           </div>
         </div>
       </div>

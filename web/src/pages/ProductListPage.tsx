@@ -7,7 +7,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
 export default function ProductListPage() {
-  const { categories } = useCategories(); // Lấy danh mục
+  const { categories, isLoadingCategories } = useCategories(); // Lấy danh mục
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
@@ -61,15 +61,14 @@ export default function ProductListPage() {
           sortOption={sortOption}
           onSortChange={setSortOption}
           totalProducts={totalResults}
+          isLoadingCategories={isLoadingCategories}
         />
 
-        {isLoading ? (
-          <div className="flex justify-center py-20">Đang tải...</div>
-        ) : error ? (
+        {error ? (
           <div className="text-center text-red-500 py-20">{error}</div>
         ) : (
           <>
-            <ProductCardGrid products={currentProducts} />
+            <ProductCardGrid products={currentProducts} loading={isLoading} />
             <Pagination 
               currentPage={currentPage} 
               totalPages={totalPages} 
