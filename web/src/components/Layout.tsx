@@ -55,15 +55,16 @@ export const Layout = ({ children }: PropsWithChildren) => {
         const isCategoryButton = key === "CATEGORIES";
         const IconComponent = WEB_PAGE[key].Icon;
 
-        const baseClass =
-            "flex w-full items-center gap-3 rounded-2xl py-3 text-sm font-medium transition-all";
+        const baseClass = isSidebarCollapsed
+            ? "flex items-center justify-center rounded-2xl h-12 w-12 text-sm font-medium transition-all"
+            : "flex w-full items-center gap-3 rounded-2xl py-3 px-4 text-sm font-medium transition-all";
         const activeClass =
             "bg-gradient-to-b from-[#d5ad41] to-[#f4d799] text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)]";
         const inactiveClass = "text-white hover:bg-white/10";
 
         const layoutSpacingClass = isSidebarCollapsed
-            ? "justify-center px-0"
-            : "justify-between px-4";
+            ? ""
+            : "justify-between";
 
         const handleClick = () => {
             if (isCategoryButton) {
@@ -158,15 +159,11 @@ export const Layout = ({ children }: PropsWithChildren) => {
                         type="button"
                         onClick={handleClick}
                         aria-label={isMobile ? label : undefined}
-                        className="flex items-center w-full cursor-pointer"
+                        className={`flex items-center cursor-pointer ${
+                            isSidebarCollapsed ? "w-full h-full justify-center" : "w-full h-full"
+                        }`}
                     >
-                        <span
-                            className={
-                                isSidebarCollapsed
-                                    ? "flex items-center justify-center"
-                                    : "flex items-center gap-3 flex-1"
-                            }
-                        >
+                        {isSidebarCollapsed ? (
                             <IconComponent
                                 className={
                                     isActive
@@ -175,25 +172,36 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                 }
                                 data-testid={`${key.toLowerCase()}-icon`}
                             />
-                            {!isSidebarCollapsed && (
-                                <span
-                                    className={
-                                        isActive ? "text-[#3E3C31]" : "text-white"
-                                    }
-                                >
-                                    {label}
+                        ) : (
+                            <>
+                                <span className="flex items-center gap-3 flex-1">
+                                    <IconComponent
+                                        className={
+                                            isActive
+                                                ? "h-5 w-5 text-[#3E3C31]"
+                                                : "h-5 w-5 text-white"
+                                        }
+                                        data-testid={`${key.toLowerCase()}-icon`}
+                                    />
+                                    <span
+                                        className={
+                                            isActive ? "text-[#3E3C31]" : "text-white"
+                                        }
+                                    >
+                                        {label}
+                                    </span>
                                 </span>
-                            )}
-                        </span>
-                        {isCategoryButton && !isSidebarCollapsed && (
-                            <ChevronRightRounded
-                                className="h-5 w-5 flex-shrink-0"
-                                style={{
-                                    color: isActive
-                                        ? "#3E3C31"
-                                        : "rgba(255,255,255,0.7)",
-                                }}
-                            />
+                                {isCategoryButton && (
+                                    <ChevronRightRounded
+                                        className="h-5 w-5 flex-shrink-0"
+                                        style={{
+                                            color: isActive
+                                                ? "#3E3C31"
+                                                : "rgba(255,255,255,0.7)",
+                                        }}
+                                    />
+                                )}
+                            </>
                         )}
                     </button>
                 )}
@@ -334,7 +342,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                             </button>
                         )}
 
-                        <div className="space-y-2">
+                        <div className={`space-y-2 ${isSidebarCollapsed ? "flex flex-col items-center" : ""}`}>
                             {primaryNav.map((item) => (
                                 <div key={item.key}>
                                     {renderPrimaryButton(item.key, item.label)}
@@ -343,8 +351,9 @@ export const Layout = ({ children }: PropsWithChildren) => {
                         </div>
                     </div>
 
-                    {!isSidebarCollapsed && (
-                        <div className="space-y-4 pt-6">
+                    {/* Account Section - Always visible */}
+                    <div className="space-y-4 pt-6">
+                        {!isSidebarCollapsed && (
                             <div className="space-y-2 border-l border-[#d5ad41]/60 pl-4">
                                 <p className={sectionTitleStyles}>Tài khoản</p>
                                 {isAccountOpen &&
@@ -367,36 +376,42 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                         );
                                     })}
                             </div>
+                        )}
 
-                            <button
-                                type="button"
-                                onClick={
-                                    isLoggedIn
-                                        ? toggleAccount
-                                        : () => navigate("/signin")
-                                }
-                                className={`w-full flex items-center ${
-                                    isLoggedIn
-                                        ? "justify-between"
-                                        : "justify-center"
-                                } rounded-2xl bg-[#d5ad41] px-4 py-3 text-sm font-semibold text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer`}
-                            >
-                                <span className="flex items-center gap-2">
-                                    <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
-                                    {isLoggedIn
-                                        ? accountName || (user?.role === 'admin' ? 'Admin' : 'Tài khoản')
-                                        : "Đăng nhập"}
-                                </span>
-                                {isLoggedIn && (
-                                    <ExpandMoreRounded
-                                        className={`h-4 w-4 text-[#3E3C31] transition-transform ${
-                                            isAccountOpen ? "rotate-180" : ""
-                                        }`}
-                                    />
-                                )}
-                            </button>
-                        </div>
-                    )}
+                        <button
+                            type="button"
+                            onClick={
+                                isLoggedIn
+                                    ? toggleAccount
+                                    : () => navigate("/signin")
+                            }
+                            className={`flex items-center text-sm font-semibold transition-all bg-[#d5ad41] text-[#3E3C31] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1)] cursor-pointer rounded-2xl ${
+                                isSidebarCollapsed
+                                    ? "justify-center h-12 w-12"
+                                    : "w-full justify-between px-4 py-3"
+                            }`}
+                        >
+                            {isSidebarCollapsed ? (
+                                <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
+                            ) : (
+                                <>
+                                    <span className="flex items-center gap-2">
+                                        <PersonOutlineRounded className="h-5 w-5 text-[#3E3C31]" />
+                                        {isLoggedIn
+                                            ? accountName || (user?.role === 'admin' ? 'Admin' : 'Tài khoản')
+                                            : "Đăng nhập"}
+                                    </span>
+                                    {isLoggedIn && (
+                                        <ExpandMoreRounded
+                                            className={`h-4 w-4 text-[#3E3C31] transition-transform ${
+                                                isAccountOpen ? "rotate-180" : ""
+                                            }`}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </aside>
 
                 {/* Categories Hover Panel */}
