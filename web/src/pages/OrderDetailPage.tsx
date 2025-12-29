@@ -87,8 +87,12 @@ const OrderDetailPage: React.FC = () => {
         const data: OrderDetailResponse = await response.json();
         if (data.success) {
           setOrder(data.data);
-          if (data.data.shipping_address)
-            setAddress(data.data.shipping_address);
+          const shippingAddr = data.data.shipping_address;
+          if (shippingAddr && 
+              !shippingAddr.toLowerCase().includes('pending') && 
+              !shippingAddr.toLowerCase().includes('awaiting')) {
+            setAddress(shippingAddr);
+          }
         } else {
           throw new Error("Không tải được dữ liệu.");
         }
