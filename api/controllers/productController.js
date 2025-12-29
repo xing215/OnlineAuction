@@ -195,6 +195,9 @@ exports.getProducts = async (req, res) => {
                 case "end_date_desc":
                     sortOption = { end_date: -1 };
                     break;
+                case "bids_desc":
+                    sortOption = { bid_count: -1 };
+                    break;
                 case "newest":
                 default:
                     sortOption = { posted_at: -1 };
