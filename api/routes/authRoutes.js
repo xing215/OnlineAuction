@@ -6,8 +6,11 @@ const authMiddleware = require("../middleware/authMiddleware");
 // Public: Login
 router.post("/login", authController.login);
 
-// Public: Register
+// Public: Register - request OTP
 router.post("/register", authController.register);
+
+// Public: Register - complete registration with OTP
+router.post("/register-verify", authController.registerVerify);
 
 // Public: Forgot password - request OTP
 router.post("/forgot-password", authController.forgotPassword);
