@@ -247,7 +247,7 @@ export default function MyProductsPage() {
                               <RateReview fontSize="small" />
                             </button>
                         )}
-                        {product.orderId && activeTab === "sold" && (
+                        {product.orderId && activeTab === "auction_ended" && (
                             <button
                               type="button"
                               onClick={() => {

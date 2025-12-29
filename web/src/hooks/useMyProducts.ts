@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiUrl } from "../config/api";
 import { useUser } from "../context/useUser";
 
-type MyProductStatus = "ongoing" | "sold" | "completed";
+type MyProductStatus = "ongoing" | "auction_ended" | "sold" | "completed";
 
 interface MyProductItem {
   id: string;
@@ -60,8 +60,8 @@ interface BackendProduct {
 
 const TABS: TabOption[] = [
   { id: "ongoing", label: "Đang đấu giá" },
+  { id: "auction_ended", label: "Đã đấu giá xong" },
   { id: "sold", label: "Đã bán" },
-  { id: "completed", label: "Đã đấu giá xong" },
 ];
 
 export const useMyProducts = () => {
@@ -229,6 +229,14 @@ export const useMyProducts = () => {
     if (activeTab === "completed") {
       return wonProducts;
     }
+    if (activeTab === "auction_ended") {
+      // Sản phẩm đã đấu giá xong (sold nhưng chưa hoàn tất giao dịch)
+      return products.filter((item) => item.status === "sold" && (!item.orderId || item.orderStatus !== "completed"));
+    }
+    if (activeTab === "sold") {
+      // Sản phẩm đã bán (sold và giao dịch hoàn tất)
+      return products.filter((item) => item.status === "sold" && item.orderId && item.orderStatus === "completed");
+    }
     const filtered = products.filter((item) => item.status === activeTab);
     return filtered;
   }, [activeTab, products, wonProducts]);
@@ -236,13 +244,13 @@ export const useMyProducts = () => {
   // Calculate statistics
   const stats = useMemo(() => {
     const ongoingCount = products.filter((p) => p.status === "ongoing").length;
-    const soldCount = products.filter((p) => p.status === "sold").length;
-    const totalBids = products.reduce((sum, p) => sum + p.bidCount, 0);
+    const auctionEndedCount = products.filter((p) => p.status === "sold" && (!p.orderId || p.orderStatus !== "completed")).length;
+    const soldCount = products.filter((p) => p.status === "sold" && p.orderId && p.orderStatus === "completed").length;
 
     return [
       { id: "ongoing", label: "Đang đấu giá", value: ongoingCount, accent: "blue" as const },
+      { id: "auction_ended", label: "Đã đấu giá xong", value: auctionEndedCount, accent: "amber" as const },
       { id: "sold", label: "Đã bán", value: soldCount, accent: "green" as const },
-      { id: "total", label: "Tổng lượt giá", value: totalBids, accent: "amber" as const },
     ];
   }, [products]);
 
@@ -253,6 +261,10 @@ export const useMyProducts = () => {
         let count = 0;
         if (tab.id === "completed") {
           count = wonProducts.length;
+        } else if (tab.id === "auction_ended") {
+          count = products.filter((item) => item.status === "sold" && (!item.orderId || item.orderStatus !== "completed")).length;
+        } else if (tab.id === "sold") {
+          count = products.filter((item) => item.status === "sold" && item.orderId && item.orderStatus === "completed").length;
         } else {
           count = products.filter((item) => item.status === tab.id).length;
         }
