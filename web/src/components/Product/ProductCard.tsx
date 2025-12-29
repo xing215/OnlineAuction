@@ -15,7 +15,7 @@ import { RatingModal } from "./RatingModal";
 import { ConfirmModal } from "../ConfirmModal";
 
 export interface ProductCardProps {
-    product: Product;
+    product: Product & { order_id?: string };
     onBidClick?: (productId: string) => void;
     onViewDetails?: (productId: string) => void;
     showTransactionDetails?: boolean;
@@ -167,9 +167,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (
             showTransactionDetails &&
             onTransactionDetails &&
-            (product as any).order_id
+            product.order_id
         ) {
-            onTransactionDetails((product as any).order_id);
+            onTransactionDetails(product.order_id);
         }
     };
 
@@ -392,7 +392,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <RatingModal
                     isOpen={isFeedbackModalOpen}
                     onClose={() => setIsFeedbackModalOpen(false)}
-                    orderId={(product as any).order_id || ""}
+                    orderId={product.order_id || ""}
                     token={token || ""}
                 />
 

@@ -28,9 +28,9 @@ export const useCategoryManagement = () => {
       const json = await res.json();
       
       if (json.success) {
-        const normalizedData = json.data.map((item: Category) => ({
+        const normalizedData = json.data.map((item: Category & { _id?: string }) => ({
           ...item,
-          id: item.id || (item as any)._id,
+          id: item.id || item._id,
           parent_id: (item.parent_id && item.parent_id !== "") ? item.parent_id : null
         }));
         setCategories(normalizedData);
