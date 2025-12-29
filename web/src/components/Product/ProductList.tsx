@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { ProductCard } from "./ProductCard";
+import { ProductCardSkeleton } from "./ProductCardSkeleton";
 import { useInfiniteLoop } from "../../hooks/useInfiniteLoops";
 import type { Product } from "../../types";
 
@@ -9,6 +10,7 @@ export interface ProductListProps {
   products: Product[];
   onBidClick?: (productId: string) => void;
   onViewDetails?: (productId: string) => void;
+  loading?: boolean;
 }
 
 export const ProductList: React.FC<ProductListProps> = ({
@@ -17,6 +19,7 @@ export const ProductList: React.FC<ProductListProps> = ({
   products,
   onBidClick,
   onViewDetails,
+  loading = false,
 }) => {
   const ITEM_WIDTH = 300;
 
@@ -61,7 +64,13 @@ export const ProductList: React.FC<ProductListProps> = ({
         </div>
         {/* Products Carousel */}
 
-        {products.length < 5 ? (
+        {loading ? (
+          <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : products.length < 5 ? (
           <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
             {products.map((product) => (
               <ProductCard
