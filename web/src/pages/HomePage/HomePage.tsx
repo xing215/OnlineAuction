@@ -98,32 +98,38 @@ const HomePage = () => {
       {/* Product Lists Sections */}
       <div className="">
         <ProductList
-          title="Top 5 gần kết thúc"
+          title="Các sản phẩm gần kết thúc"
           subtitle="Đừng bỏ lỡ cơ hội đấu giá"
           products={topExpiring}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
           loading={loadingExpiring}
+          showViewMore={true}
+          onViewMore={() => navigate("/categories?sort=end_date_asc")}
         />
 
         <div id="topBidding">
           <ProductList
-            title="Top 5 nhiều lượt ra giá"
+            title="Các sản phẩm nhiều lượt ra giá"
             subtitle="Những sản phẩm được quan tâm nhất"
             products={topBidding}
             onBidClick={handleBidClick}
             onViewDetails={handleViewDetails}
             loading={loadingBidding}
+            showViewMore={true}
+            onViewMore={() => navigate("/categories?sort=bids_desc")}
           />
         </div>
 
         <ProductList
-          title="Top 5 giá cao nhất"
+          title="Các sản phẩm giá cao nhất"
           subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
           products={topPrice}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
           loading={loadingPrice}
+          showViewMore={true}
+          onViewMore={() => navigate("/categories?sort=price_desc")}
         />
       </div>
     </div>

@@ -26,13 +26,18 @@ export default function ProductListPage() {
     setCurrentPage,
   } = useProductFiltering(); // Lấy sản phẩm
 
-  // Sync activeCategory with URL params
+  // Sync activeCategory and sortOption with URL params
   useEffect(() => {
     const categoryParam = searchParams.get('category') || 'all';
+    const sortParam = searchParams.get('sort') || 'newest';
+    
     if (categoryParam !== activeCategory) {
       setActiveCategory(categoryParam);
     }
-  }, [searchParams, activeCategory, setActiveCategory]);
+    if (sortParam !== sortOption) {
+      setSortOption(sortParam);
+    }
+  }, [searchParams, activeCategory, sortOption, setActiveCategory, setSortOption]);
 
   // Update URL when activeCategory changes
   const handleCategoryChange = (categoryId: string) => {
@@ -42,6 +47,18 @@ export default function ProductListPage() {
       newParams.delete('category');
     } else {
       newParams.set('category', categoryId);
+    }
+    setSearchParams(newParams);
+  };
+
+  // Update URL when sortOption changes
+  const handleSortChange = (sort: string) => {
+    setSortOption(sort);
+    const newParams = new URLSearchParams(searchParams);
+    if (sort === 'time_desc') {
+      newParams.delete('sort');
+    } else {
+      newParams.set('sort', sort);
     }
     setSearchParams(newParams);
   };
@@ -59,7 +76,7 @@ export default function ProductListPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           sortOption={sortOption}
-          onSortChange={setSortOption}
+          onSortChange={handleSortChange}
           totalProducts={totalResults}
           isLoadingCategories={isLoadingCategories}
         />
