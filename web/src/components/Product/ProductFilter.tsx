@@ -96,8 +96,9 @@ export default function ProductFilters({
             <option value="newest">Mới đăng</option>
             <option value="price_asc">Giá tăng dần</option>
             <option value="price_desc">Giá giảm dần</option>
-            <option value="end_date_asc">Thời gian kết thúc giảm dần</option>
-            <option value="end_date_desc">Thời gian kết thúc tăng dần</option>
+            <option value="end_date_asc">Sắp kết thúc</option>
+            <option value="end_date_desc">Vừa bắt đầu</option>
+            <option value="bids_desc">Nhiều lượt đấu giá nhất</option>
           </select>
         </div>
       </div>
