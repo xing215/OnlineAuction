@@ -8,15 +8,20 @@ export const CategorySkeleton = () => {
         {/* Category title skeleton */}
         <Skeleton variant="text" height={28} width="60%" sx={{ mb: 2 }} />
 
-        {/* Category list skeletons */}
+        {/* Top-level category list skeletons */}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton
-              key={index}
-              variant="text"
-              height={24}
-              width={`${Math.random() * 40 + 60}%`} // Random width between 60-100%
-            />
+            <Box key={index} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Skeleton
+                variant="text"
+                height={24}
+                width={`${Math.random() * 40 + 50}%`} // Random width between 50-90%
+              />
+              {/* Arrow skeleton for some categories */}
+              {index < 3 && (
+                <Skeleton variant="rectangular" width={16} height={16} sx={{ borderRadius: 1 }} />
+              )}
+            </Box>
           ))}
         </Box>
       </div>
