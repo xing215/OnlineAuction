@@ -18,6 +18,7 @@ import type { OrderView, OrderDetailResponse } from "../types";
 import { useUser } from "../context/useUser";
 import { apiUrl } from "../config/api";
 import toast from "react-hot-toast";
+import { ConfirmModal } from "../components/ConfirmModal";
 
 const OrderDetailPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -39,6 +40,16 @@ const OrderDetailPage: React.FC = () => {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [feedbackScore, setFeedbackScore] = useState<1 | -1>(1);
   const [feedbackComment, setFeedbackComment] = useState("");
+
+  // --- STATE MODAL XÁC NHẬN ---
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    type?: 'danger' | 'warning' | 'info';
+  } | null>(null);
 
   // --- STATE FORM THANH TOÁN / GIAO HÀNG ---
   const [address, setAddress] = useState("");
@@ -126,9 +137,19 @@ const OrderDetailPage: React.FC = () => {
   // 1. Seller Hủy đơn
   const submitCancellation = async () => {
     if (!cancelReason.trim()) return toast.error("Vui lòng nhập lý do hủy đơn.");
-    if (!window.confirm("Hành động này không thể hoàn tác. Bạn chắc chắn chứ?"))
-      return;
+    
+    setConfirmConfig({
+      title: 'Xác nhận hủy đơn',
+      message: 'Hành động này không thể hoàn tác. Bạn chắc chắn muốn hủy đơn hàng này?',
+      confirmText: 'Hủy đơn',
+      type: 'danger',
+      onConfirm: executeCancellation
+    });
+    setIsConfirmModalOpen(true);
+  };
 
+  const executeCancellation = async () => {
+    setIsConfirmModalOpen(false);
     setActionLoading(true);
     try {
       const response = await fetch(apiUrl(`api/orders/${orderId}/cancel`), {
@@ -212,12 +233,18 @@ const OrderDetailPage: React.FC = () => {
 
   // 4. Buyer Nhận hàng
   const handleConfirmReceipt = async () => {
-    if (
-      !window.confirm(
-        "Bạn xác nhận đã nhận được hàng và hài lòng với sản phẩm?"
-      )
-    )
-      return;
+    setConfirmConfig({
+      title: 'Xác nhận nhận hàng',
+      message: 'Bạn xác nhận đã nhận được hàng và hài lòng với sản phẩm?',
+      confirmText: 'Xác nhận',
+      type: 'info',
+      onConfirm: executeConfirmReceipt
+    });
+    setIsConfirmModalOpen(true);
+  };
+
+  const executeConfirmReceipt = async () => {
+    setIsConfirmModalOpen(false);
     setActionLoading(true);
     try {
       const response = await fetch(
@@ -756,6 +783,20 @@ const OrderDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* --- MODAL XÁC NHẬN --- */}
+      {isConfirmModalOpen && confirmConfig && (
+        <ConfirmModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          onConfirm={confirmConfig.onConfirm}
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          confirmText={confirmConfig.confirmText}
+          type={confirmConfig.type}
+          isLoading={actionLoading}
+        />
       )}
     </div>
   );

@@ -17,6 +17,7 @@ import { BannedBidderModal } from "../../components/ProductDetail/BannedBidderMo
 import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
 import { BidHistoryTable } from "../../components/ProductDetail/History";
 import toast from "react-hot-toast";
+import { ConfirmModal } from "../../components/ConfirmModal";
 
 export const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -40,6 +41,7 @@ export const ProductDetail: React.FC = () => {
     } | null>(null);
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
     const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const { user, token } = useUser();
     const [, setTick] = useState(0);
 
@@ -138,55 +140,62 @@ export const ProductDetail: React.FC = () => {
     };
 
     const handleBuyNow = async () => {
-        if (!user) {
-            toast.error("Vui lòng đăng nhập để mua sản phẩm");
-            navigate("/signin");
-            return;
+      if (!user) {
+        toast.error("Vui lòng đăng nhập để mua sản phẩm");
+        navigate("/signin");
+        return;
+      }
+
+      if (!product?.buy_now_price) {
+        toast.error("Sản phẩm này không hỗ trợ mua ngay");
+        return;
+      }
+
+      if (product.status !== "active") {
+        toast.error("Sản phẩm không còn hoạt động");
+        return;
+      }
+
+      if (seller && user.id === seller.id) {
+        toast.error("Bạn không thể mua sản phẩm của chính mình");
+        return;
+      }
+
+      // Show confirm modal
+      setIsConfirmModalOpen(true);
+      // Check rating eligibility
+      const positiveCount = user.rating_summary?.positive_count || 0;
+      const negativeCount = user.rating_summary?.negative_count || 0;
+      const totalRatings = positiveCount + negativeCount;
+
+      // If user has ratings, check if they meet the 80% threshold
+      if (totalRatings > 0) {
+        const ratingPercentage = (positiveCount / totalRatings) * 100;
+        if (ratingPercentage < 80) {
+          toast.error(
+            `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
+              1
+            )}%`
+          );
+          return;
         }
+      }
+      // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
 
-        if (!product?.buy_now_price) {
-            toast.error("Sản phẩm này không hỗ trợ mua ngay");
-            return;
-        }
+      // Confirm before buy now
+      const confirmed = window.confirm(
+        `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
+          product.buy_now_price
+        )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
+      );
 
-        if (product.status !== "active") {
-            toast.error("Sản phẩm không còn hoạt động");
-            return;
-        }
+      if (!confirmed) return;
+    };
 
-        if (seller && user.id === seller.id) {
-            toast.error("Bạn không thể mua sản phẩm của chính mình");
-            return;
-        }
-
-        // Check rating eligibility
-        const positiveCount = user.rating_summary?.positive_count || 0;
-        const negativeCount = user.rating_summary?.negative_count || 0;
-        const totalRatings = positiveCount + negativeCount;
-
-        // If user has ratings, check if they meet the 80% threshold
-        if (totalRatings > 0) {
-            const ratingPercentage = (positiveCount / totalRatings) * 100;
-            if (ratingPercentage < 80) {
-                toast.error(
-                    `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
-                        1
-                    )}%`
-                );
-                return;
-            }
-        }
-        // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
-
-        // Confirm before buy now
-        const confirmed = window.confirm(
-            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
-                product.buy_now_price
-            )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
-        );
-
-        if (!confirmed) return;
-
+    const executeBuyNow = async () => {
+        if (!product?.buy_now_price) return;
+        
+        setIsConfirmModalOpen(false);
         setIsBidLoading(true);
         try {
             const response = await fetch(
@@ -746,6 +755,18 @@ export const ProductDetail: React.FC = () => {
                     products={relatedProducts}
                     onBidClick={handleBidClick}
                     onViewDetails={handleViewDetails}
+                />
+
+                {/* Confirm Modal for Buy Now */}
+                <ConfirmModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={executeBuyNow}
+                    title="Xác nhận mua ngay"
+                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(product?.buy_now_price || 0)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
+                    confirmText="Mua ngay"
+                    type="warning"
+                    isLoading={isBidLoading}
                 />
             </div>
         </div>

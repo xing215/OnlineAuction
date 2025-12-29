@@ -105,9 +105,24 @@ export const useCategoryManagement = () => {
     }
   };
 
-  const deleteCategory = async () => {
+  const deleteCategory = async (onConfirm?: () => void) => {
     if (!selectedId) return;
+    
+    // If onConfirm callback is provided, call it and return
+    // The actual deletion will be handled by the component
+    if (onConfirm) {
+      onConfirm();
+      return;
+    }
+
+    // Fallback to window.confirm if no callback provided
     if (!window.confirm('Bạn có chắc muốn xóa?')) return;
+
+    await executeDelete();
+  };
+
+  const executeDelete = async () => {
+    if (!selectedId) return;
 
     try {
       const token = getAuthToken();
@@ -123,6 +138,7 @@ export const useCategoryManagement = () => {
         setCategories(prev => prev.filter(c => c.id !== selectedId));
         setSelectedId(null);
         setMode('view');
+        toast.success('Đã xóa danh mục');
       } else {
         toast.error('Xóa thất bại: ' + json.message);
       }
@@ -194,5 +210,6 @@ export const useCategoryManagement = () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    executeDelete,
   };
 };
