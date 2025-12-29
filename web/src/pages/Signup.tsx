@@ -12,6 +12,7 @@ export default function SignUpPage() {
         setShowRegPassword,
         showRegConfirm,
         setShowRegConfirm,
+        isLoading,
         handleRegisterInputChange,
         handleRegisterSubmit,
         recaptchaRef,
@@ -23,7 +24,7 @@ export default function SignUpPage() {
             <form
                 onSubmit={handleRegisterSubmit}
                 noValidate
-                className="p-8 space-y-6"
+                className={`p-8 space-y-6 ${isLoading ? 'cursor-wait' : ''}`}
             >
                 {/* Full Name Input */}
                 <div className="space-y-2 text-left">
@@ -37,11 +38,12 @@ export default function SignUpPage() {
                             value={registerData.full_name}
                             onChange={handleRegisterInputChange}
                             placeholder="Nhập họ tên đầy đủ"
+                            disabled={isLoading}
                             className={`w-full pl-4 pr-4 py-2 bg-gray-50 border rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                                 regErrors.full_name
                                     ? "border-red-400 focus:ring-red-400"
                                     : "border-gray-200 focus:ring-amber-400"
-                            }`}
+                            } ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
                         />
                     </div>
                     {regErrors.full_name && (
@@ -64,11 +66,12 @@ export default function SignUpPage() {
                             value={registerData.email}
                             onChange={handleRegisterInputChange}
                             placeholder="email@example.com"
+                            disabled={isLoading}
                             className={`w-full pl-10 pr-4 py-2 bg-gray-50 border rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                                 regErrors.email
                                     ? "border-red-400 focus:ring-red-400"
                                     : "border-gray-200 focus:ring-amber-400"
-                            }`}
+                            } ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
                         />
                     </div>
                     {regErrors.email && (
@@ -91,7 +94,8 @@ export default function SignUpPage() {
                             value={registerData.password}
                             onChange={handleRegisterInputChange}
                             placeholder="Ít nhất 8 ký tự"
-                            className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                            disabled={isLoading}
+                            className={`w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
                         />
                         <button
                             type="button"
@@ -125,7 +129,8 @@ export default function SignUpPage() {
                             value={registerData.confirmPassword}
                             onChange={handleRegisterInputChange}
                             placeholder="Nhập lại mật khẩu"
-                            className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                            disabled={isLoading}
+                            className={`w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
                         />
                         <button
                             type="button"
@@ -155,7 +160,8 @@ export default function SignUpPage() {
                                 name="agreeToTerms"
                                 checked={registerData.agreeToTerms}
                                 onChange={handleRegisterInputChange}
-                                className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                disabled={isLoading}
+                                className={`w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-400 ${isLoading ? 'cursor-wait opacity-60' : 'cursor-pointer'}`}
                             />
                             <span className="text-sm text-gray-600">
                                 Tôi đồng ý với{" "}
@@ -203,9 +209,10 @@ export default function SignUpPage() {
                 {/* Register Button */}
                 <button
                     type="submit"
-                    className="w-full rounded-full bg-gradient-to-br from-[#D5AD41] to-[#F4D483] py-3 font-semibold text-white transition-all shadow-md hover:from-amber-500 hover:to-amber-600 hover:shadow-lg"
+                    disabled={isLoading}
+                    className={`w-full rounded-full bg-gradient-to-br from-[#D5AD41] to-[#F4D483] py-3 font-semibold text-white transition-all shadow-md hover:from-amber-500 hover:to-amber-600 hover:shadow-lg ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                    Đăng ký
+                    {isLoading ? 'Đang đăng ký...' : 'Đăng ký'}
                 </button>
 
                 <SocialButtons />
