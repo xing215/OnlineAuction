@@ -404,7 +404,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                     {isLoggedIn && (
                                         <ExpandMoreRounded
                                             className={`h-4 w-4 text-[#3E3C31] transition-transform ${
-                                                isAccountOpen ? "rotate-180" : ""
+                                                isAccountOpen ? "" : "rotate-180"
                                             }`}
                                         />
                                     )}
