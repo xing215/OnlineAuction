@@ -17,10 +17,10 @@ export const useCategories = () => {
         if (data.success) {
           // Transform _id to id for consistency and filter only active categories
           const transformedCategories = data.data
-            .filter((cat: Category) => cat.is_active === true)
-            .map((cat: Category) => ({
+            .filter((cat: Category & { _id?: string }) => cat.is_active === true)
+            .map((cat: Category & { _id?: string }) => ({
               ...cat,
-              id: cat._id
+              id: cat.id || cat._id
             }));
           setCategories([{ id: 'all', name: 'Tất cả', is_active: true, createdAt: new Date(), updatedAt: new Date() }, ...transformedCategories]);
         }
