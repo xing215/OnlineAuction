@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileHeader from "../components/Profile/ProfileHeader";
 import ProfileTabs from "../components/Profile/ProfileTabs";
 import ProfileForm from "../components/Profile/ProfileForm";
 import { ProductCard } from "../components/Product/ProductCard"; // Đảm bảo đường dẫn đúng tới file bạn gửi
 import UpgradeRequestButton from "../components/Profile/UpgradeRequestButton";
+import ProfileFavorites from "../components/Profile/ProfileFavorites";
 import type { Product } from "../types/index";
 import { useUser } from "../context/useUser";
 import { useUserBids } from "../hooks/useUserBids";
@@ -23,7 +24,12 @@ interface ProductGridProps {
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("info");
     const { user } = useUser();
-    const { biddingProducts, wonProducts, loading: bidsLoading, error: bidsError } = useUserBids();
+    const {
+        biddingProducts,
+        wonProducts,
+        loading: bidsLoading,
+        error: bidsError,
+    } = useUserBids();
     const navigate = useNavigate();
 
     // Hàm xử lý sự kiện card
@@ -34,7 +40,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="min-h-screen bg-white p-4 md:p-8">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
             <div className="max-w-6xl mx-auto">
                 {" "}
                 {/* Tăng max-width để hiển thị grid đẹp hơn */}
@@ -48,6 +54,8 @@ export default function ProfilePage() {
                 {/* Render nội dung dựa trên Tab */}
                 <div className="min-h-[400px]">
                     {activeTab === "info" && <ProfileForm />}
+
+                    {activeTab === "fav" && <ProfileFavorites />}
 
                     {activeTab === "bidding" && (
                         <ProductGrid
@@ -80,7 +88,16 @@ export default function ProfilePage() {
 }
 
 // Component hiển thị Grid sản phẩm cho gọn code
-const ProductGrid = ({ products, title, onBid, onView, onTransactionDetails, showTransactionDetails, loading, error }: ProductGridProps) => {
+const ProductGrid = ({
+    products,
+    title,
+    onBid,
+    onView,
+    onTransactionDetails,
+    showTransactionDetails,
+    loading,
+    error,
+}: ProductGridProps) => {
     if (loading) {
         return (
             <div className="animate-fade-in">
@@ -125,17 +142,19 @@ const ProductGrid = ({ products, title, onBid, onView, onTransactionDetails, sho
             <h3 className="text-xl font-semibold text-gray-700 mb-6">
                 {title}
             </h3>
-            <div className="flex flex-wrap gap-6 justify-center md:justify-start">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.map((product: Product) => (
                     <ProductCard
                         key={product.id}
                         product={product}
                         onBidClick={onBid}
                         onViewDetails={onView}
-                        {...(showTransactionDetails && onTransactionDetails ? {
-                            showTransactionDetails: true,
-                            onTransactionDetails
-                        } : {})}
+                        {...(showTransactionDetails && onTransactionDetails
+                            ? {
+                                  showTransactionDetails: true,
+                                  onTransactionDetails,
+                              }
+                            : {})}
                     />
                 ))}
             </div>
