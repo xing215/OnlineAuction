@@ -50,6 +50,25 @@ export const ProductDetail: React.FC = () => {
     ) => {
         if (!user || !token || !product) return;
 
+        // Check rating eligibility
+        const positiveCount = user.rating_summary?.positive_count || 0;
+        const negativeCount = user.rating_summary?.negative_count || 0;
+        const totalRatings = positiveCount + negativeCount;
+
+        // If user has ratings, check if they meet the 80% threshold
+        if (totalRatings > 0) {
+            const ratingPercentage = (positiveCount / totalRatings) * 100;
+            if (ratingPercentage < 80) {
+                toast.error(
+                    `Bạn cần có ít nhất 80% đánh giá tích cực để đấu giá. Điểm hiện tại: ${ratingPercentage.toFixed(
+                        1
+                    )}%`
+                );
+                return;
+            }
+        }
+        // If user has no ratings, they are allowed to bid (handled by backend based on seller preference)
+
         setIsBidLoading(true);
         try {
             const response = await placeBid(
@@ -102,7 +121,6 @@ export const ProductDetail: React.FC = () => {
                 }
             }
         } catch (error) {
-
             // Check if user is banned
             if (error instanceof Error && error.message.includes("banned")) {
                 setIsModalOpen(false);
@@ -141,9 +159,30 @@ export const ProductDetail: React.FC = () => {
             return;
         }
 
+        // Check rating eligibility
+        const positiveCount = user.rating_summary?.positive_count || 0;
+        const negativeCount = user.rating_summary?.negative_count || 0;
+        const totalRatings = positiveCount + negativeCount;
+
+        // If user has ratings, check if they meet the 80% threshold
+        if (totalRatings > 0) {
+            const ratingPercentage = (positiveCount / totalRatings) * 100;
+            if (ratingPercentage < 80) {
+                toast.error(
+                    `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
+                        1
+                    )}%`
+                );
+                return;
+            }
+        }
+        // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
+
         // Confirm before buy now
         const confirmed = window.confirm(
-            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(product.buy_now_price)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
+            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
+                product.buy_now_price
+            )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
         );
 
         if (!confirmed) return;
@@ -173,7 +212,8 @@ export const ProductDetail: React.FC = () => {
             }
 
             toast.success(
-                data.message || "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
+                data.message ||
+                    "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
             );
         } catch (error) {
             // Check if user is banned
@@ -577,7 +617,9 @@ export const ProductDetail: React.FC = () => {
                             <button
                                 className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={handleBuyNow}
-                                disabled={product.status !== "active" || isBidLoading}
+                                disabled={
+                                    product.status !== "active" || isBidLoading
+                                }
                             >
                                 <span>Mua ngay</span>
                                 <span className="text-2xl">
@@ -668,7 +710,9 @@ export const ProductDetail: React.FC = () => {
                         {activeTab === "description" && (
                             <Description
                                 product={product}
-                                onDescriptionUpdate={(updatedProduct) => setProduct(updatedProduct)}
+                                onDescriptionUpdate={(updatedProduct) =>
+                                    setProduct(updatedProduct)
+                                }
                             />
                         )}
 
