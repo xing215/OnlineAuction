@@ -39,7 +39,7 @@ export default function FavList() {
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="mx-auto max-w-[1480px] px-8 py-8">
                 <FavListHeader
                     productCount={favorites.length}

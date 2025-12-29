@@ -64,7 +64,7 @@ export default function ProductListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 md:p-10 font-sans text-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 md:p-10 font-sans text-gray-800">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-2 text-gray-900">Danh sách sản phẩm</h1>
         <p className="text-gray-500 mb-6">Khám phá và đấu giá các sản phẩm yêu thích</p>
