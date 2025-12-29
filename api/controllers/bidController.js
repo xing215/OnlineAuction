@@ -2,6 +2,7 @@ const Bid = require("../models/Bid");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
 const User = require("../models/User");
+const AuctionSettings = require("../models/AuctionSettings");
 const {
     sendNewBidToSellerEmail,
     sendNewBidToCurrentBidderEmail,
@@ -344,9 +345,9 @@ exports.placeBid = async (req, res) => {
 
         // Auto-extend if within 5 minutes of end
         const timeRemaining = product.end_date - new Date();
-        if (timeRemaining > 0 && timeRemaining < 5 * 60 * 1000) {
+        if (timeRemaining > 0 && timeRemaining < AuctionSettings.auto_extend_threshold * 60 * 1000) {
             product.end_date = new Date(
-                product.end_date.getTime() + 10 * 60 * 1000
+                product.end_date.getTime() + AuctionSettings.auto_extend_extension * 60 * 1000
             );
         }
 
