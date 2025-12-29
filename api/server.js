@@ -24,6 +24,7 @@ const bidRoutes = require("./routes/bidRoutes");
 const userRoutes = require("./routes/userRoutes");
 const upgradeRoutes = require("./routes/upgradeRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 // Middleware
 app.use(express.json());
@@ -68,6 +69,9 @@ app.use("/api/upgrade", upgradeRoutes);
 
 // Order routes
 app.use("/api/orders", orderRoutes);
+
+// Settings routes
+app.use("/api/settings", settingsRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

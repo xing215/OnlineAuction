@@ -41,6 +41,7 @@ export const AdminLayout = ({ children }: PropsWithChildren) => {
         { label: "Quản lý Danh mục", path: "/admin/manage-category", icon: Folder },
         { label: "Quản lý Sản phẩm", path: "/admin/manage-product", icon: Inventory },
         { label: "Yêu cầu nâng cấp", path: "/admin/upgrade-requests", icon: ArrowUpward },
+        { label: "Cài đặt Đấu giá", path: "/admin/auction-settings", icon: GavelIcon },
     ];
 
     const currentPath = window.location.pathname;
