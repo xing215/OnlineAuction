@@ -10,6 +10,7 @@ import { useLayout } from "../hooks/useLayout";
 import { WEB_PAGE, type WebPageKey } from "../constants/webPages";
 import { useUser } from "../context/useUser";
 import { useCategories } from "../hooks/useCategories";
+import { CategorySkeleton } from "./Category/CategorySkeleton";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 
@@ -30,7 +31,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
     } = useLayout();
 
     const { user, token, refreshUser } = useUser();
-    const { categoriesTree } = useCategories();
+    const { categoriesTree, isLoadingCategoriesTree } = useCategories();
     const navigate = useNavigate();
     const [isCategoriesHover, setIsCategoriesHover] = useState(false);
     const hoverTimeoutRef = useRef<number | null>(null);
@@ -316,86 +317,92 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                 }, 100);
                             }}
                         >
-                            <button
-                                onClick={() => {
-                                    navigate(WEB_PAGE.CATEGORIES.path);
-                                    setIsCategoriesHover(false);
-                                }}
-                                className="w-full text-left px-5 py-3 mb-2 bg-gradient-to-b from-[#d5ad41] to-[#f4d799] hover:from-[#f4d799] hover:to-[#d5ad41] rounded-xl font-semibold text-[#3E3C31] shadow-md cursor-pointer"
-                            >
-                                Xem tất cả sản phẩm
-                            </button>
-                            <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                                Danh mục
-                            </h3>
-                            <ul className="space-y-1">
-                                {categoriesTree.map((cat) => (
-                                    <li key={cat.id}>
-                                        <button
-                                            onClick={() => {
-                                                navigate(
-                                                    `${WEB_PAGE.CATEGORIES.path}?category=${cat.id}`
-                                                );
-                                                setIsCategoriesHover(false);
-                                            }}
-                                            className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-700 cursor-pointer"
-                                        >
-                                            {cat.name}
-                                        </button>
-                                        {cat.child.length > 0 && (
-                                            <ul className="ml-4 space-y-1">
-                                                {cat.child.map((sub) => (
-                                                    <li key={sub.id}>
-                                                        <button
-                                                            onClick={() => {
-                                                                navigate(
-                                                                    `${WEB_PAGE.CATEGORIES.path}?category=${sub.id}`
-                                                                );
-                                                                setIsCategoriesHover(
-                                                                    false
-                                                                );
-                                                            }}
-                                                            className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-600 text-sm cursor-pointer"
-                                                        >
-                                                            {sub.name}
-                                                        </button>
-                                                        {sub.child.length >
-                                                            0 && (
-                                                            <ul className="ml-4 space-y-1">
-                                                                {sub.child.map(
-                                                                    (grand) => (
-                                                                        <li
-                                                                            key={
-                                                                                grand.id
-                                                                            }
-                                                                        >
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    navigate(
-                                                                                        `${WEB_PAGE.CATEGORIES.path}?category=${grand.id}`
-                                                                                    );
-                                                                                    setIsCategoriesHover(
-                                                                                        false
-                                                                                    );
-                                                                                }}
-                                                                                className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-500 text-xs cursor-pointer"
-                                                                            >
-                                                                                {
-                                                                                    grand.name
-                                                                                }
-                                                                            </button>
-                                                                        </li>
-                                                                    )
+                            {isLoadingCategoriesTree ? (
+                                <CategorySkeleton />
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            navigate(WEB_PAGE.CATEGORIES.path);
+                                            setIsCategoriesHover(false);
+                                        }}
+                                        className="w-full text-left px-5 py-3 mb-2 bg-gradient-to-b from-[#d5ad41] to-[#f4d799] hover:from-[#f4d799] hover:to-[#d5ad41] rounded-xl font-semibold text-[#3E3C31] shadow-md cursor-pointer"
+                                    >
+                                        Xem tất cả sản phẩm
+                                    </button>
+                                    <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                                        Danh mục
+                                    </h3>
+                                    <ul className="space-y-1">
+                                        {categoriesTree.map((cat) => (
+                                            <li key={cat.id}>
+                                                <button
+                                                    onClick={() => {
+                                                        navigate(
+                                                            `${WEB_PAGE.CATEGORIES.path}?category=${cat.id}`
+                                                        );
+                                                        setIsCategoriesHover(false);
+                                                    }}
+                                                    className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-700 cursor-pointer"
+                                                >
+                                                    {cat.name}
+                                                </button>
+                                                {cat.child.length > 0 && (
+                                                    <ul className="ml-4 space-y-1">
+                                                        {cat.child.map((sub) => (
+                                                            <li key={sub.id}>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        navigate(
+                                                                            `${WEB_PAGE.CATEGORIES.path}?category=${sub.id}`
+                                                                        );
+                                                                        setIsCategoriesHover(
+                                                                            false
+                                                                        );
+                                                                    }}
+                                                                    className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-600 text-sm cursor-pointer"
+                                                                >
+                                                                    {sub.name}
+                                                                </button>
+                                                                {sub.child.length >
+                                                                    0 && (
+                                                                    <ul className="ml-4 space-y-1">
+                                                                        {sub.child.map(
+                                                                            (grand) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        grand.id
+                                                                                    }
+                                                                                >
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            navigate(
+                                                                                                `${WEB_PAGE.CATEGORIES.path}?category=${grand.id}`
+                                                                                            );
+                                                                                            setIsCategoriesHover(
+                                                                                                false
+                                                                                            );
+                                                                                        }}
+                                                                                        className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-500 text-xs cursor-pointer"
+                                                                                    >
+                                                                                        {
+                                                                                            grand.name
+                                                                                        }
+                                                                                    </button>
+                                                                                </li>
+                                                                            )
+                                                                        )}
+                                                                    </ul>
                                                                 )}
-                                                            </ul>
-                                                        )}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
                         </div>
                     )}
 
