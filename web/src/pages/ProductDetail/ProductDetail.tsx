@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AccessTime } from "@mui/icons-material";
+import { AccessTime, Favorite, FavoriteBorder } from "@mui/icons-material";
 import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { formatDate } from "../../utilities/FormatDate";
@@ -42,8 +42,69 @@ export const ProductDetail: React.FC = () => {
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
     const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const { user, token } = useUser();
+    const { user, token, refreshUser } = useUser();
     const [, setTick] = useState(0);
+
+    // Check if product is in user's watch_list
+    const isLiked = useMemo(() => {
+        if (!user || !user.watch_list || !product) return false;
+        return user.watch_list.some(
+            (id: string) => String(id) === String(product.id)
+        );
+    }, [user, product]);
+
+    const handleToggleFavorite = async () => {
+        if (!user || !token) {
+            toast.error(
+                "Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích"
+            );
+            return;
+        }
+
+        if (!product) return;
+
+        try {
+            const updatedWatchList = isLiked
+                ? (user.watch_list || []).filter(
+                      (id) => String(id) !== String(product.id)
+                  )
+                : [...(user.watch_list || []), product.id];
+
+            const response = await fetch(apiUrl("/api/auth/me"), {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    watch_list: updatedWatchList,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message ||
+                        "Không thể cập nhật danh sách yêu thích"
+                );
+            }
+
+            // Refresh user data to sync watch_list
+            await refreshUser();
+
+            toast.success(
+                isLiked
+                    ? "Đã xóa khỏi danh sách yêu thích"
+                    : "Đã thêm vào danh sách yêu thích"
+            );
+        } catch (err) {
+            console.error("Error toggling favorite:", err);
+            toast.error(
+                "Không thể cập nhật danh sách yêu thích: " +
+                    (err instanceof Error ? err.message : "Lỗi không xác định")
+            );
+        }
+    };
 
     const handleBidConfirm = async (
         bidAmount: number,
@@ -163,33 +224,6 @@ export const ProductDetail: React.FC = () => {
 
         // Show confirm modal
         setIsConfirmModalOpen(true);
-        // Check rating eligibility
-        const positiveCount = user.rating_summary?.positive_count || 0;
-        const negativeCount = user.rating_summary?.negative_count || 0;
-        const totalRatings = positiveCount + negativeCount;
-
-        // If user has ratings, check if they meet the 80% threshold
-        if (totalRatings > 0) {
-            const ratingPercentage = (positiveCount / totalRatings) * 100;
-            if (ratingPercentage < 80) {
-                toast.error(
-                    `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
-                        1
-                    )}%`
-                );
-                return;
-            }
-        }
-        // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
-
-        // Confirm before buy now
-        const confirmed = window.confirm(
-            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
-                product.buy_now_price
-            )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
-        );
-
-        if (!confirmed) return;
     };
 
     const executeBuyNow = async () => {
@@ -389,8 +423,130 @@ export const ProductDetail: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-[400px]">
-                <div className="w-10 h-10 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
+            <div className="min-h-screen bg-gray-50 py-5">
+                <div className="max-w-7xl mx-auto px-5">
+                    {/* Breadcrumb Skeleton */}
+                    <div className="flex items-center gap-2 mb-5">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
+                        {/* Left: Product Images Skeleton */}
+                        <div className="flex flex-col gap-4">
+                            <div className="w-full aspect-4/3 bg-gray-200 rounded-lg animate-pulse relative">
+                                <div className="absolute top-3 left-3 w-9 h-9 bg-white/90 rounded-full animate-pulse"></div>
+                            </div>
+                            <div className="flex gap-2">
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="w-20 h-15 bg-gray-200 rounded animate-pulse"></div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right: Product Info Skeleton */}
+                        <div className="flex flex-col gap-4">
+                            <div className="border-b border-gray-200 pb-4">
+                                <div className="h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+                                    <div className="flex gap-1 ml-2">
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                    </div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16 ml-auto"></div>
+                                </div>
+                            </div>
+
+                            {/* Timer Skeleton */}
+                            <div className="bg-gray-100 p-4 rounded-xl">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse mb-2 w-24"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+                                    <div className="h-6 bg-gray-200 rounded animate-pulse w-20"></div>
+                                </div>
+                            </div>
+
+                            {/* Price Info Skeleton */}
+                            <div className="p-4 rounded-xl border border-gray-200">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse mb-1 w-20"></div>
+                                <div className="h-10 bg-gray-200 rounded animate-pulse mb-4"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                                    <div className="flex gap-1 ml-2">
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                    </div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20 ml-auto"></div>
+                                </div>
+                            </div>
+
+                            {/* Bid Form Skeleton */}
+                            <div className="grid grid-cols-4 gap-4 items-center">
+                                <div className="col-span-3">
+                                    <div className="w-full h-10 bg-gray-200 rounded-xl animate-pulse"></div>
+                                </div>
+                                <div className="h-10 bg-gray-200 rounded-xl animate-pulse"></div>
+                            </div>
+
+                            {/* Buy Now Skeleton */}
+                            <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+
+                            {/* Bidder Manager Skeleton */}
+                            <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    {/* Tabs Section Skeleton */}
+                    <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+                        <div className="flex border-b border-gray-200">
+                            <div className="flex-1 px-4 py-4">
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-12"></div>
+                            </div>
+                            <div className="flex-1 px-4 py-4">
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-24"></div>
+                            </div>
+                            <div className="flex-1 px-4 py-4">
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-12"></div>
+                            </div>
+                        </div>
+                        <div className="p-5">
+                            <div className="space-y-3">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Related Products Skeleton */}
+                    <div className="mb-8">
+                        <div className="h-6 bg-gray-200 rounded animate-pulse w-48 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-64 mb-6"></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
+                                    <div className="aspect-square bg-gray-200 animate-pulse"></div>
+                                    <div className="p-4">
+                                        <div className="h-5 bg-gray-200 rounded animate-pulse mb-2"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4 mb-2"></div>
+                                        <div className="h-6 bg-gray-200 rounded animate-pulse w-1/2 mb-3"></div>
+                                        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -440,7 +596,7 @@ export const ProductDetail: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
                     {/* Left: Product Images */}
                     <div className="flex flex-col gap-4">
-                        <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden">
+                        <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden relative">
                             {mainImage && (
                                 <img
                                     src={mainImage}
@@ -448,6 +604,24 @@ export const ProductDetail: React.FC = () => {
                                     className="w-full h-full object-cover"
                                 />
                             )}
+                            <button
+                                type="button"
+                                className="absolute top-3 left-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:bg-white backdrop-blur-sm cursor-pointer"
+                                onClick={handleToggleFavorite}
+                                aria-label={
+                                    isLiked ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"
+                                }
+                            >
+                                {isLiked ? (
+                                    <Favorite
+                                        sx={{ color: "red", pointerEvents: "none" }}
+                                    />
+                                ) : (
+                                    <FavoriteBorder
+                                        sx={{ color: "black", pointerEvents: "none" }}
+                                    />
+                                )}
+                            </button>
                         </div>
                         {product.images && product.images.length > 1 && (
                             <div className="flex gap-2 overflow-x-auto">
@@ -593,7 +767,7 @@ export const ProductDetail: React.FC = () => {
                         <div className="grid grid-cols-4 gap-4 items-center">
                             <div className="col-span-3 flex flex-col gap-2">
                                 <button
-                                    className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base font-medium bg-gray-50 hover:bg-gray-100 transition-colors"
+                                    className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base font-medium bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                                     onClick={handleBidClick}
                                     disabled={product.status !== "active"}
                                 >
@@ -601,7 +775,7 @@ export const ProductDetail: React.FC = () => {
                                 </button>
                             </div>
                             <button
-                                className="flex justify-around items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex justify-around items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 onClick={handleBidClick}
                                 disabled={product.status !== "active"}
                             >
@@ -625,7 +799,7 @@ export const ProductDetail: React.FC = () => {
                         {/* Buy Now */}
                         {product.buy_now_price && (
                             <button
-                                className="flex items-center justify-center gap-4 rounded-xl bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center justify-center gap-4 rounded-xl bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 onClick={handleBuyNow}
                                 disabled={
                                     product.status !== "active" || isBidLoading
@@ -642,7 +816,7 @@ export const ProductDetail: React.FC = () => {
                         {user && seller && user.id === seller.id && (
                             <button
                                 onClick={() => setIsBidderManagerOpen(true)}
-                                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
+                                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors cursor-pointer"
                             >
                                 Quản lý người đặt giá
                             </button>
@@ -677,7 +851,7 @@ export const ProductDetail: React.FC = () => {
                 <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
                     <div className="flex border-b border-gray-200">
                         <button
-                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative cursor-pointer ${
                                 activeTab === "description"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"
@@ -690,7 +864,7 @@ export const ProductDetail: React.FC = () => {
                             )}
                         </button>
                         <button
-                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative cursor-pointer ${
                                 activeTab === "history"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"
@@ -703,7 +877,7 @@ export const ProductDetail: React.FC = () => {
                             )}
                         </button>
                         <button
-                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative cursor-pointer ${
                                 activeTab === "qna"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"

@@ -118,7 +118,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
                         <button
                             type="button"
                             onClick={handleClick}
-                            className="flex items-center w-full"
+                            className="flex items-center w-full cursor-pointer"
                         >
                             <span className="flex items-center gap-3 flex-1">
                                 <IconComponent
@@ -137,20 +137,20 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                     {label}
                                 </span>
                             </span>
-                            <button
-                                type="button"
-                                onClick={handleCategoryArrowClick}
-                                className="flex items-center justify-center w-6 h-6 cursor-pointer"
-                            >
-                                <ChevronRightRounded
-                                    className="h-4 w-4"
-                                    style={{
-                                        color: isActive
-                                            ? "#3E3C31"
-                                            : "rgba(255,255,255,0.7)",
-                                    }}
-                                />
-                            </button>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCategoryArrowClick}
+                            className="absolute right-0 top-0 flex items-center justify-center w-6 h-6 cursor-pointer"
+                        >
+                            <ChevronRightRounded
+                                className="h-4 w-4"
+                                style={{
+                                    color: isActive
+                                        ? "#3E3C31"
+                                        : "rgba(255,255,255,0.7)",
+                                }}
+                            />
                         </button>
                     </div>
                 ) : (
@@ -335,9 +335,11 @@ export const Layout = ({ children }: PropsWithChildren) => {
                         )}
 
                         <div className="space-y-2">
-                            {primaryNav.map((item) =>
-                                renderPrimaryButton(item.key, item.label)
-                            )}
+                            {primaryNav.map((item) => (
+                                <div key={item.key}>
+                                    {renderPrimaryButton(item.key, item.label)}
+                                </div>
+                            ))}
                         </div>
                     </div>
 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import type { Category, CategoryTree } from '../types';
+import { useState, useEffect } from "react";
+import type { Category, CategoryTree } from "../types";
 import { apiUrl } from "../config/api";
 
 export const useCategories = () => {
@@ -17,10 +17,10 @@ export const useCategories = () => {
         if (data.success) {
           // Transform _id to id for consistency and filter only active categories
           const transformedCategories = data.data
-            .filter((cat: any) => cat.is_active === true)
-            .map((cat: any) => ({
+            .filter((cat: Category & { _id?: string }) => cat.is_active === true)
+            .map((cat: Category & { _id?: string }) => ({
               ...cat,
-              id: cat._id
+              id: cat.id || cat._id
             }));
           setCategories([{ id: 'all', name: 'Tất cả', is_active: true, createdAt: new Date(), updatedAt: new Date() }, ...transformedCategories]);
         }
