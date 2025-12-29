@@ -389,8 +389,128 @@ export const ProductDetail: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-[400px]">
-                <div className="w-10 h-10 border-4 border-gray-200 border-t-yellow-600 rounded-full animate-spin"></div>
+            <div className="min-h-screen bg-gray-50 py-5">
+                <div className="max-w-7xl mx-auto px-5">
+                    {/* Breadcrumb Skeleton */}
+                    <div className="flex items-center gap-2 mb-5">
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-1"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
+                        {/* Left: Product Images Skeleton */}
+                        <div className="flex flex-col gap-4">
+                            <div className="w-full aspect-4/3 bg-gray-200 rounded-lg animate-pulse"></div>
+                            <div className="flex gap-2">
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="w-20 h-15 bg-gray-200 rounded animate-pulse"></div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right: Product Info Skeleton */}
+                        <div className="flex flex-col gap-4">
+                            <div className="border-b border-gray-200 pb-4">
+                                <div className="h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+                                    <div className="flex gap-1 ml-2">
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                    </div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16 ml-auto"></div>
+                                </div>
+                            </div>
+
+                            {/* Timer Skeleton */}
+                            <div className="bg-gray-100 p-4 rounded-xl">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse mb-2 w-24"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+                                    <div className="h-6 bg-gray-200 rounded animate-pulse w-20"></div>
+                                </div>
+                            </div>
+
+                            {/* Price Info Skeleton */}
+                            <div className="p-4 rounded-xl border border-gray-200">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse mb-1 w-20"></div>
+                                <div className="h-10 bg-gray-200 rounded animate-pulse mb-4"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                                    <div className="flex gap-1 ml-2">
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-6"></div>
+                                    </div>
+                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20 ml-auto"></div>
+                                </div>
+                            </div>
+
+                            {/* Bid Form Skeleton */}
+                            <div className="grid grid-cols-4 gap-4 items-center">
+                                <div className="col-span-3">
+                                    <div className="w-full h-10 bg-gray-200 rounded-xl animate-pulse"></div>
+                                </div>
+                                <div className="h-10 bg-gray-200 rounded-xl animate-pulse"></div>
+                            </div>
+
+                            {/* Buy Now Skeleton */}
+                            <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+
+                            {/* Bidder Manager Skeleton */}
+                            <div className="h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    {/* Tabs Section Skeleton */}
+                    <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+                        <div className="flex border-b border-gray-200">
+                            <div className="flex-1 px-4 py-4">
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-12"></div>
+                            </div>
+                            <div className="flex-1 px-4 py-4">
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-24"></div>
+                            </div>
+                            <div className="flex-1 px-4 py-4">
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-12"></div>
+                            </div>
+                        </div>
+                        <div className="p-5">
+                            <div className="space-y-3">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Related Products Skeleton */}
+                    <div className="mb-8">
+                        <div className="h-6 bg-gray-200 rounded animate-pulse w-48 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded animate-pulse w-64 mb-6"></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
+                                    <div className="aspect-square bg-gray-200 animate-pulse"></div>
+                                    <div className="p-4">
+                                        <div className="h-5 bg-gray-200 rounded animate-pulse mb-2"></div>
+                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4 mb-2"></div>
+                                        <div className="h-6 bg-gray-200 rounded animate-pulse w-1/2 mb-3"></div>
+                                        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
