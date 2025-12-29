@@ -247,8 +247,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     />
                 )}
                 {isNew && (
-                    <div className="absolute top-3 right-12 z-10 rounded-md bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                        NEW
+                    <div className="absolute bottom-3 right-3 z-10">
+                        <div className="flex items-center gap-1 rounded-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 px-3 py-1 shadow-md border border-white/40 backdrop-blur-sm">
+                            <span className="inline-block w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                            <span className="text-[10px] font-extrabold text-white tracking-wider uppercase">
+                                New
+                            </span>
+                        </div>
                     </div>
                 )}
 

@@ -1,4 +1,5 @@
 import type { Category } from '../../types';
+import { Skeleton } from '@mui/material';
 
 interface ProductFiltersProps {
   categories: Category[];
@@ -9,6 +10,7 @@ interface ProductFiltersProps {
   sortOption: string;
   onSortChange: (sort: string) => void;
   totalProducts: number;
+  isLoadingCategories?: boolean;
 }
 
 export default function ProductFilters({
@@ -20,6 +22,7 @@ export default function ProductFilters({
   sortOption,
   onSortChange,
   totalProducts,
+  isLoadingCategories = false,
 }: ProductFiltersProps) {
   return (
     <div className="mb-8 space-y-6">
@@ -48,7 +51,14 @@ export default function ProductFilters({
             </svg>
           </span>
           <span className="text-sm font-medium text-gray-500 whitespace-nowrap mr-2">Danh mục:</span>
-            {categories.map((cat) => {
+          {isLoadingCategories ? (
+            <div className="flex gap-2">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Skeleton key={index} variant="rectangular" width={80} height={32} sx={{ borderRadius: 16 }} />
+              ))}
+            </div>
+          ) : (
+            categories.map((cat) => {
               const categoryId = cat.id;
 
               return (
@@ -66,7 +76,8 @@ export default function ProductFilters({
                   {cat.name}
                 </button>
               );
-            })}
+            })
+          )}
         </div>
       </div>
 
