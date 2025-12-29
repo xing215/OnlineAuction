@@ -35,6 +35,9 @@ export const Layout = ({ children }: PropsWithChildren) => {
     const navigate = useNavigate();
     const [isCategoriesHover, setIsCategoriesHover] = useState(false);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+    const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+    const [mobileCategoryLevel, setMobileCategoryLevel] = useState<'main' | 'sub'>('main');
+    const [mobileSelectedCategory, setMobileSelectedCategory] = useState<string | null>(null);
     const hoverTimeoutRef = useRef<number | null>(null);
     const categoryPanelRef = useRef<HTMLDivElement | null>(null);
     const subPanelTimeoutRef = useRef<number | null>(null);
@@ -64,10 +67,25 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
         const handleClick = () => {
             if (isCategoryButton) {
-                navigate(WEB_PAGE.CATEGORIES.path);
+                if (isMobile) {
+                    setMobileCategoriesOpen(true);
+                    setMobileCategoryLevel('main');
+                    setMobileSelectedCategory(null);
+                } else {
+                    navigate(WEB_PAGE.CATEGORIES.path);
+                }
                 return;
             }
             handleNavigate(key);
+        };
+
+        const handleCategoryArrowClick = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (isMobile) {
+                setMobileCategoriesOpen(true);
+                setMobileCategoryLevel('main');
+                setMobileSelectedCategory(null);
+            }
         };
 
         const handleMouseEnter = () => {
@@ -89,51 +107,97 @@ export const Layout = ({ children }: PropsWithChildren) => {
         };
 
         const buttonElement = (
-            <button
+            <div
                 key={key}
-                type="button"
-                onClick={handleClick}
-                aria-label={isSidebarCollapsed ? label : undefined}
                 className={`${baseClass} ${layoutSpacingClass} ${
                     isActive ? activeClass : inactiveClass
-                } cursor-pointer`}
+                } ${isCategoryButton && isMobile ? 'relative' : ''}`}
             >
-                <span
-                    className={
-                        isSidebarCollapsed
-                            ? "flex items-center justify-center"
-                            : "flex items-center gap-3"
-                    }
-                >
-                    <IconComponent
-                        className={
-                            isActive
-                                ? "h-5 w-5 text-[#3E3C31]"
-                                : "h-5 w-5 text-white"
-                        }
-                        data-testid={`${key.toLowerCase()}-icon`}
-                    />
-                    {!isSidebarCollapsed && (
+                {isCategoryButton && isMobile ? (
+                    <div className="relative w-full">
+                        <button
+                            type="button"
+                            onClick={handleClick}
+                            className="flex items-center w-full"
+                        >
+                            <span className="flex items-center gap-3 flex-1">
+                                <IconComponent
+                                    className={
+                                        isActive
+                                            ? "h-5 w-5 text-[#3E3C31]"
+                                            : "h-5 w-5 text-white"
+                                    }
+                                    data-testid={`${key.toLowerCase()}-icon`}
+                                />
+                                <span
+                                    className={
+                                        isActive ? "text-[#3E3C31]" : "text-white"
+                                    }
+                                >
+                                    {label}
+                                </span>
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleCategoryArrowClick}
+                                className="flex items-center justify-center w-6 h-6 cursor-pointer"
+                            >
+                                <ChevronRightRounded
+                                    className="h-4 w-4"
+                                    style={{
+                                        color: isActive
+                                            ? "#3E3C31"
+                                            : "rgba(255,255,255,0.7)",
+                                    }}
+                                />
+                            </button>
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={handleClick}
+                        aria-label={isMobile ? label : undefined}
+                        className="flex items-center w-full cursor-pointer"
+                    >
                         <span
                             className={
-                                isActive ? "text-[#3E3C31]" : "text-white"
+                                isSidebarCollapsed
+                                    ? "flex items-center justify-center"
+                                    : "flex items-center gap-3 flex-1"
                             }
                         >
-                            {label}
+                            <IconComponent
+                                className={
+                                    isActive
+                                        ? "h-5 w-5 text-[#3E3C31]"
+                                        : "h-5 w-5 text-white"
+                                }
+                                data-testid={`${key.toLowerCase()}-icon`}
+                            />
+                            {!isSidebarCollapsed && (
+                                <span
+                                    className={
+                                        isActive ? "text-[#3E3C31]" : "text-white"
+                                    }
+                                >
+                                    {label}
+                                </span>
+                            )}
                         </span>
-                    )}
-                </span>
-                {isCategoryButton && !isSidebarCollapsed && (
-                    <ChevronRightRounded
-                        className="h-5 w-5"
-                        style={{
-                            color: isActive
-                                ? "#3E3C31"
-                                : "rgba(255,255,255,0.7)",
-                        }}
-                    />
+                        {isCategoryButton && !isSidebarCollapsed && (
+                            <ChevronRightRounded
+                                className="h-5 w-5 flex-shrink-0"
+                                style={{
+                                    color: isActive
+                                        ? "#3E3C31"
+                                        : "rgba(255,255,255,0.7)",
+                                }}
+                            />
+                        )}
+                    </button>
                 )}
-            </button>
+            </div>
         );
 
         if (isCategoryButton && !isMobile) {
@@ -474,6 +538,112 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                {/* Mobile Categories Panel */}
+                {mobileCategoriesOpen && isMobile && (
+                    <div className="fixed inset-0 z-50 bg-white">
+                        <div className="flex flex-col h-full">
+                            {/* Header with back button */}
+                            <div className="p-4 border-b border-gray-200">
+                                <button
+                                    onClick={() => {
+                                        if (mobileCategoryLevel === 'sub') {
+                                            setMobileCategoryLevel('main');
+                                            setMobileSelectedCategory(null);
+                                        } else {
+                                            setMobileCategoriesOpen(false);
+                                        }
+                                    }}
+                                    className="flex items-center gap-2 text-gray-600 hover:text-gray-800 cursor-pointer"
+                                >
+                                    <ChevronRightRounded className="h-4 w-4 rotate-180" />
+                                    <span className="text-sm">Trở lại</span>
+                                </button>
+                            </div>
+
+                            {/* Title */}
+                            <div className="p-4 border-b border-gray-100">
+                                <h2 className="text-lg font-semibold text-gray-800">
+                                    {mobileCategoryLevel === 'main' ? 'Danh mục' : 
+                                     mobileSelectedCategory ? categoriesTree.find(cat => cat.id === mobileSelectedCategory)?.name : 'Danh mục'}
+                                </h2>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-4">
+                                {isLoadingCategoriesTree ? (
+                                    <CategorySkeleton />
+                                ) : (
+                                    <ul className="space-y-1">
+                                        {mobileCategoryLevel === 'main' ? (
+                                            // Main categories
+                                            categoriesTree.map((cat) => (
+                                                <li key={cat.id}>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (cat.child.length > 0) {
+                                                                setMobileCategoryLevel('sub');
+                                                                setMobileSelectedCategory(cat.id);
+                                                            } else {
+                                                                navigate(`${WEB_PAGE.CATEGORIES.path}?category=${cat.id}`);
+                                                                setMobileCategoriesOpen(false);
+                                                                setMobileCategoryLevel('main');
+                                                                setMobileSelectedCategory(null);
+                                                            }
+                                                        }}
+                                                        className="w-full text-left px-2 py-4 hover:bg-gray-100 rounded text-gray-700 cursor-pointer flex items-center justify-between text-base"
+                                                    >
+                                                        <span>{cat.name}</span>
+                                                        {cat.child.length > 0 && (
+                                                            <ChevronRightRounded className="h-5 w-5 text-gray-400" />
+                                                        )}
+                                                    </button>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            // Sub categories
+                                            (() => {
+                                                const parentCategory = categoriesTree.find(cat => cat.id === mobileSelectedCategory);
+                                                if (!parentCategory || parentCategory.child.length === 0) return null;
+
+                                                return parentCategory.child.map((sub) => (
+                                                    <li key={sub.id}>
+                                                        <button
+                                                            onClick={() => {
+                                                                navigate(`${WEB_PAGE.CATEGORIES.path}?category=${sub.id}`);
+                                                                setMobileCategoriesOpen(false);
+                                                                setMobileCategoryLevel('main');
+                                                                setMobileSelectedCategory(null);
+                                                            }}
+                                                            className="w-full text-left px-2 py-4 hover:bg-gray-100 rounded text-gray-700 cursor-pointer text-base"
+                                                        >
+                                                            {sub.name}
+                                                        </button>
+                                                    </li>
+                                                ));
+                                            })()
+                                        )}
+                                    </ul>
+                                )}
+                                </div>
+
+                                {/* Footer */}
+                                <div className="p-4 border-t border-gray-200">
+                                    <button
+                                        onClick={() => {
+                                            navigate(WEB_PAGE.CATEGORIES.path);
+                                            setMobileCategoriesOpen(false);
+                                            setMobileCategoryLevel('main');
+                                            setMobileSelectedCategory(null);
+                                        }}
+                                        className="w-full px-5 py-3 bg-gradient-to-b from-[#d5ad41] to-[#f4d799] hover:from-[#f4d799] hover:to-[#d5ad41] rounded-xl font-semibold text-[#3E3C31] shadow-md cursor-pointer"
+                                    >
+                                        Xem tất cả sản phẩm
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
 
