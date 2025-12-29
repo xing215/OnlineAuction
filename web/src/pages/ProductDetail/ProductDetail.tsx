@@ -686,7 +686,7 @@ export const ProductDetail: React.FC = () => {
                         <div className="grid grid-cols-4 gap-4 items-center">
                             <div className="col-span-3 flex flex-col gap-2">
                                 <button
-                                    className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base font-medium bg-gray-50 hover:bg-gray-100 transition-colors"
+                                    className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-600 text-black text-base font-medium bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                                     onClick={handleBidClick}
                                     disabled={product.status !== "active"}
                                 >
@@ -694,7 +694,7 @@ export const ProductDetail: React.FC = () => {
                                 </button>
                             </div>
                             <button
-                                className="flex justify-around items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex justify-around items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 onClick={handleBidClick}
                                 disabled={product.status !== "active"}
                             >
@@ -718,7 +718,7 @@ export const ProductDetail: React.FC = () => {
                         {/* Buy Now */}
                         {product.buy_now_price && (
                             <button
-                                className="flex items-center justify-center gap-4 rounded-xl bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center justify-center gap-4 rounded-xl bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 onClick={handleBuyNow}
                                 disabled={
                                     product.status !== "active" || isBidLoading
@@ -735,7 +735,7 @@ export const ProductDetail: React.FC = () => {
                         {user && seller && user.id === seller.id && (
                             <button
                                 onClick={() => setIsBidderManagerOpen(true)}
-                                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors"
+                                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold text-base hover:bg-gray-50 transition-colors cursor-pointer"
                             >
                                 Quản lý người đặt giá
                             </button>
@@ -770,7 +770,7 @@ export const ProductDetail: React.FC = () => {
                 <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
                     <div className="flex border-b border-gray-200">
                         <button
-                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative cursor-pointer ${
                                 activeTab === "description"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"
@@ -783,7 +783,7 @@ export const ProductDetail: React.FC = () => {
                             )}
                         </button>
                         <button
-                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative cursor-pointer ${
                                 activeTab === "history"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"
@@ -796,7 +796,7 @@ export const ProductDetail: React.FC = () => {
                             )}
                         </button>
                         <button
-                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative ${
+                            className={`flex-1 px-4 py-4 text-base font-medium transition-colors relative cursor-pointer ${
                                 activeTab === "qna"
                                     ? "text-yellow-600"
                                     : "text-gray-600 hover:text-yellow-600"
