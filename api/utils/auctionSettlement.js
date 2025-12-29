@@ -76,40 +76,40 @@ async function settleSingleProduct(productId) {
         });
 
         await order.save({ session });
-      }
 
-      // Finalize product state
-      product.status = "sold";
-      product.current_bidder = highestBid.user;
-      product.current_price = highestBid.price;
-      await product.save({ session });
+        // Finalize product state
+        product.status = "sold";
+        product.current_bidder = highestBid.user;
+        product.current_price = highestBid.price;
+        await product.save({ session });
 
-      // Populate winner
-      await highestBid.populate("user");
+        // Populate winner
+        await highestBid.populate("user");
 
-      // Send email to seller about auction ended
-      if (product.seller && product.seller.email) {
-        sendAuctionEndedToSellerEmail({
-          sellerEmail: product.seller.email,
-          sellerName: product.seller.full_name,
-          productName: product.name,
-          productId: product._id,
-          winnerName: highestBid.user.full_name,
-          finalPrice: highestBid.price,
-        });
-      }
+        // Send email to seller about auction ended
+        if (product.seller && product.seller.email) {
+          sendAuctionEndedToSellerEmail({
+            sellerEmail: product.seller.email,
+            sellerName: product.seller.full_name,
+            productName: product.name,
+            productId: product._id,
+            winnerName: highestBid.user.full_name,
+            finalPrice: highestBid.price,
+          });
+        }
 
-      // Send email to winner
-      if (highestBid.user && highestBid.user.email) {
-        sendAuctionWonEmail({
-          winnerEmail: highestBid.user.email,
-          winnerName: highestBid.user.full_name,
-          productName: product.name,
-          productId: product._id,
-          finalPrice: highestBid.price,
-          sellerName: product.seller.full_name,
-        });
-      }
+        // Send email to winner
+        if (highestBid.user && highestBid.user.email) {
+          sendAuctionWonEmail({
+            winnerEmail: highestBid.user.email,
+            winnerName: highestBid.user.full_name,
+            productName: product.name,
+            productId: product._id,
+            finalPrice: highestBid.price,
+            sellerName: product.seller.full_name,
+          });
+        }
+      }      
     });
   } catch (error) {
     console.error("Auction settlement error:", error);

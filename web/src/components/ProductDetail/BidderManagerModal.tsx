@@ -5,6 +5,15 @@ import { formatCurrency } from "../../utilities/FormatCurrency";
 import { useUser } from "../../context/useUser";
 import toast from "react-hot-toast";
 
+// Helper function to mask user name
+const maskUserName = (fullName: string): string => {
+    if (!fullName) return "****User";
+    const name = fullName.trim();
+    const parts = name.split(" ");
+    const lastName = parts[parts.length - 1];
+    return `****${lastName}`;
+};
+
 interface Bidder {
     _id: string;
     user: {
@@ -293,7 +302,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                                 : "text-gray-800"
                                                         }`}
                                                     >
-                                                        {user.fullName}
+                                                         {maskUserName(user.fullName)}
                                                     </span>
                                                     {isBanned && (
                                                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-semibold">
