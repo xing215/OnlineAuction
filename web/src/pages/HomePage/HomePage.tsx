@@ -9,6 +9,9 @@ const HomePage = () => {
   const [topExpiring, setTopExpiring] = useState<Product[]>([]);
   const [topBidding, setTopBidding] = useState<Product[]>([]);
   const [topPrice, setTopPrice] = useState<Product[]>([]);
+  const [loadingExpiring, setLoadingExpiring] = useState(true);
+  const [loadingBidding, setLoadingBidding] = useState(true);
+  const [loadingPrice, setLoadingPrice] = useState(true);
   const navigate = useNavigate();
 
   // Fetch top products data
@@ -27,6 +30,7 @@ const HomePage = () => {
             setTopExpiring(expiringData.data);
           }
         }
+        setLoadingExpiring(false);
 
         if (biddingRes.status === "fulfilled") {
           const biddingData = await biddingRes.value.json();
@@ -34,6 +38,7 @@ const HomePage = () => {
             setTopBidding(biddingData.data);
           }
         }
+        setLoadingBidding(false);
 
         if (priceRes.status === "fulfilled") {
           const priceData = await priceRes.value.json();
@@ -41,6 +46,7 @@ const HomePage = () => {
             setTopPrice(priceData.data);
           }
         }
+        setLoadingPrice(false);
       } catch (error) {
         console.error('Error fetching top products:', error);
       }
@@ -97,6 +103,7 @@ const HomePage = () => {
           products={topExpiring}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
+          loading={loadingExpiring}
         />
 
         <div id="topBidding">
@@ -106,6 +113,7 @@ const HomePage = () => {
             products={topBidding}
             onBidClick={handleBidClick}
             onViewDetails={handleViewDetails}
+            loading={loadingBidding}
           />
         </div>
 
@@ -115,6 +123,7 @@ const HomePage = () => {
           products={topPrice}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
+          loading={loadingPrice}
         />
       </div>
     </div>
