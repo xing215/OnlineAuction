@@ -441,85 +441,62 @@ exports.banBidder = async (req, res) => {
         // Delete all bids from this user on the product
         await Bid.deleteMany({ product: productId, user: userId });
 
-        // Count unique users, excluding banned
-        const remainingBidders = await Bid.distinct("user", {
-            product: productId,
-            user: { $nin: product.banned_bidders },
-        });
+        // Calculate new highest bid and update product accordingly
+        const newHighestBid = await Bid.findOne({ product: productId })
+            .sort({ price: -1 })
+            .populate("user", "full_name username rating_summary");
 
-        if (remainingBidders.length === 0) {
-            // If no bidders left → reset to start_price
+        if (newHighestBid) {
+            // If there are still bids left
+            product.current_price = newHighestBid.price;
+            product.current_bidder = newHighestBid.user;
+        } else {
+            // No bids left
             product.current_price = product.start_price;
             product.current_bidder = null;
-        } else if (remainingBidders.length === 1) {
-            // Only 1 bidder left → Get the Highest bid of that user
-            const highestBid = await Bid.findOne({
-                product: productId,
-                user: remainingBidders[0],
-            })
-                .sort({ price: -1 }) // Sort descending to get highest bid
-                .populate("user", "full_name username email rating_summary");
-
-            if (highestBid) {
-                product.current_price = highestBid.price;
-                product.current_bidder = highestBid.user._id;
-            }
-        } else {
-            // Multiple bidders left → Get the highest bid among non-banned users
-            const highestBid = await Bid.findOne({
-                product: productId,
-                user: { $nin: product.banned_bidders },
-            })
-                .sort({ price: -1 })
-                .populate("user", "full_name username email rating_summary");
-
-            if (highestBid) {
-                product.current_price = highestBid.price;
-                product.current_bidder = highestBid.user._id;
-            }
         }
 
-        // Update bid_count (excluding banned users)
-        const validBidCount = await Bid.countDocuments({
-            product: productId,
-            user: { $nin: product.banned_bidders },
-        });
-        product.bid_count = validBidCount;
+        // Update bid_count
+        product.bid_count = await Bid.countDocuments({ product: productId });
 
         await product.save();
-
-        // Get banned user info for email
-        const bannedUser = await User.findById(userId);
-
-        // Send email notification
-        if (bannedUser && bannedUser.email) {
-            sendBannedBidderEmail({
-                userEmail: bannedUser.email,
-                userName: bannedUser.full_name,
-                productName: product.name,
-                productId: product._id,
-                sellerName: product.seller.full_name,
-            });
-        }
-
-        // Populate current bidder info for response
-        await product.populate("current_bidder", "full_name username rating_summary");
 
         res.json({
             success: true,
             message: "User has been banned from bidding",
             data: {
                 currentPrice: product.current_price,
-                currentBidder: product.current_bidder,
+                currentBidder: newHighestBid ? newHighestBid.user : null,
                 bidCount: product.bid_count,
             },
         });
+
+        (async () => {
+            try {
+                // Find banned user info for email
+                const bannedUser = await User.findById(userId);
+                
+                if (bannedUser && bannedUser.email) {
+                await sendBannedBidderEmail({
+                    userEmail: bannedUser.email,
+                    userName: bannedUser.full_name,
+                    productName: product.name,
+                    productId: product._id,
+                    sellerName: product.seller.full_name,
+                });
+                }
+            } catch (bgError) {
+                console.error("Background email error (banBidder):", bgError);
+            }
+            })();
     } catch (error) {
         console.error("Error in banBidder:", error);
+        if (!res.headersSent) {
         res.status(500).json({
             success: false,
             message: "Server error while banning user",
         });
+        }
     }
 };
 
@@ -552,30 +529,38 @@ exports.unbanBidder = async (req, res) => {
         );
         await product.save();
 
-        // Get unbanned user info for email
-        const unbannedUser = await User.findById(userId);
-
-        // Send email notification
-        if (unbannedUser && unbannedUser.email) {
-            sendUnbannedBidderEmail({
-                userEmail: unbannedUser.email,
-                userName: unbannedUser.full_name,
-                productName: product.name,
-                productId: product._id,
-                sellerName: product.seller.full_name,
-            });
-        }
-
         res.json({
             success: true,
             message: "User has been unbanned from bidding",
         });
+
+        (async () => {
+            try {
+                // Get unbanned user info for email
+                const unbannedUser = await User.findById(userId);
+
+                // Send email notification
+                if (unbannedUser && unbannedUser.email) {
+                    await sendUnbannedBidderEmail({
+                        userEmail: unbannedUser.email,
+                        userName: unbannedUser.full_name,
+                        productName: product.name,
+                        productId: product._id,
+                        sellerName: product.seller.full_name,
+                    });
+                }
+            } catch (emailError) {
+                console.error("Background email error:", emailError);
+            }
+        })();
     } catch (error) {
         console.error("Error in unbanBidder:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error while unbanning user",
-        });
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: "Server error while unbanning user",
+            });
+        }
     }
 };
 
