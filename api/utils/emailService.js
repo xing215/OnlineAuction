@@ -101,10 +101,22 @@ const sendOTPEmail = async ({
     try {
         const transporter = createTransport();
 
+        const subject = type === "register" 
+            ? "Mã OTP xác thực đăng ký" 
+            : "Mã OTP khôi phục mật khẩu";
+        
+        const description = type === "register"
+            ? "Bạn đã thực hiện đăng ký tài khoản. Đây là mã xác thực của bạn:"
+            : "Bạn đã yêu cầu khôi phục mật khẩu. Đây là mã xác thực của bạn:";
+        
+        const footer = type === "register"
+            ? "Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này."
+            : "Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.";
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Mã OTP khôi phục mật khẩu",
+            subject: subject,
             html: `
           <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
               <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -118,7 +130,7 @@ const sendOTPEmail = async ({
                       
                       <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
                           Xin chào <strong>${full_name}</strong>,<br>
-                          Bạn đã yêu cầu khôi phục mật khẩu. Đây là mã xác thực của bạn:
+                          ${description}
                       </p>
 
                       <div style="text-align: center; margin: 30px 0;">
@@ -131,7 +143,7 @@ const sendOTPEmail = async ({
                       </div>
                       
                       <p style="color: #6b7280; font-size: 15px; line-height: 1.5; margin-bottom: 10px;">
-                          Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.
+                          ${footer}
                       </p>
                   </div>
 

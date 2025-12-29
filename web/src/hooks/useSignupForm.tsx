@@ -4,20 +4,24 @@ import { apiUrl } from "../config/api";
 import toast from "react-hot-toast";
 
 export const useRegisterForm = () => {
+    const [step, setStep] = useState<"form" | "otp">("form");
     const [showRegPassword, setShowRegPassword] = useState(false);
     const [showRegConfirm, setShowRegConfirm] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [regErrors, setRegErrors] = useState<{
         email?: string;
+        otp?: string;
         password?: string;
         confirmPassword?: string;
         full_name?: string;
         agreeToTerms?: string;
         recaptcha?: string;
+        general?: string;
     }>({});
 
     const [registerData, setRegisterData] = useState({
         email: "",
+        otp: "",
         password: "",
         confirmPassword: "",
         full_name: "",
@@ -73,7 +77,7 @@ export const useRegisterForm = () => {
         }
     };
 
-    const handleRegisterSubmit = async (e: React.FormEvent) => {
+    const requestOTP = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const newErrors: typeof regErrors = {};
@@ -103,16 +107,6 @@ export const useRegisterForm = () => {
         if (Object.keys(newErrors).length === 0) {
             setIsLoading(true);
             try {
-                let recaptchaToken: string | undefined = undefined;
-                if (recaptchaSiteKey) {
-                    // Get reCAPTCHA token
-                    recaptchaToken = await recaptchaRef.current?.executeAsync() ?? undefined;
-                    if (!recaptchaToken) {
-                        setRegErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
-                        return;
-                    }
-                }
-
                 const response = await fetch(apiUrl("/api/auth/register"), {
                     method: "POST",
                     headers: {
@@ -120,6 +114,65 @@ export const useRegisterForm = () => {
                     },
                     body: JSON.stringify({
                         email: registerData.email,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toast.error(data.message || "Có lỗi xảy ra");
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Success - move to OTP step
+                setStep("otp");
+                toast.success(data.message || "Mã OTP đã được gửi đến email của bạn");
+                setIsLoading(false);
+            } catch {
+                setRegErrors({ general: "Không thể kết nối đến máy chủ" });
+                setIsLoading(false);
+            }
+        }
+    };
+
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const newErrors: typeof regErrors = {};
+
+        // Validate OTP
+        const otp = registerData.otp?.trim();
+        if (!otp) {
+            newErrors.otp = "Vui lòng nhập mã OTP";
+        } else if (!/^\d{6}$/.test(otp)) {
+            newErrors.otp = "Mã OTP phải có 6 chữ số";
+        }
+
+        setRegErrors(newErrors);
+
+        if (Object.keys(newErrors).length === 0) {
+            setIsLoading(true);
+            try {
+                let recaptchaToken: string | undefined = undefined;
+                if (recaptchaSiteKey) {
+                    // Get reCAPTCHA token
+                    recaptchaToken = await recaptchaRef.current?.executeAsync() ?? undefined;
+                    if (!recaptchaToken) {
+                        setRegErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
+                const response = await fetch(apiUrl("/api/auth/register-verify"), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email: registerData.email,
+                        otp: registerData.otp,
                         password: registerData.password,
                         full_name: registerData.full_name,
                         ...(recaptchaToken && { recaptchaToken }),
@@ -129,8 +182,7 @@ export const useRegisterForm = () => {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    const message = data.message || "Đăng ký thất bại";
-                    toast.error(message);
+                    toast.error(data.message || "Có lỗi xảy ra");
                     // Reset reCAPTCHA on error
                     recaptchaRef.current?.reset();
                     setIsLoading(false);
@@ -140,9 +192,11 @@ export const useRegisterForm = () => {
                 // Success - redirect to login or home
                 toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
                 setIsLoading(false);
-                window.location.href = "/signin";
+                setTimeout(() => {
+                    window.location.href = "/signin";
+                }, 1000);
             } catch {
-                toast.error("Lỗi đăng ký. Vui lòng thử lại.");
+                setRegErrors({ general: "Không thể kết nối đến máy chủ" });
                 // Reset reCAPTCHA on error
                 recaptchaRef.current?.reset();
                 setIsLoading(false);
@@ -150,7 +204,13 @@ export const useRegisterForm = () => {
         }
     };
 
+    const goBackToForm = () => {
+        setStep("form");
+        setRegErrors({});
+    };
+
     return {
+        step,
         registerData,
         regErrors,
         showRegPassword,
@@ -159,7 +219,9 @@ export const useRegisterForm = () => {
         setShowRegConfirm,
         isLoading,
         handleRegisterInputChange,
+        requestOTP,
         handleRegisterSubmit,
+        goBackToForm,
         recaptchaRef,
         recaptchaSiteKey,
     };
