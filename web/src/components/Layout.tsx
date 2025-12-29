@@ -33,30 +33,10 @@ export const Layout = ({ children }: PropsWithChildren) => {
     const { categoriesTree } = useCategories();
     const navigate = useNavigate();
     const [isCategoriesHover, setIsCategoriesHover] = useState(false);
-    const [categoryClicked, setCategoryClicked] = useState(false);
     const hoverTimeoutRef = useRef<number | null>(null);
     const categoryPanelRef = useRef<HTMLDivElement | null>(null);
     const accountName = user?.full_name || user?.fullName || user?.name || "";
     const isLoggedIn = !!user;
-
-    // Close category panel when clicking outside
-    useEffect(() => {
-        if (!categoryClicked) return;
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                categoryPanelRef.current &&
-                !categoryPanelRef.current.contains(event.target as Node)
-            ) {
-                setCategoryClicked(false);
-            }
-        };
-        setIsCategoriesHover(false);    
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [categoryClicked]);
 
     useEffect(() => {
         if (!user && token) {
@@ -81,14 +61,14 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
         const handleClick = () => {
             if (isCategoryButton) {
-                setCategoryClicked(!categoryClicked);
+                navigate(WEB_PAGE.CATEGORIES.path);
                 return;
             }
             handleNavigate(key);
         };
 
         const handleMouseEnter = () => {
-            if (isCategoryButton && !isMobile && !categoryClicked) {
+            if (isCategoryButton && !isMobile) {
                 if (hoverTimeoutRef.current) {
                     clearTimeout(hoverTimeoutRef.current);
                     hoverTimeoutRef.current = null;
@@ -98,7 +78,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
         };
 
         const handleMouseLeave = () => {
-            if (isCategoryButton && !isMobile && !categoryClicked) {
+            if (isCategoryButton && !isMobile) {
                 hoverTimeoutRef.current = setTimeout(() => {
                     setIsCategoriesHover(false);
                 }, 100);
@@ -318,33 +298,28 @@ export const Layout = ({ children }: PropsWithChildren) => {
                 </aside>
 
                 {/* Categories Hover Panel */}
-                {(isCategoriesHover || categoryClicked) &&
+                {isCategoriesHover &&
                     !isSidebarCollapsed && (
                         <div
                             ref={categoryPanelRef}
                             className="fixed top-0 left-[256px] z-50 bg-white shadow-lg rounded-r-lg p-4 min-w-[200px] h-screen overflow-y-auto"
                             onMouseEnter={() => {
-                                if (!categoryClicked) {
-                                    if (hoverTimeoutRef.current) {
-                                        clearTimeout(hoverTimeoutRef.current);
-                                        hoverTimeoutRef.current = null;
-                                    }
-                                    setIsCategoriesHover(true);
+                                if (hoverTimeoutRef.current) {
+                                    clearTimeout(hoverTimeoutRef.current);
+                                    hoverTimeoutRef.current = null;
                                 }
+                                setIsCategoriesHover(true);
                             }}
                             onMouseLeave={() => {
-                                if (!categoryClicked) {
-                                    hoverTimeoutRef.current = setTimeout(() => {
-                                        setIsCategoriesHover(false);
-                                    }, 100);
-                                }
+                                hoverTimeoutRef.current = setTimeout(() => {
+                                    setIsCategoriesHover(false);
+                                }, 100);
                             }}
                         >
                             <button
                                 onClick={() => {
                                     navigate(WEB_PAGE.CATEGORIES.path);
                                     setIsCategoriesHover(false);
-                                    setCategoryClicked(false);
                                 }}
                                 className="w-full text-left px-5 py-3 mb-2 bg-gradient-to-b from-[#d5ad41] to-[#f4d799] hover:from-[#f4d799] hover:to-[#d5ad41] rounded-xl font-semibold text-[#3E3C31] shadow-md cursor-pointer"
                             >
@@ -362,7 +337,6 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                                     `${WEB_PAGE.CATEGORIES.path}?category=${cat.id}`
                                                 );
                                                 setIsCategoriesHover(false);
-                                                setCategoryClicked(false);
                                             }}
                                             className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded text-gray-700 cursor-pointer"
                                         >
@@ -378,9 +352,6 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                                                     `${WEB_PAGE.CATEGORIES.path}?category=${sub.id}`
                                                                 );
                                                                 setIsCategoriesHover(
-                                                                    false
-                                                                );
-                                                                setCategoryClicked(
                                                                     false
                                                                 );
                                                             }}
@@ -404,9 +375,6 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                                                                         `${WEB_PAGE.CATEGORIES.path}?category=${grand.id}`
                                                                                     );
                                                                                     setIsCategoriesHover(
-                                                                                        false
-                                                                                    );
-                                                                                    setCategoryClicked(
                                                                                         false
                                                                                     );
                                                                                 }}
