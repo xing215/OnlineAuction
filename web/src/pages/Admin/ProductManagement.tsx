@@ -10,7 +10,7 @@ import { ConfirmModal } from "../../components/ConfirmModal";
 import { useState } from "react";
 
 const ProductManagement = () => {
-    const { categories } = useCategories();
+    const { categories, isLoadingCategories } = useCategories();
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
@@ -102,6 +102,7 @@ const ProductManagement = () => {
                             sortOption={sortOption}
                             onSortChange={setSortOption}
                             totalProducts={totalResults}
+                            isLoadingCategories={isLoadingCategories}
                         />
                     </div>
 

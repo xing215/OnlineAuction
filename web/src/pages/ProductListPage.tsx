@@ -7,7 +7,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
 export default function ProductListPage() {
-  const { categories } = useCategories(); // Lấy danh mục
+  const { categories, isLoadingCategories } = useCategories(); // Lấy danh mục
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
@@ -61,6 +61,7 @@ export default function ProductListPage() {
           sortOption={sortOption}
           onSortChange={setSortOption}
           totalProducts={totalResults}
+          isLoadingCategories={isLoadingCategories}
         />
 
         {isLoading ? (
