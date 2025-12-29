@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{
         email?: string;
         recaptcha?: string;
@@ -46,6 +47,7 @@ export const useLoginForm = () => {
         }
 
         setErrors({});
+        setIsLoading(true);
 
         try {
             let recaptchaToken: string | undefined = undefined;
@@ -70,12 +72,14 @@ export const useLoginForm = () => {
             } else {
                 navigate("/");
             }
+            setIsLoading(false);
         } catch (err) {
             const message =
                 err instanceof Error ? err.message : "Lỗi đăng nhập";
             toast.error(message);
             // Reset reCAPTCHA on error
             recaptchaRef.current?.reset();
+            setIsLoading(false);
         }
     };
 
@@ -84,6 +88,7 @@ export const useLoginForm = () => {
         errors,
         showPassword,
         setShowPassword,
+        isLoading,
         handleInputChange,
         handleSubmit,
         recaptchaRef,

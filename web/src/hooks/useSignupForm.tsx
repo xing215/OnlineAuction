@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 export const useRegisterForm = () => {
     const [showRegPassword, setShowRegPassword] = useState(false);
     const [showRegConfirm, setShowRegConfirm] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [regErrors, setRegErrors] = useState<{
         email?: string;
         password?: string;
@@ -100,6 +101,7 @@ export const useRegisterForm = () => {
         setRegErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
+            setIsLoading(true);
             try {
                 let recaptchaToken: string | undefined = undefined;
                 if (recaptchaSiteKey) {
@@ -131,16 +133,19 @@ export const useRegisterForm = () => {
                     toast.error(message);
                     // Reset reCAPTCHA on error
                     recaptchaRef.current?.reset();
+                    setIsLoading(false);
                     return;
                 }
 
                 // Success - redirect to login or home
                 toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+                setIsLoading(false);
                 window.location.href = "/signin";
             } catch {
                 toast.error("Lỗi đăng ký. Vui lòng thử lại.");
                 // Reset reCAPTCHA on error
                 recaptchaRef.current?.reset();
+                setIsLoading(false);
             }
         }
     };
@@ -152,6 +157,7 @@ export const useRegisterForm = () => {
         setShowRegPassword,
         showRegConfirm,
         setShowRegConfirm,
+        isLoading,
         handleRegisterInputChange,
         handleRegisterSubmit,
         recaptchaRef,
