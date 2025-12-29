@@ -68,12 +68,18 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, currentUserId }) => {
                 {product?.name || "Sản phẩm ẩn"}
               </h3>
               <span
-                className={`text-xs font-bold uppercase px-2 py-1 rounded border whitespace-nowrap ${
-                  isCancelled
-                    ? "bg-red-50 text-red-600 border-red-100"
+                className={`inline-flex items-center rounded-2xl px-3 py-1 text-xs font-medium uppercase whitespace-nowrap ${
+                  order.status === "cancelled"
+                    ? "bg-red-50 text-red-600"
                     : order.status === "completed"
-                    ? "bg-green-50 text-green-600 border-green-100"
-                    : "bg-blue-50 text-blue-600 border-blue-100"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : order.status === "shipped"
+                    ? "bg-purple-50 text-purple-600"
+                    : order.status === "paid"
+                    ? "bg-yellow-50 text-yellow-600"
+                    : order.status === "pending"
+                    ? "bg-blue-50 text-blue-600"
+                    : "bg-gray-50 text-gray-600"
                 }`}
               >
                 {order.status}
@@ -106,10 +112,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, currentUserId }) => {
       <div className="mt-4 pt-4 border-t flex justify-end gap-2">
         <button
           onClick={() => navigate(`/orders/${order.id}`)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+          className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition cursor-pointer ${
             isCancelled
-              ? "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-              : "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100"
+              ? "border border-[#3E3C31]/15 bg-neutral-50 text-[#3E3C31] hover:bg-neutral-100"
+              : "bg-[#D5AD41] text-[#3E3C31] hover:bg-[#c49a37]"
           }`}
         >
           {isCancelled ? (

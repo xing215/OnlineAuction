@@ -99,20 +99,22 @@ const OrderManagement: React.FC = () => {
               </svg>
               <span className="text-sm font-semibold text-gray-700">Loại đơn hàng</span>
             </div>
-            <div className="flex gap-3">
-              {roleFilters.map((filter) => (
-                <button
-                  key={filter.id}
-                  onClick={() => setRoleFilter(filter.id)}
-                  className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    roleFilter === filter.id
-                      ? "bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105"
-                      : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:shadow-md border border-gray-200"
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              ))}
+            <div className="rounded-2xl bg-[#F7F7F7] p-1">
+              <div className="flex gap-2">
+                {roleFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => setRoleFilter(filter.id)}
+                    className={`flex-1 rounded-2xl px-4 py-2.5 text-sm font-medium transition cursor-pointer ${
+                      roleFilter === filter.id
+                        ? "bg-white text-[#3E3C31] shadow"
+                        : "text-[#3E3C31]/70 hover:bg-white/60"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -127,20 +129,22 @@ const OrderManagement: React.FC = () => {
               </svg>
               <span className="text-sm font-semibold text-gray-700">Trạng thái</span>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? "bg-linear-to-r from-yellow-400 to-yellow-500 text-white shadow-lg shadow-yellow-500/30"
-                      : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="rounded-2xl bg-[#F7F7F7] p-1">
+              <div className="flex flex-wrap gap-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`rounded-2xl px-4 py-2.5 text-sm font-medium transition cursor-pointer ${
+                      activeTab === tab.id
+                        ? "bg-white text-[#3E3C31] shadow"
+                        : "text-[#3E3C31]/70 hover:bg-white/60"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
