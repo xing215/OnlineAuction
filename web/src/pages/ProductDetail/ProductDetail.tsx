@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AccessTime } from "@mui/icons-material";
+import { AccessTime, Favorite, FavoriteBorder } from "@mui/icons-material";
 import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { formatDate } from "../../utilities/FormatDate";
@@ -42,8 +42,69 @@ export const ProductDetail: React.FC = () => {
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
     const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const { user, token } = useUser();
+    const { user, token, refreshUser } = useUser();
     const [, setTick] = useState(0);
+
+    // Check if product is in user's watch_list
+    const isLiked = useMemo(() => {
+        if (!user || !user.watch_list || !product) return false;
+        return user.watch_list.some(
+            (id: string) => String(id) === String(product.id)
+        );
+    }, [user, product]);
+
+    const handleToggleFavorite = async () => {
+        if (!user || !token) {
+            toast.error(
+                "Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích"
+            );
+            return;
+        }
+
+        if (!product) return;
+
+        try {
+            const updatedWatchList = isLiked
+                ? (user.watch_list || []).filter(
+                      (id) => String(id) !== String(product.id)
+                  )
+                : [...(user.watch_list || []), product.id];
+
+            const response = await fetch(apiUrl("/api/auth/me"), {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    watch_list: updatedWatchList,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message ||
+                        "Không thể cập nhật danh sách yêu thích"
+                );
+            }
+
+            // Refresh user data to sync watch_list
+            await refreshUser();
+
+            toast.success(
+                isLiked
+                    ? "Đã xóa khỏi danh sách yêu thích"
+                    : "Đã thêm vào danh sách yêu thích"
+            );
+        } catch (err) {
+            console.error("Error toggling favorite:", err);
+            toast.error(
+                "Không thể cập nhật danh sách yêu thích: " +
+                    (err instanceof Error ? err.message : "Lỗi không xác định")
+            );
+        }
+    };
 
     const handleBidConfirm = async (
         bidAmount: number,
@@ -376,7 +437,9 @@ export const ProductDetail: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
                         {/* Left: Product Images Skeleton */}
                         <div className="flex flex-col gap-4">
-                            <div className="w-full aspect-4/3 bg-gray-200 rounded-lg animate-pulse"></div>
+                            <div className="w-full aspect-4/3 bg-gray-200 rounded-lg animate-pulse relative">
+                                <div className="absolute top-3 left-3 w-9 h-9 bg-white/90 rounded-full animate-pulse"></div>
+                            </div>
                             <div className="flex gap-2">
                                 {[...Array(4)].map((_, i) => (
                                     <div key={i} className="w-20 h-15 bg-gray-200 rounded animate-pulse"></div>
@@ -533,7 +596,7 @@ export const ProductDetail: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-white p-5 rounded-lg shadow">
                     {/* Left: Product Images */}
                     <div className="flex flex-col gap-4">
-                        <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden">
+                        <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden relative">
                             {mainImage && (
                                 <img
                                     src={mainImage}
@@ -541,6 +604,24 @@ export const ProductDetail: React.FC = () => {
                                     className="w-full h-full object-cover"
                                 />
                             )}
+                            <button
+                                type="button"
+                                className="absolute top-3 left-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:bg-white backdrop-blur-sm cursor-pointer"
+                                onClick={handleToggleFavorite}
+                                aria-label={
+                                    isLiked ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"
+                                }
+                            >
+                                {isLiked ? (
+                                    <Favorite
+                                        sx={{ color: "red", pointerEvents: "none" }}
+                                    />
+                                ) : (
+                                    <FavoriteBorder
+                                        sx={{ color: "black", pointerEvents: "none" }}
+                                    />
+                                )}
+                            </button>
                         </div>
                         {product.images && product.images.length > 1 && (
                             <div className="flex gap-2 overflow-x-auto">
