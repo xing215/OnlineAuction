@@ -9,8 +9,10 @@ export default function ProfileTabs({
 }: ProfileTabsProps) {
     const tabs = [
         { id: "info", label: "Thông tin cá nhân" },
+        { id: "fav", label: "Yêu thích" },
         { id: "bidding", label: "Đang đấu giá" },
         { id: "won", label: "Đã thắng" },
+        { id: "rating", label: "Đánh giá" },
     ];
 
     return (
