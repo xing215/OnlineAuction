@@ -219,7 +219,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
         ? "w-[80px] px-2"
         : "w-[256px] min-w-[256px] px-3";
     const sidebarClasses = isMobile
-        ? `fixed top-0 left-0 z-40 flex h-screen w-[256px] flex-col bg-[#3E3C31] px-6 py-6 transition-transform duration-300 ease-in-out ${
+        ? `fixed top-0 left-0 z-40 flex h-screen w-full flex-col bg-[#3E3C31] px-6 py-6 transition-transform duration-300 ease-in-out ${
               isSidebarCollapsed ? "-translate-x-full" : "translate-x-0"
           }`
         : `sticky top-0 flex h-screen flex-col overflow-hidden bg-[#3E3C31] py-6 transition-all duration-300 ease-in-out ${desktopWidthClasses}`;
@@ -259,6 +259,37 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
             <div className="md:flex">
                 <aside className={sidebarClasses}>
+                    {/* Mobile Header with Close Button and Logo */}
+                    {isMobile && !isSidebarCollapsed && (
+                        <div className="mb-6 flex items-center justify-between">
+                            <button
+                                type="button"
+                                onClick={toggleSidebar}
+                                className="flex items-center gap-2 text-white/70 hover:text-white cursor-pointer"
+                            >
+                                <ChevronRightRounded className="h-4 w-4 rotate-180" />
+                                <span className="text-sm">Đóng menu</span>
+                            </button>
+                            <div className="flex items-center gap-3">
+                                <div className="text-right flex-1">
+                                    <p className="text-lg font-bold text-transparent bg-gradient-to-b from-[#d5ad41] to-[#f4d799] bg-clip-text">
+                                        Golden Bid
+                                    </p>
+                                    <p className="text-xs text-[#99A1AF]">
+                                        Đấu giá trực tuyến
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={toggleSidebar}
+                                    aria-label="Thu gọn menu"
+                                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
+                                >
+                                    <GavelIcon className="h-5 w-5 text-[#3E3C31]" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <div className={`flex-1 space-y-6 pr-2 ${navScrollClass}`}>
                         <div
                             className={
@@ -267,19 +298,21 @@ export const Layout = ({ children }: PropsWithChildren) => {
                                     : "flex items-center gap-3"
                             }
                         >
-                            <button
-                                type="button"
-                                onClick={toggleSidebar}
-                                aria-label={
-                                    isSidebarCollapsed
-                                        ? "Mở menu"
-                                        : "Thu gọn menu"
-                                }
-                                className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
-                            >
-                                <GavelIcon className="h-5 w-5 text-[#3E3C31]" />
-                            </button>
-                            {!isSidebarCollapsed && (
+                            {!isMobile && (
+                                <button
+                                    type="button"
+                                    onClick={toggleSidebar}
+                                    aria-label={
+                                        isSidebarCollapsed
+                                            ? "Mở menu"
+                                            : "Thu gọn menu"
+                                    }
+                                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-b from-[#d5ad41] to-[#f4d799] shadow-[0_10px_15px_-3px_rgba(213,173,65,0.3)] cursor-pointer"
+                                >
+                                    <GavelIcon className="h-5 w-5 text-[#3E3C31]" />
+                                </button>
+                            )}
+                            {!isSidebarCollapsed && !isMobile && (
                                 <div>
                                     <p className="text-2xl font-bold text-transparent bg-gradient-to-b from-[#d5ad41] to-[#f4d799] bg-clip-text">
                                         Golden Bid
