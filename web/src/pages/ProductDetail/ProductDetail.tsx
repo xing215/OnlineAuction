@@ -140,61 +140,61 @@ export const ProductDetail: React.FC = () => {
     };
 
     const handleBuyNow = async () => {
-      if (!user) {
-        toast.error("Vui lòng đăng nhập để mua sản phẩm");
-        navigate("/signin");
-        return;
-      }
-
-      if (!product?.buy_now_price) {
-        toast.error("Sản phẩm này không hỗ trợ mua ngay");
-        return;
-      }
-
-      if (product.status !== "active") {
-        toast.error("Sản phẩm không còn hoạt động");
-        return;
-      }
-
-      if (seller && user.id === seller.id) {
-        toast.error("Bạn không thể mua sản phẩm của chính mình");
-        return;
-      }
-
-      // Show confirm modal
-      setIsConfirmModalOpen(true);
-      // Check rating eligibility
-      const positiveCount = user.rating_summary?.positive_count || 0;
-      const negativeCount = user.rating_summary?.negative_count || 0;
-      const totalRatings = positiveCount + negativeCount;
-
-      // If user has ratings, check if they meet the 80% threshold
-      if (totalRatings > 0) {
-        const ratingPercentage = (positiveCount / totalRatings) * 100;
-        if (ratingPercentage < 80) {
-          toast.error(
-            `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
-              1
-            )}%`
-          );
-          return;
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
+            navigate("/signin");
+            return;
         }
-      }
-      // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
 
-      // Confirm before buy now
-      const confirmed = window.confirm(
-        `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
-          product.buy_now_price
-        )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
-      );
+        if (!product?.buy_now_price) {
+            toast.error("Sản phẩm này không hỗ trợ mua ngay");
+            return;
+        }
 
-      if (!confirmed) return;
+        if (product.status !== "active") {
+            toast.error("Sản phẩm không còn hoạt động");
+            return;
+        }
+
+        if (seller && user.id === seller.id) {
+            toast.error("Bạn không thể mua sản phẩm của chính mình");
+            return;
+        }
+
+        // Show confirm modal
+        setIsConfirmModalOpen(true);
+        // Check rating eligibility
+        const positiveCount = user.rating_summary?.positive_count || 0;
+        const negativeCount = user.rating_summary?.negative_count || 0;
+        const totalRatings = positiveCount + negativeCount;
+
+        // If user has ratings, check if they meet the 80% threshold
+        if (totalRatings > 0) {
+            const ratingPercentage = (positiveCount / totalRatings) * 100;
+            if (ratingPercentage < 80) {
+                toast.error(
+                    `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
+                        1
+                    )}%`
+                );
+                return;
+            }
+        }
+        // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
+
+        // Confirm before buy now
+        const confirmed = window.confirm(
+            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
+                product.buy_now_price
+            )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
+        );
+
+        if (!confirmed) return;
     };
 
     const executeBuyNow = async () => {
         if (!product?.buy_now_price) return;
-        
+
         setIsConfirmModalOpen(false);
         setIsBidLoading(true);
         try {
@@ -351,6 +351,7 @@ export const ProductDetail: React.FC = () => {
 
     const handleBidClick = () => {
         if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
             navigate("/signin");
             return;
         }
@@ -600,7 +601,7 @@ export const ProductDetail: React.FC = () => {
                                 </button>
                             </div>
                             <button
-                                className="flex justify-between items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex justify-around items-center rounded-xl border border-gray-300 bg-white p-2 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={handleBidClick}
                                 disabled={product.status !== "active"}
                             >
@@ -624,7 +625,7 @@ export const ProductDetail: React.FC = () => {
                         {/* Buy Now */}
                         {product.buy_now_price && (
                             <button
-                                className="flex items-center justify-center gap-4 rounded-full bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center justify-center gap-4 rounded-xl bg-[#D5AD41] py-2.5 text-xl font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={handleBuyNow}
                                 disabled={
                                     product.status !== "active" || isBidLoading
@@ -763,7 +764,9 @@ export const ProductDetail: React.FC = () => {
                     onClose={() => setIsConfirmModalOpen(false)}
                     onConfirm={executeBuyNow}
                     title="Xác nhận mua ngay"
-                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(product?.buy_now_price || 0)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
+                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
+                        product?.buy_now_price || 0
+                    )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
                     confirmText="Mua ngay"
                     type="warning"
                     isLoading={isBidLoading}

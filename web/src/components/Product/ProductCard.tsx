@@ -115,6 +115,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleBuyNowConfirm = async () => {
+        if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
+            navigate("/signin");
+            return;
+        }
         setIsConfirmModalOpen(false);
         setIsBuyNowLoading(true);
         try {
@@ -136,9 +141,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             }
 
             toast.success(
-                data.message || "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
+                data.message ||
+                    "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
             );
-            
+
             // Navigate to product detail to see updated status
             navigate(`/product/${productId}`);
         } catch (error) {
@@ -153,11 +159,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     const handleViewDetails = () => {
-        if (!user || !token) {
-            toast.error("Vui lòng đăng nhập để đặt giá");
-            navigate("/signin");
-            return;
-        }
         // Navigate to product detail page for bidding
         navigate(`/product/${productId}`);
     };
@@ -343,13 +344,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             disabled={isAuctionEnded || isBuyNowLoading}
                         >
                             <span>
-                                {isAuctionEnded ? "Đã kết thúc" : isBuyNowLoading ? "Đang xử lý..." : "Mua ngay"}
+                                {isAuctionEnded
+                                    ? "Đã kết thúc"
+                                    : isBuyNowLoading
+                                    ? "Đang xử lý..."
+                                    : "Mua ngay"}
                             </span>
-                            {!isAuctionEnded && buyNowPrice !== null && !isBuyNowLoading && (
-                                <span className="font-bold">
-                                    {formatCurrency(buyNowPrice)}
-                                </span>
-                            )}
+                            {!isAuctionEnded &&
+                                buyNowPrice !== null &&
+                                !isBuyNowLoading && (
+                                    <span className="font-bold">
+                                        {formatCurrency(buyNowPrice)}
+                                    </span>
+                                )}
                         </button>
                     )}
                 </div>
@@ -370,7 +377,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     <button
                         type="button"
                         className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 cursor-pointer"
-                        onClick={handleViewDetails}
+                        onClick={handleBidClick}
                     >
                         <span>Đặt giá</span>
                         <Gavel />
@@ -389,7 +396,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     onClose={() => setIsConfirmModalOpen(false)}
                     onConfirm={handleBuyNowConfirm}
                     title="Xác nhận mua ngay"
-                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(buyNowPrice || 0)}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
+                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
+                        buyNowPrice || 0
+                    )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
                     confirmText="Mua ngay"
                     type="warning"
                     isLoading={isBuyNowLoading}

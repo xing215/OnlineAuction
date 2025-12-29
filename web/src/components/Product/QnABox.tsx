@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Send, ChevronUp, User, Store, ShieldCheck, Clock } from 'lucide-react';
 import { apiUrl } from '../../config/api';
+import { useNavigate } from "react-router-dom";
 import { useUser } from '../../context/useUser';
 import { formatDate } from '../../utilities/FormatDate';
 import type { ProductQuestion } from '../../types';
@@ -13,6 +14,7 @@ interface QnABoxProps {
 
 export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
   const { user, token } = useUser();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState<ProductQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAskForm, setShowAskForm] = useState(false);
@@ -81,6 +83,15 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       setSubmitting(false);
     }
   };
+
+  const handleQnAbtn = async () => {
+    if (!user || !token) {
+      toast.error("Vui lòng đăng nhập để mua sản phẩm");
+      navigate("/signin");
+      return;
+    }
+    setShowAskForm(!showAskForm);
+  }
 
   // Submit answer 
   const handleAnswer = async (questionId: string) => {
@@ -173,7 +184,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
         {/* Toggle Button */}
         {!isSeller && (
           <button
-            onClick={() => setShowAskForm(!showAskForm)}
+            onClick={handleQnAbtn}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-200 ${
               showAskForm 
                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
