@@ -21,13 +21,12 @@ export default function ProfileHeader() {
         <div className="bg-white border border-gray-200 rounded-3xl p-8 mb-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-6 w-full md:w-auto">
                 {/* Avatar */}
-                <div className="w-24 h-24 rounded-full bg-gray-300 overflow-hidden shrink-0 border-4 border-gray-50">
-                    <img
-                        //src={profile?.avatar ? `/uploads/${profile.avatar}` : "https://i.pravatar.cc/300?img=11"}
-                        src="https://i.pravatar.cc/300?img=11"
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                    />
+                <div className="w-24 h-24 rounded-full bg-[#d5ad41] overflow-hidden shrink-0 border-4 border-gray-50 flex items-center justify-center">
+                    <span className="text-3xl font-bold text-white uppercase">
+                        {profile?.full_name?.charAt(0) ||
+                            profile?.fullName?.charAt(0) ||
+                            "U"}
+                    </span>
                 </div>
 
                 {/* User Info */}
