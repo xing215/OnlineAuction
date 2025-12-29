@@ -64,13 +64,11 @@ export default function ProductListPage() {
           isLoadingCategories={isLoadingCategories}
         />
 
-        {isLoading ? (
-          <div className="flex justify-center py-20">Đang tải...</div>
-        ) : error ? (
+        {error ? (
           <div className="text-center text-red-500 py-20">{error}</div>
         ) : (
           <>
-            <ProductCardGrid products={currentProducts} />
+            <ProductCardGrid products={currentProducts} loading={isLoading} />
             <Pagination 
               currentPage={currentPage} 
               totalPages={totalPages} 
