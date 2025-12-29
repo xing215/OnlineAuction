@@ -163,33 +163,6 @@ export const ProductDetail: React.FC = () => {
 
         // Show confirm modal
         setIsConfirmModalOpen(true);
-        // Check rating eligibility
-        const positiveCount = user.rating_summary?.positive_count || 0;
-        const negativeCount = user.rating_summary?.negative_count || 0;
-        const totalRatings = positiveCount + negativeCount;
-
-        // If user has ratings, check if they meet the 80% threshold
-        if (totalRatings > 0) {
-            const ratingPercentage = (positiveCount / totalRatings) * 100;
-            if (ratingPercentage < 80) {
-                toast.error(
-                    `Bạn cần có ít nhất 80% đánh giá tích cực để mua sản phẩm. Điểm hiện tại: ${ratingPercentage.toFixed(
-                        1
-                    )}%`
-                );
-                return;
-            }
-        }
-        // If user has no ratings, they are allowed to buy (handled by backend based on seller preference)
-
-        // Confirm before buy now
-        const confirmed = window.confirm(
-            `Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
-                product.buy_now_price
-            )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`
-        );
-
-        if (!confirmed) return;
     };
 
     const executeBuyNow = async () => {
