@@ -21,6 +21,7 @@ import ManageUser from "./pages/Admin/ManageUser";
 import ProductManagement from "./pages/Admin/ProductManagement";
 import CategoryManagement from "./pages/Admin/CategoryManagement";
 import UpgradeRequest from "./pages/Admin/UpgradeRequest";
+import { AuctionSettingsManager } from "./pages/Admin/AuctionSettingsManager";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrderManagement from "./pages/OrderManagement";
 
@@ -155,6 +156,10 @@ function App() {
                                         <Route
                                             path="upgrade-requests"
                                             element={<UpgradeRequest />}
+                                        />
+                                        <Route
+                                            path="auction-settings"
+                                            element={<AuctionSettingsManager />}
                                         />
                                     </Routes>
                                 </AdminGuard>
