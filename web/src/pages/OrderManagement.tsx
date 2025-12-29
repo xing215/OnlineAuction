@@ -79,7 +79,7 @@ const OrderManagement: React.FC = () => {
     return <OrderLoginPrompt />;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* HEADER */}
         <div className="mb-8">
