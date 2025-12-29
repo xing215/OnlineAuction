@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileHeader from "../components/Profile/ProfileHeader";
 import ProfileTabs from "../components/Profile/ProfileTabs";
@@ -6,6 +6,7 @@ import ProfileForm from "../components/Profile/ProfileForm";
 import { ProductCard } from "../components/Product/ProductCard"; // Đảm bảo đường dẫn đúng tới file bạn gửi
 import UpgradeRequestButton from "../components/Profile/UpgradeRequestButton";
 import ProfileFavorites from "../components/Profile/ProfileFavorites";
+import ProfileRatings from "../components/Profile/ProfileRatings";
 import type { Product } from "../types/index";
 import { useUser } from "../context/useUser";
 import { useUserBids } from "../hooks/useUserBids";
@@ -81,6 +82,8 @@ export default function ProfilePage() {
                             error={bidsError}
                         />
                     )}
+
+                    {activeTab === "rating" && <ProfileRatings />}
                 </div>
             </div>
         </div>
