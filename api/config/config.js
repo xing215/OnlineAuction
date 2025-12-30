@@ -4,6 +4,7 @@ require('dotenv').config();
 module.exports = {
   port: process.env.PORT || 3000,
   env: process.env.NODE_ENV || 'development',
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   database: {
     // MongoDB Atlas connection string
     // Format: mongodb+srv://<username>:<password>@<cluster-url>/<database>?retryWrites=true&w=majority
