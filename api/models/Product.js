@@ -37,7 +37,7 @@ const ProductSchema = new Schema(
         step_price: { type: Number, required: true },
         buy_now_price: { type: Number, default: null },
 
-        current_price: { type: Number, default: 0 },
+        current_price: { type: Number, default: function () { return this.start_price; } },
         current_bidder: {
             type: Schema.Types.ObjectId,
             ref: "User",
