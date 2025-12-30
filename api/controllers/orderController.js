@@ -404,3 +404,38 @@ exports.buyerConfirmReceipt = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Seller từ chối bằng chứng thanh toán và yêu cầu gửi lại
+exports.sellerRejectPayment = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
+    const userId = req.user._id;
+
+    const order = await Order.findOne({ _id: orderId, seller: userId });
+    if (!order)
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    
+    if (order.status !== "paid")
+      return res.status(400).json({ message: "Đơn hàng không ở trạng thái đã thanh toán" });
+
+    // Reset về trạng thái pending và xóa proof
+    order.status = "pending";
+    order.payment_proof = null;
+    await order.save();
+
+    const rejectMessage = reason 
+      ? `Người bán yêu cầu gửi lại bằng chứng thanh toán. Lý do: ${reason}`
+      : "Người bán yêu cầu gửi lại bằng chứng thanh toán.";
+    
+    await order.addMessage(userId, rejectMessage);
+
+    res.json({ 
+      success: true, 
+      message: "Đã từ chối bằng chứng thanh toán. Người mua cần gửi lại.", 
+      data: order 
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -36,6 +36,10 @@ const OrderDetailPage: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
+  // --- STATE MODAL TỪ CHỐI THANH TOÁN ---
+  const [isRejectPaymentModalOpen, setIsRejectPaymentModalOpen] = useState(false);
+  const [rejectPaymentReason, setRejectPaymentReason] = useState("");
+
   // --- STATE MODAL ĐÁNH GIÁ ---
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [feedbackScore, setFeedbackScore] = useState<1 | -1>(1);
@@ -300,6 +304,45 @@ const OrderDetailPage: React.FC = () => {
     }
   };
 
+  // 6. Seller từ chối bằng chứng thanh toán
+  const submitRejectPayment = async () => {
+    setConfirmConfig({
+      title: 'Xác nhận từ chối thanh toán',
+      message: 'Bạn muốn yêu cầu người mua gửi lại bằng chứng thanh toán?',
+      confirmText: 'Từ chối',
+      type: 'warning',
+      onConfirm: executeRejectPayment
+    });
+    setIsConfirmModalOpen(true);
+  };
+
+  const executeRejectPayment = async () => {
+    setIsConfirmModalOpen(false);
+    setActionLoading(true);
+    try {
+      const response = await fetch(apiUrl(`api/orders/${orderId}/reject-payment`), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: rejectPaymentReason }),
+      });
+      const resData = await response.json();
+      if (response.ok) {
+        toast.success("Đã yêu cầu người mua gửi lại bằng chứng thanh toán.");
+        window.location.reload();
+      } else {
+        toast.error(resData.message || "Lỗi khi từ chối thanh toán.");
+      }
+    } catch {
+      toast.error("Lỗi kết nối.");
+    } finally {
+      setActionLoading(false);
+      setIsRejectPaymentModalOpen(false);
+    }
+  };
+
   // --- UI HELPER: Dropzone ---
   const renderProofUploader = (label: string) => (
     <div className="mb-4">
@@ -550,6 +593,21 @@ const OrderDetailPage: React.FC = () => {
                           </button>
                         </>
                       )}
+
+                      {/* Nút hủy cho Seller */}
+                      {isSeller && (
+                        <div className="mt-8 pt-4 border-t text-center">
+                          <button
+                            onClick={() => {
+                              setIsCancelModalOpen(true);
+                              setCancelReason("");
+                            }}
+                            className="text-red-500 text-sm hover:underline font-medium"
+                          >
+                            Gặp sự cố? Hủy đơn hàng này
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -583,7 +641,7 @@ const OrderDetailPage: React.FC = () => {
                       </div>
 
                       {isSeller ? (
-                        <div className="pt-4 border-t">
+                        <div className="pt-4 border-t space-y-3">
                           {/* Dropzone Ảnh vận đơn */}
                           {renderProofUploader("Ảnh vận đơn (Shipping Bill)")}
 
@@ -596,10 +654,35 @@ const OrderDetailPage: React.FC = () => {
                               ? "Đang xử lý..."
                               : "Xác nhận đã gửi hàng"}
                           </button>
+
+                          <button
+                            onClick={() => {
+                              setIsRejectPaymentModalOpen(true);
+                              setRejectPaymentReason("");
+                            }}
+                            className="w-full bg-white border-2 border-red-500 text-red-600 font-medium py-2.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                          >
+                            Từ chối bằng chứng thanh toán
+                          </button>
                         </div>
                       ) : (
                         <div className="text-center py-4 text-gray-500 italic">
                           Đang chờ người bán xác nhận và gửi hàng...
+                        </div>
+                      )}
+
+                      {/* Nút hủy cho Seller */}
+                      {isSeller && (
+                        <div className="mt-8 pt-4 border-t text-center">
+                          <button
+                            onClick={() => {
+                              setIsCancelModalOpen(true);
+                              setCancelReason("");
+                            }}
+                            className="text-red-500 text-sm hover:underline font-medium"
+                          >
+                            Gặp sự cố? Hủy đơn hàng này
+                          </button>
                         </div>
                       )}
                     </div>
@@ -644,6 +727,21 @@ const OrderDetailPage: React.FC = () => {
                             : "Đã nhận được hàng"}
                         </button>
                       )}
+
+                      {/* Nút hủy cho Seller */}
+                      {isSeller && (
+                        <div className="mt-8 pt-4 border-t text-center">
+                          <button
+                            onClick={() => {
+                              setIsCancelModalOpen(true);
+                              setCancelReason("");
+                            }}
+                            className="text-red-500 text-sm hover:underline font-medium"
+                          >
+                            Gặp sự cố? Hủy đơn hàng này
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -665,21 +763,6 @@ const OrderDetailPage: React.FC = () => {
                         className="bg-gray-900 text-yellow-500 px-6 py-3 rounded-lg font-bold hover:bg-gray-800 transition flex items-center gap-2 mx-auto"
                       >
                         <Star size={18} fill="currentColor" /> Viết đánh giá
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Nút hủy cho Seller */}
-                  {isSeller && order.status === "pending" && (
-                    <div className="mt-8 pt-4 border-t text-center">
-                      <button
-                        onClick={() => {
-                          setIsCancelModalOpen(true);
-                          setCancelReason("");
-                        }}
-                        className="text-red-500 text-sm hover:underline font-medium"
-                      >
-                        Gặp sự cố? Hủy đơn hàng này
                       </button>
                     </div>
                   )}
@@ -723,6 +806,41 @@ const OrderDetailPage: React.FC = () => {
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-bold cursor-pointer disabled:cursor-not-allowed"
               >
                 {actionLoading ? "Đang xử lý..." : "Hủy đơn"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL TỪ CHỐI THANH TOÁN --- */}
+      {isRejectPaymentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden p-6 animate-in zoom-in duration-200">
+            <h3 className="font-bold text-orange-600 text-lg mb-4 flex items-center gap-2">
+              <AlertTriangle /> Từ chối bằng chứng thanh toán
+            </h3>
+            <p className="text-sm text-gray-600 mb-3">
+              Yêu cầu người mua gửi lại bằng chứng thanh toán.
+            </p>
+            <textarea
+              value={rejectPaymentReason}
+              onChange={(e) => setRejectPaymentReason(e.target.value)}
+              placeholder="Nhập lý do từ chối (không bắt buộc)..."
+              className="w-full border border-gray-300 rounded-lg p-3 min-h-[100px] mb-4 text-sm text-gray-900 bg-white placeholder-gray-400"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsRejectPaymentModalOpen(false)}
+                className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700 cursor-pointer"
+              >
+                Đóng
+              </button>
+              <button
+                onClick={submitRejectPayment}
+                disabled={actionLoading}
+                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 font-bold cursor-pointer disabled:cursor-not-allowed"
+              >
+                {actionLoading ? "Đang xử lý..." : "Từ chối"}
               </button>
             </div>
           </div>
