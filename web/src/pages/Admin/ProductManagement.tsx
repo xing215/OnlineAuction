@@ -8,9 +8,11 @@ import AdminLayout from "../../components/Admin/AdminLayout";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { useState } from "react";
+import { useUser } from "../../context/useUser";
 
 const ProductManagement = () => {
     const { categories, isLoadingCategories } = useCategories();
+    const { token } = useUser();
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
@@ -43,10 +45,12 @@ const ProductManagement = () => {
         if (!productToDelete) return;
         
         setIsConfirmModalOpen(false);
-        setIsConfirmModalOpen(false);
         try {
             const res = await fetch(apiUrl(`/api/products/${productToDelete}`), {
                 method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
             const json = await res.json();
 
