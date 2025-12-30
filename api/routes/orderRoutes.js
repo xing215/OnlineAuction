@@ -38,6 +38,7 @@ router.post('/:orderId/feedback', authMiddleware, orderController.submitFeedback
 // Thanh toán & Giao hàng
 router.post('/:orderId/pay', authMiddleware, upload.array('images'), orderController.buyerPay);
 router.post('/:orderId/ship', authMiddleware, upload.array('images'), orderController.sellerShip);
+router.post('/:orderId/reject-payment', authMiddleware, orderController.sellerRejectPayment);
 
 // Nhận hàng
 router.post('/:orderId/confirm-receipt', authMiddleware, orderController.buyerConfirmReceipt);
