@@ -115,7 +115,7 @@ export const AuctionSettingsManager: React.FC = () => {
                 <div className="space-y-6">
                     <div className="border-l-4 border-yellow-500 bg-yellow-50 p-4 rounded-r-lg">
                         <div className="flex items-start gap-3">
-                            <span className="text-yellow-600 mt-0.5">⚠️</span>
+                            <span className="text-yellow-600 mt-0.5"></span>
                             <p className="text-sm text-gray-700 leading-relaxed">
                                 Các cài đặt này áp dụng cho toàn bộ sản phẩm trong hệ thống. 
                                 Khi có lượt đấu giá mới gần thời điểm kết thúc, 
