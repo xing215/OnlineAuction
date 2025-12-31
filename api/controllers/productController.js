@@ -617,7 +617,7 @@ exports.updateProductDescription = async (req, res) => {
         }
 
         // Check if user is the seller or admin
-        if (product.seller.toString() !== req.user._id && req.user.role !== "admin") {
+        if (product.seller.toString() !== req.user._id.toString() && req.user.role !== "admin") {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Only the seller or admin can update the description.",
