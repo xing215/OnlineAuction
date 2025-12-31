@@ -11,6 +11,7 @@ export default function SignInPage() {
         errors,
         showPassword,
         setShowPassword,
+        isLoading,
         handleInputChange,
         handleSubmit,
         recaptchaRef,
@@ -19,7 +20,7 @@ export default function SignInPage() {
 
     return (
         <AuthLayout activeTab="login">
-            <form onSubmit={handleSubmit} noValidate className="p-8 space-y-6">
+            <form onSubmit={handleSubmit} noValidate className={`p-8 space-y-6 ${isLoading ? 'cursor-wait' : ''}`}>
                 {/* Email Input */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-800">
@@ -33,11 +34,12 @@ export default function SignInPage() {
                             value={formData.email}
                             onChange={handleInputChange}
                             placeholder="email@example.com"
+                            disabled={isLoading}
                             className={`w-full pl-10 pr-4 py-2 bg-gray-50 border rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                                 errors.email
                                     ? "border-red-400 focus:ring-red-400"
                                     : "border-gray-200 focus:ring-amber-400"
-                            }`}
+                            } ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
                         />
                     </div>
                     {errors.email && (
@@ -58,12 +60,13 @@ export default function SignInPage() {
                             value={formData.password}
                             onChange={handleInputChange}
                             placeholder="••••••••"
-                            className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                            disabled={isLoading}
+                            className={`w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                         >
                             {showPassword ? (
                                 <EyeOff className="w-5 h-5" />
@@ -105,9 +108,10 @@ export default function SignInPage() {
                 {/* Login Button */}
                 <button
                     type="submit"
-                    className="w-full rounded-full bg-gradient-to-br from-[#D5AD41] to-[#F4D483] py-3 font-semibold text-white transition-all shadow-md hover:from-amber-500 hover:to-amber-600 hover:shadow-lg"
+                    disabled={isLoading}
+                    className={`w-full rounded-full bg-gradient-to-br from-[#D5AD41] to-[#F4D483] py-3 font-semibold text-white transition-all shadow-md hover:from-amber-500 hover:to-amber-600 hover:shadow-lg ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                    Đăng nhập
+                    {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                 </button>
 
                 <SocialButtons />

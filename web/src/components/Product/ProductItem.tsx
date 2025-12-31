@@ -52,7 +52,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, onDelete }) => {
         <div className="mt-1 space-y-1">
           <div className="flex items-center text-sm text-gray-600">
             <User size={14} className="mr-1.5" />
-            <span className="truncate">Người bán: <span className="font-medium text-gray-800">{product.seller || 'Ẩn danh'}</span></span>
+            <span className="truncate">Người bán: <span className="font-medium text-gray-800">{typeof product.seller === 'object' && product.seller ? product.seller.full_name : (product.seller || 'Ẩn danh')}</span></span>
           </div>
 
           <div className="flex items-center text-sm">

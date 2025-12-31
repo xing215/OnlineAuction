@@ -1,6 +1,13 @@
 const Bid = require("../models/Bid");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
+const User = require("../models/User");
+const AuctionSettings = require("../models/AuctionSettings");
+const {
+    sendNewBidToSellerEmail,
+    sendNewBidToCurrentBidderEmail,
+    sendOutbidEmail,
+} = require("../utils/emailService");
 
 /**
  * Auto-bidding helper functions
@@ -29,32 +36,32 @@ function compareAutoBids(bidderA, bidderB, stepPrice) {
         return {
             winner: bidderA,
             loser: bidderB,
-            newPrice: calculateNewPrice(maxBidA, maxBidB, stepPrice)
+            newPrice: calculateNewPrice(maxBidA, maxBidB, stepPrice),
         };
     }
-    
+
     // Case 2: B has higher max bid - B wins
     if (maxBidB > maxBidA) {
         return {
             winner: bidderB,
             loser: bidderA,
-            newPrice: calculateNewPrice(maxBidB, maxBidA, stepPrice)
+            newPrice: calculateNewPrice(maxBidB, maxBidA, stepPrice),
         };
     }
-    
+
     // Case 3: Tie (Equal max bids) - First-come, first-served
     // The bidder who placed their bid first wins
     if (bidderA.timestamp < bidderB.timestamp) {
         return {
             winner: bidderA,
             loser: bidderB,
-            newPrice: maxBidA // Price stays at the tied amount
+            newPrice: maxBidA, // Price stays at the tied amount
         };
     } else {
         return {
             winner: bidderB,
             loser: bidderA,
-            newPrice: maxBidB
+            newPrice: maxBidB,
         };
     }
 }
@@ -65,7 +72,7 @@ function compareAutoBids(bidderA, bidderB, stepPrice) {
  */
 async function processAutoBid(productId, newBidder, product, session) {
     const stepPrice = product.step_price;
-    
+
     // Get current highest bid
     const currentHighestBid = await Bid.findOne({ product: productId })
         .sort({ price: -1 })
@@ -77,45 +84,57 @@ async function processAutoBid(productId, newBidder, product, session) {
         currentLeaderAutoBid = await Bid.findOne({
             product: productId,
             user: currentHighestBid.user,
-            is_auto_bid: true
+            is_auto_bid: true,
         })
-        .sort({ created_at: -1 })
-        .session(session);
+            .sort({ created_at: -1 })
+            .session(session);
     }
 
     // Scenario 1: First bidder or no auto-bid competition
-    if (!currentHighestBid || !currentLeaderAutoBid || !currentLeaderAutoBid.maximum_bid_limit) {
+    if (
+        !currentHighestBid ||
+        !currentLeaderAutoBid ||
+        !currentLeaderAutoBid.maximum_bid_limit
+    ) {
         const initialPrice = product.start_price + stepPrice;
         const newPrice = Math.min(initialPrice, newBidder.maxBid);
-        
+
         const newBid = new Bid({
             product: productId,
             user: newBidder.userId,
             price: newPrice,
             is_auto_bid: true,
             maximum_bid_limit: newBidder.maxBid,
-            created_at: new Date()
+            created_at: new Date(),
         });
-        
+
         await newBid.save({ session });
         return {
             newPrice: newPrice,
             winnerUserId: newBidder.userId,
-            isNewLeader: true
+            isNewLeader: true,
         };
     }
 
     // Scenario 2: Self-update - Current leader increasing their max bid
     if (currentHighestBid.user.toString() === newBidder.userId.toString()) {
-        // Update the maximum_bid_limit without changing current price
-        currentLeaderAutoBid.maximum_bid_limit = newBidder.maxBid;
-        await currentLeaderAutoBid.save({ session });
-        
+        // Create a new bid record for history tracking
+        const newBid = new Bid({
+            product: productId,
+            user: newBidder.userId,
+            price: currentHighestBid.price, // Price stays the same
+            is_auto_bid: true,
+            maximum_bid_limit: newBidder.maxBid,
+            created_at: new Date(),
+        });
+
+        await newBid.save({ session });
+
         return {
             newPrice: currentHighestBid.price, // Price stays the same
             winnerUserId: newBidder.userId,
             isNewLeader: false,
-            isSelfUpdate: true
+            isSelfUpdate: true,
         };
     }
 
@@ -123,35 +142,48 @@ async function processAutoBid(productId, newBidder, product, session) {
     const currentLeader = {
         userId: currentHighestBid.user,
         maxBid: currentLeaderAutoBid.maximum_bid_limit,
-        timestamp: currentLeaderAutoBid.created_at
+        timestamp: currentLeaderAutoBid.created_at,
     };
 
     const challenger = {
         userId: newBidder.userId,
         maxBid: newBidder.maxBid,
-        timestamp: new Date()
+        timestamp: new Date(),
     };
 
     // Compare and determine winner
     const result = compareAutoBids(currentLeader, challenger, stepPrice);
-    
+
+    // Create bid record for the loser first (for history)
+    const loserBid = new Bid({
+        product: productId,
+        user: result.loser.userId,
+        price: result.loser.maxBid < result.newPrice ? result.loser.maxBid : currentHighestBid.price,
+        is_auto_bid: true,
+        maximum_bid_limit: result.loser.maxBid,
+        created_at: new Date(),
+    });
+
+    await loserBid.save({ session });
+
     // Create new bid record for the winner
-    const newBid = new Bid({
+    const winnerBid = new Bid({
         product: productId,
         user: result.winner.userId,
         price: result.newPrice,
         is_auto_bid: true,
         maximum_bid_limit: result.winner.maxBid,
-        created_at: new Date()
+        created_at: new Date(Date.now() + 1), // Ensure winner's bid is after loser's
     });
-    
-    await newBid.save({ session });
-    
+
+    await winnerBid.save({ session });
+
     return {
         newPrice: result.newPrice,
         winnerUserId: result.winner.userId,
-        isNewLeader: result.winner.userId.toString() === newBidder.userId.toString(),
-        loserMaxBid: result.loser.maxBid
+        isNewLeader:
+            result.winner.userId.toString() === newBidder.userId.toString(),
+        loserMaxBid: result.loser.maxBid,
     };
 }
 
@@ -180,7 +212,8 @@ exports.placeBid = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({
                 success: false,
-                message: "Maximum bid must be greater than or equal to current bid amount",
+                message:
+                    "Maximum bid must be greater than or equal to current bid amount",
             });
         }
 
@@ -244,7 +277,9 @@ exports.placeBid = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({
                 success: false,
-                message: `Minimum bid is ${minimumBid.toLocaleString("vi-VN")}đ`,
+                message: `Minimum bid is ${minimumBid.toLocaleString(
+                    "vi-VN"
+                )}đ`,
             });
         }
 
@@ -254,13 +289,15 @@ exports.placeBid = async (req, res) => {
         // Handle Auto-bid
         if (isAutoBid) {
             const maxBidNum = parseFloat(maxBid);
-            
+
             // Validate max bid
             if (isNaN(maxBidNum) || maxBidNum < minimumBid) {
                 await session.abortTransaction();
                 return res.status(400).json({
                     success: false,
-                    message: `Maximum bid must be at least ${minimumBid.toLocaleString("vi-VN")}đ`,
+                    message: `Maximum bid must be at least ${minimumBid.toLocaleString(
+                        "vi-VN"
+                    )}đ`,
                 });
             }
 
@@ -273,13 +310,15 @@ exports.placeBid = async (req, res) => {
 
             // Update response message based on result
             if (result.isSelfUpdate) {
-                responseMessage = "Your maximum bid has been updated successfully";
+                responseMessage =
+                    "Your maximum bid has been updated successfully";
             } else if (result.isNewLeader) {
                 responseMessage = "You are now the highest bidder!";
             } else {
-                responseMessage = "Your bid has been placed, but you were outbid";
+                responseMessage =
+                    "Your bid has been placed, but you were outbid";
             }
-        } 
+        }
         // Handle Manual bid
         else {
             const newBid = new Bid({
@@ -295,19 +334,20 @@ exports.placeBid = async (req, res) => {
             result = {
                 newPrice: bidAmountNum,
                 winnerUserId: userId,
-                isNewLeader: true
+                isNewLeader: true,
             };
         }
 
-        // Update product bid count and current price
+        // Update product bid count, current price, and current bidder
         product.bid_count = (product.bid_count || 0) + 1;
         product.current_price = result.newPrice;
+        product.current_bidder = result.winnerUserId;
 
         // Auto-extend if within 5 minutes of end
         const timeRemaining = product.end_date - new Date();
-        if (timeRemaining > 0 && timeRemaining < 5 * 60 * 1000) {
+        if (timeRemaining > 0 && timeRemaining < AuctionSettings.auto_extend_threshold * 60 * 1000) {
             product.end_date = new Date(
-                product.end_date.getTime() + 10 * 60 * 1000
+                product.end_date.getTime() + AuctionSettings.auto_extend_extension * 60 * 1000
             );
         }
 
@@ -317,7 +357,60 @@ exports.placeBid = async (req, res) => {
         // Get updated highest bidder info
         const updatedHighestBid = await Bid.findOne({ product: productId })
             .sort({ price: -1 })
-            .populate("user", "full_name");
+            .populate("user", "full_name email rating_summary");
+
+        // Send emails to all parties after successful bid
+        setImmediate(async () => {
+            try {
+                // Get seller info
+                const seller = await User.findById(product.seller);
+
+                // Get current bidder info
+                const currentBidder = await User.findById(userId);
+
+                // Send email to seller
+                if (seller && seller.email) {
+                    sendNewBidToSellerEmail({
+                        sellerEmail: seller.email,
+                        sellerName: seller.full_name,
+                        productName: product.name,
+                        productId: product._id,
+                        bidderName: currentBidder.full_name,
+                        bidAmount: result.newPrice,
+                        bidCount: product.bid_count,
+                    });
+                }
+
+                // Send confirmation email to current bidder
+                if (currentBidder && currentBidder.email) {
+                    sendNewBidToCurrentBidderEmail({
+                        bidderEmail: currentBidder.email,
+                        bidderName: currentBidder.full_name,
+                        productName: product.name,
+                        productId: product._id,
+                        bidAmount: result.newPrice,
+                        isLeading: result.isNewLeader,
+                    });
+                }
+
+                // Send outbid notification to previous highest bidder (if exists and different from current)
+                if (highestBid && highestBid.user.toString() !== userId.toString()) {
+                    const previousBidder = await User.findById(highestBid.user);
+                    if (previousBidder && previousBidder.email) {
+                        sendOutbidEmail({
+                            bidderEmail: previousBidder.email,
+                            bidderName: previousBidder.full_name,
+                            productName: product.name,
+                            productId: product._id,
+                            previousBidAmount: highestBid.price,
+                            newBidAmount: result.newPrice,
+                        });
+                    }
+                }
+            } catch (emailError) {
+                console.error("Error sending bid notification emails:", emailError);
+            }
+        });
 
         return res.status(201).json({
             success: true,
@@ -325,10 +418,14 @@ exports.placeBid = async (req, res) => {
             data: {
                 currentPrice: result.newPrice,
                 bidCount: product.bid_count,
-                highestBidder: updatedHighestBid.user.full_name,
+                highestBidder: {
+                    _id: updatedHighestBid.user._id,
+                    full_name: updatedHighestBid.user.full_name,
+                    rating_summary: updatedHighestBid.user.rating_summary,
+                },
                 isLeading: result.isNewLeader,
                 isAutoBid: isAutoBid || false,
-                endDate: product.end_date
+                endDate: product.end_date,
             },
         });
     } catch (error) {
@@ -454,23 +551,24 @@ exports.getMyAutoBid = async (req, res) => {
             product: productId,
             user: userId,
             is_auto_bid: true,
-            maximum_bid_limit: { $ne: null }
-        })
-        .sort({ created_at: -1 });
+            maximum_bid_limit: { $ne: null },
+        }).sort({ created_at: -1 });
 
         if (!userAutoBid) {
             return res.status(200).json({
                 success: true,
                 data: null,
-                message: "No active auto-bid found"
+                message: "No active auto-bid found",
             });
         }
 
         // Check if user is currently the highest bidder
-        const highestBid = await Bid.findOne({ product: productId })
-            .sort({ price: -1 });
+        const highestBid = await Bid.findOne({ product: productId }).sort({
+            price: -1,
+        });
 
-        const isLeading = highestBid && highestBid.user.toString() === userId.toString();
+        const isLeading =
+            highestBid && highestBid.user.toString() === userId.toString();
 
         return res.status(200).json({
             success: true,
@@ -478,8 +576,8 @@ exports.getMyAutoBid = async (req, res) => {
                 maxBid: userAutoBid.maximum_bid_limit,
                 currentBidPrice: userAutoBid.price,
                 isLeading: isLeading,
-                createdAt: userAutoBid.created_at
-            }
+                createdAt: userAutoBid.created_at,
+            },
         });
     } catch (error) {
         console.error("Get my auto-bid error:", error);
@@ -499,5 +597,100 @@ function maskUserName(fullName) {
     const lastName = parts[parts.length - 1];
     return `****${lastName}`;
 }
+
+// GET /api/bids/my-bidding-products - Get products user has bid on that are still active
+exports.getMyBiddingProducts = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Find all bids by the user
+        const userBids = await Bid.find({ user: userId }).select('product').distinct('product');
+
+        if (userBids.length === 0) {
+            return res.json({
+                success: true,
+                data: [],
+            });
+        }
+
+        // Get products that are still active and user has bid on
+        const products = await Product.find({
+            _id: { $in: userBids },
+            status: 'active',
+            end_date: { $gt: new Date() } // Still in bidding period
+        }).populate('seller', 'full_name');
+
+        // Get current bid info for each product
+        const productsWithBidInfo = await Promise.all(products.map(async (product) => {
+            const currentBid = await Bid.findOne({ product: product._id })
+                .sort({ price: -1 })
+                .populate('user', 'full_name');
+
+            const userHighestBid = await Bid.findOne({ 
+                product: product._id, 
+                user: userId 
+            }).sort({ price: -1 });
+
+            return {
+                ...product.toObject(),
+                current_price: currentBid ? currentBid.price : product.start_price,
+                bid_count: await Bid.countDocuments({ product: product._id }),
+                current_bidder: currentBid ? currentBid.user.full_name : null,
+                my_highest_bid: userHighestBid ? userHighestBid.price : null
+            };
+        }));
+
+        res.json({
+            success: true,
+            data: productsWithBidInfo,
+        });
+    } catch (error) {
+        console.error("Error fetching user's bidding products:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch bidding products",
+        });
+    }
+};
+
+// GET /api/bids/my-won-products - Get products user has won
+exports.getMyWonProducts = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Find orders where user is the winner
+        const Order = mongoose.model('Order');
+        const wonOrders = await Order.find({ 
+            winner: userId,
+            status: { $in: ['pending', 'completed', 'shipped'] } // Include various completion statuses
+        }).populate({
+            path: 'product',
+            populate: {
+                path: 'seller',
+                select: 'full_name'
+            }
+        });
+
+        // Format the response to match product structure
+        const wonProducts = wonOrders.map(order => ({
+            ...order.product.toObject(),
+            final_price: order.final_price,
+            order_id: order._id,
+            order_status: order.status,
+            won_at: order.createdAt
+        }));
+
+        res.json({
+            success: true,
+            data: wonProducts,
+        });
+    } catch (error) {
+        console.error("Error fetching user's won products:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch won products",
+        });
+    }
+};
 
 module.exports = exports;

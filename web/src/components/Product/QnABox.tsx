@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MessageSquare, Send, ChevronUp, User, Store, ShieldCheck, Clock } from 'lucide-react';
 import { apiUrl } from '../../config/api';
+import { useNavigate } from "react-router-dom";
 import { useUser } from '../../context/useUser';
 import { formatDate } from '../../utilities/FormatDate';
 import type { ProductQuestion } from '../../types';
+import toast from 'react-hot-toast';
 
 interface QnABoxProps {
   productId: string;
@@ -12,6 +14,7 @@ interface QnABoxProps {
 
 export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
   const { user, token } = useUser();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState<ProductQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAskForm, setShowAskForm] = useState(false);
@@ -21,7 +24,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
   const [answeringId, setAnsweringId] = useState<string | null>(null);
 
   // Fetch Q&A list
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(apiUrl(`/api/products/${productId}/questions`));
@@ -30,26 +33,26 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       if (data.success) {
         setQuestions(data.data);
       }
-    } catch (error) {
-      console.error('Lỗi khi tải câu hỏi:', error);
+    } catch {
+      console.error('Lỗi khi tải câu hỏi');
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
 
   useEffect(() => {
     fetchQuestions();
-  }, [productId]);
+  }, [fetchQuestions]);
 
   // Submit new question
   const handleAskQuestion = async () => {
     if (!newQuestion.trim()) {
-      alert('Vui lòng nhập câu hỏi!');
+      toast.error('Vui lòng nhập câu hỏi!');
       return;
     }
 
     if (!token) {
-      alert('Vui lòng đăng nhập để đặt câu hỏi!');
+      toast.error('Vui lòng đăng nhập để đặt câu hỏi!');
       return;
     }
 
@@ -67,32 +70,40 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        alert('Đã gửi câu hỏi thành công!');
+        toast.success('Đã gửi câu hỏi thành công!');
         setNewQuestion('');
         setShowAskForm(false);
         fetchQuestions(); // Reload
       } else {
-        alert((data.message || 'Không thể gửi câu hỏi'));
+        toast.error(data.message || 'Không thể gửi câu hỏi');
       }
-    } catch (error) {
-      console.error('Lỗi khi gửi câu hỏi:', error);
-      alert('Lỗi khi gửi câu hỏi!');
+    } catch {
+      toast.error('Lỗi khi gửi câu hỏi!');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handleQnAbtn = async () => {
+    if (!user || !token) {
+      toast.error("Vui lòng đăng nhập để mua sản phẩm");
+      navigate("/signin");
+      return;
+    }
+    setShowAskForm(!showAskForm);
+  }
 
   // Submit answer 
   const handleAnswer = async (questionId: string) => {
     const answer = answerForms[questionId];
     
     if (!answer || !answer.trim()) {
-      alert('Vui lòng nhập câu trả lời!');
+      toast.error('Vui lòng nhập câu trả lời!');
       return;
     }
 
     if (!token) {
-      alert('Vui lòng đăng nhập!');
+      toast.error('Vui lòng đăng nhập!');
       return;
     }
 
@@ -110,7 +121,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        alert('Đã trả lời thành công!');
+        toast.success('Đã trả lời thành công!');
         setAnswerForms(prev => {
           const newForms = { ...prev };
           delete newForms[questionId];
@@ -118,11 +129,10 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
         });
         fetchQuestions(); // Reload
       } else {
-        alert((data.message || 'Không thể trả lời'));
+        toast.error(data.message || 'Không thể trả lời');
       }
-    } catch (error) {
-      console.error('Lỗi khi trả lời:', error);
-      alert('Lỗi khi trả lời câu hỏi!');
+    } catch {
+      toast.error('Lỗi khi trả lời câu hỏi!');
     } finally {
       setAnsweringId(null);
     }
@@ -174,7 +184,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
         {/* Toggle Button */}
         {!isSeller && (
           <button
-            onClick={() => setShowAskForm(!showAskForm)}
+            onClick={handleQnAbtn}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-200 ${
               showAskForm 
                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
@@ -278,7 +288,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
                       <span className="text-gray-300">•</span>
                       <span className="text-xs text-gray-500 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {formatDate(q.asked_at as any)}
+                        {formatDate(q.asked_at)}
                       </span>
                     </div>
 
@@ -307,7 +317,7 @@ export const QnABox: React.FC<QnABoxProps> = ({ productId, sellerId }) => {
                                   </span>
                                   <span className="text-gray-300">•</span>
                                   <span className="text-xs text-gray-400">
-                                    {formatDate(q.answered_at as any)}
+                                    {formatDate(q.answered_at)}
                                   </span>
                                 </div>
                                 <div className="text-gray-700 bg-yellow-50/50 p-3 rounded-xl border border-yellow-100 text-sm leading-relaxed">

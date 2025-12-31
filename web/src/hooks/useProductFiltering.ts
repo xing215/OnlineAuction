@@ -11,7 +11,7 @@ export const useProductFiltering = () => {
   // --- 1. STATE UI (Bộ lọc) ---
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('newest');
+  const [sortOption, setSortOption] = useState('time_desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState('active');
   const [refreshKey, setRefreshKey] = useState(0);

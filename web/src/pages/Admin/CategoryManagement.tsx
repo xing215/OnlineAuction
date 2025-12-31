@@ -2,10 +2,14 @@ import CategorySidebar from "../../components/Category/CategorySidebar";
 import CategoryForm from "../../components/Category/CategoryForm";
 import EmptyState from "../../components/Category/EmptyState";
 import AdminLayout from "../../components/Admin/AdminLayout";
+import { ConfirmModal } from "../../components/ConfirmModal";
+import { useState } from "react";
 
 import { useCategoryManagement } from "../../hooks/useCategoryManagement";
 
 const CategoryManagement = () => {
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
     const {
         treeData,
         loading,
@@ -23,8 +27,17 @@ const CategoryManagement = () => {
 
         createCategory,
         updateCategory,
-        deleteCategory,
+        executeDelete,
     } = useCategoryManagement();
+
+    const handleDeleteClick = () => {
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        setIsConfirmModalOpen(false);
+        executeDelete();
+    };
 
     if (loading && treeData.length === 0) {
         return (
@@ -75,13 +88,24 @@ const CategoryManagement = () => {
                                 mode="edit"
                                 initialData={selectedCategory}
                                 onSubmit={updateCategory}
-                                onDelete={deleteCategory}
+                                onDelete={handleDeleteClick}
                                 onAddSubCategory={handlePrepareCreateSub}
                                 onCancel={handleCancel}
                             />
                         )}
                     </div>
                 </div>
+
+                {/* Confirm Modal */}
+                <ConfirmModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={handleConfirmDelete}
+                    title="Xác nhận xóa danh mục"
+                    message="Bạn có chắc chắn muốn xóa danh mục này? Tất cả danh mục con cũng sẽ bị xóa."
+                    confirmText="Xóa"
+                    type="danger"
+                />
             </div>
         </AdminLayout>
     );

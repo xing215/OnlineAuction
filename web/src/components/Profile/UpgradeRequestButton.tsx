@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Zap, AlertCircle, CheckCircle } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { useUser } from "../../context/useUser";
+import { UpgradeRequestModal } from "./UpgradeRequestModal";
 
 interface UpgradeRequestButtonProps {
     userRole?: string | undefined;
     onRequestSubmitted?: () => void;
+}
+
+interface RequestData {
+    status: "pending" | "approved" | "rejected";
+    admin_note?: string;
+    createdAt: string;
 }
 
 export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
@@ -13,63 +20,73 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
     onRequestSubmitted,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
-    const [requestStatus, setRequestStatus] = useState<
-        "none" | "pending" | "approved" | "rejected"
-    >("none");
+    const [requestData, setRequestData] = useState<RequestData | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [reason, setReason] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const { token, user } = useUser();
+    const { token } = useUser();
 
-    useEffect(() => {
-        if (userRole) {
-            checkRequestStatus();
-        }
-    }, [userRole, token]);
-
-    const checkRequestStatus = async () => {
+    const checkRequestStatus = useCallback(async () => {
         try {
-            const response = await fetch(
-                apiUrl("/api/upgrade-requests/my-request"),
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await fetch(apiUrl("/api/upgrade/my-request"), {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             if (response.ok) {
                 const data = await response.json();
                 if (data.data) {
-                    setRequestStatus(data.data.status || "none");
+                    setRequestData(data.data);
+                } else {
+                    setRequestData(null);
                 }
             }
         } catch (error) {
             console.error("Failed to check request status:", error);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        if (userRole) {
+            checkRequestStatus();
+        }
+    }, [userRole, checkRequestStatus]);
 
     const handleSubmitRequest = async () => {
+        if (!reason.trim() || reason.trim().length < 10) {
+            setErrorMessage("Lý do phải có ít nhất 10 ký tự");
+            return;
+        }
+
+        if (reason.trim().length > 500) {
+            setErrorMessage("Lý do không được vượt quá 500 ký tự");
+            return;
+        }
+
         setIsLoading(true);
         setErrorMessage("");
         setSuccessMessage("");
 
         try {
-            const response = await fetch(apiUrl("/api/upgrade-requests"), {
+            const response = await fetch(apiUrl("/api/upgrade/request"), {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({}),
+                body: JSON.stringify({ reason: reason.trim() }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                setRequestStatus("pending");
+                setRequestData({ status: "pending", createdAt: new Date().toISOString() });
                 setSuccessMessage("Yêu cầu của bạn đã được gửi thành công!");
                 setShowModal(false);
+                setReason("");
+                await checkRequestStatus();
                 onRequestSubmitted?.();
                 setTimeout(() => setSuccessMessage(""), 3000);
             } else {
@@ -90,7 +107,7 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
         return null;
     }
 
-    if (requestStatus === "approved") {
+    if (requestData?.status === "approved") {
         return (
             <div className="bg-green-50 border border-green-300 rounded-2xl p-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -103,13 +120,16 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
                             Bạn có 7 ngày để hoàn tất quá trình nâng cấp thành
                             người bán.
                         </p>
+                        <p className="text-sm text-red-600 mt-1">
+                            Vui lòng đăng nhập lại.
+                        </p>
                     </div>
                 </div>
             </div>
         );
     }
 
-    if (requestStatus === "pending") {
+    if (requestData?.status === "pending") {
         return (
             <div className="bg-yellow-50 border border-yellow-300 rounded-2xl p-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -127,22 +147,51 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
         );
     }
 
-    if (requestStatus === "rejected") {
+    if (requestData?.status === "rejected") {
         return (
-            <div className="bg-red-50 border border-red-300 rounded-2xl p-4 mb-6">
-                <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <p className="font-semibold text-red-800">
-                            Yêu cầu đã bị từ chối
-                        </p>
-                        <p className="text-sm text-red-700 mt-1">
-                            Vui lòng liên hệ với quản trị viên để biết thêm chi
-                            tiết.
-                        </p>
+            <>
+                <div className="bg-red-50 border border-red-300 rounded-2xl p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-red-800">
+                                Yêu cầu đã bị từ chối
+                            </p>
+                            {requestData?.admin_note && (
+                                <p className="text-sm text-red-700 mt-1">
+                                    <strong>Lý do:</strong>{" "}
+                                    {requestData.admin_note}
+                                </p>
+                            )}
+                            <p className="text-xs text-red-600 mt-2">
+                                Bạn có thể gửi yêu cầu mới
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6 cursor-pointer"
+                >
+                    <Zap className="w-5 h-5" />
+                    <span>Gửi yêu cầu nâng cấp mới</span>
+                </button>
+
+                <UpgradeRequestModal
+                    isOpen={showModal}
+                    onClose={() => {
+                        setShowModal(false);
+                        setReason("");
+                        setErrorMessage("");
+                    }}
+                    reason={reason}
+                    onReasonChange={setReason}
+                    onSubmit={handleSubmitRequest}
+                    isLoading={isLoading}
+                    errorMessage={errorMessage}
+                    isResubmission={true}
+                />
+            </>
         );
     }
 
@@ -164,60 +213,26 @@ export const UpgradeRequestButton: React.FC<UpgradeRequestButtonProps> = ({
 
             <button
                 onClick={() => setShowModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-linear-to-r from-[#d5ad41] to-[#c49a35] text-white font-semibold shadow-lg hover:shadow-xl transition-all mb-6 cursor-pointer"
             >
                 <Zap className="w-5 h-5" />
                 <span>Nâng cấp thành Người bán</span>
             </button>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8 max-w-md w-full">
-                        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 text-center">
-                            Nâng cấp thành Người bán
-                        </h2>
-
-                        <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 mb-6">
-                            <p className="text-sm text-blue-800 text-justify">
-                                Bạn sắp nâng cấp tài khoản lên thành Người bán.
-                                Sau khi được quản trị viên phê duyệt, bạn sẽ có
-                                7 ngày trong vai trò Người bán.
-                            </p>
-                        </div>
-
-                        <p className="text-gray-600 text-sm mb-6 text-justify">
-                            Bằng cách nhấp "Gửi yêu cầu", bạn xác nhận rằng bạn
-                            muốn nâng cấp tài khoản và tuân thủ các điều khoản
-                            dịch vụ của chúng tôi.
-                        </p>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                disabled={isLoading}
-                                className="flex-1 px-4 py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={handleSubmitRequest}
-                                disabled={isLoading}
-                                className="flex-1 px-4 py-3 rounded-2xl bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        <span>Đang gửi...</span>
-                                    </>
-                                ) : (
-                                    <span>Gửi yêu cầu</span>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <UpgradeRequestModal
+                isOpen={showModal}
+                onClose={() => {
+                    setShowModal(false);
+                    setReason("");
+                    setErrorMessage("");
+                }}
+                reason={reason}
+                onReasonChange={setReason}
+                onSubmit={handleSubmitRequest}
+                isLoading={isLoading}
+                errorMessage={errorMessage}
+                isResubmission={false}
+            />
         </>
     );
 };

@@ -1,28 +1,33 @@
 import { useState, useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
 
 export const useRegisterForm = () => {
+    const [step, setStep] = useState<"form" | "otp">("form");
     const [showRegPassword, setShowRegPassword] = useState(false);
     const [showRegConfirm, setShowRegConfirm] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [regErrors, setRegErrors] = useState<{
         email?: string;
+        otp?: string;
         password?: string;
         confirmPassword?: string;
         full_name?: string;
         agreeToTerms?: string;
         recaptcha?: string;
+        general?: string;
     }>({});
 
     const [registerData, setRegisterData] = useState({
         email: "",
+        otp: "",
         password: "",
         confirmPassword: "",
         full_name: "",
         agreeToTerms: false,
     });
 
-    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
@@ -72,7 +77,7 @@ export const useRegisterForm = () => {
         }
     };
 
-    const handleRegisterSubmit = async (e: React.FormEvent) => {
+    const requestOTP = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const newErrors: typeof regErrors = {};
@@ -100,17 +105,8 @@ export const useRegisterForm = () => {
         setRegErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
+            setIsLoading(true);
             try {
-                let recaptchaToken: string | undefined;
-                if (recaptchaSiteKey) {
-                    // Get reCAPTCHA token
-                    recaptchaToken = await recaptchaRef.current?.executeAsync();
-                    if (!recaptchaToken) {
-                        setRegErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
-                        return;
-                    }
-                }
-
                 const response = await fetch(apiUrl("/api/auth/register"), {
                     method: "POST",
                     headers: {
@@ -118,6 +114,65 @@ export const useRegisterForm = () => {
                     },
                     body: JSON.stringify({
                         email: registerData.email,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toast.error(data.message || "Có lỗi xảy ra");
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Success - move to OTP step
+                setStep("otp");
+                toast.success(data.message || "Mã OTP đã được gửi đến email của bạn");
+                setIsLoading(false);
+            } catch {
+                setRegErrors({ general: "Không thể kết nối đến máy chủ" });
+                setIsLoading(false);
+            }
+        }
+    };
+
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const newErrors: typeof regErrors = {};
+
+        // Validate OTP
+        const otp = registerData.otp?.trim();
+        if (!otp) {
+            newErrors.otp = "Vui lòng nhập mã OTP";
+        } else if (!/^\d{6}$/.test(otp)) {
+            newErrors.otp = "Mã OTP phải có 6 chữ số";
+        }
+
+        setRegErrors(newErrors);
+
+        if (Object.keys(newErrors).length === 0) {
+            setIsLoading(true);
+            try {
+                let recaptchaToken: string | undefined = undefined;
+                if (recaptchaSiteKey) {
+                    // Get reCAPTCHA token
+                    recaptchaToken = await recaptchaRef.current?.executeAsync() ?? undefined;
+                    if (!recaptchaToken) {
+                        setRegErrors({ recaptcha: "Không thể xác minh reCAPTCHA" });
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
+                const response = await fetch(apiUrl("/api/auth/register-verify"), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email: registerData.email,
+                        otp: registerData.otp,
                         password: registerData.password,
                         full_name: registerData.full_name,
                         ...(recaptchaToken && { recaptchaToken }),
@@ -127,36 +182,46 @@ export const useRegisterForm = () => {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    const message = data.message || "Đăng ký thất bại";
-                    alert(message);
+                    toast.error(data.message || "Có lỗi xảy ra");
                     // Reset reCAPTCHA on error
-                    setRecaptchaToken(null);
                     recaptchaRef.current?.reset();
+                    setIsLoading(false);
                     return;
                 }
 
                 // Success - redirect to login or home
-                alert("Đăng ký thành công! Vui lòng đăng nhập.");
-                window.location.href = "/signin";
-            } catch (error) {
-                console.error("Register error:", error);
-                alert("Lỗi đăng ký. Vui lòng thử lại.");
+                toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+                setIsLoading(false);
+                setTimeout(() => {
+                    window.location.href = "/signin";
+                }, 1000);
+            } catch {
+                setRegErrors({ general: "Không thể kết nối đến máy chủ" });
                 // Reset reCAPTCHA on error
-                setRecaptchaToken(null);
                 recaptchaRef.current?.reset();
+                setIsLoading(false);
             }
         }
     };
 
+    const goBackToForm = () => {
+        setStep("form");
+        setRegErrors({});
+    };
+
     return {
+        step,
         registerData,
         regErrors,
         showRegPassword,
         setShowRegPassword,
         showRegConfirm,
         setShowRegConfirm,
+        isLoading,
         handleRegisterInputChange,
+        requestOTP,
         handleRegisterSubmit,
+        goBackToForm,
         recaptchaRef,
         recaptchaSiteKey,
     };

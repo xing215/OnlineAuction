@@ -11,6 +11,9 @@ const connectDatabase = require("./config/database");
 const errorHandler = require("./middleware/errorHandler");
 const logger = require("./middleware/logger");
 
+// Import utils
+const { startAuctionSettlementJob } = require("./utils/auctionSettlement");
+
 // Import routes
 const exampleRoutes = require("./routes/exampleRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -19,12 +22,24 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const questionRoutes = require("./routes/questionRoutes");
 const bidRoutes = require("./routes/bidRoutes");
 const userRoutes = require("./routes/userRoutes");
+const upgradeRoutes = require("./routes/upgradeRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger);
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -58,6 +73,15 @@ app.use("/api/bids", bidRoutes);
 // User routes
 app.use("/api/users", userRoutes);
 
+// Use upgrade request
+app.use("/api/upgrade", upgradeRoutes);
+
+// Order routes
+app.use("/api/orders", orderRoutes);
+
+// Settings routes
+app.use("/api/settings", settingsRoutes);
+
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
@@ -68,6 +92,9 @@ const startServer = async () => {
     try {
         // Connect to MongoDB Atlas
         await connectDatabase();
+
+        // Start background job: auto-create orders when auctions end
+        startAuctionSettlementJob();
 
         // Start server after successful database connection
         app.listen(PORT, () => {

@@ -2,6 +2,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { type Category } from '../types';
 import { buildTree } from '../utilities/buildTree';
 import { apiUrl } from "../config/api";
+import toast from "react-hot-toast";
+
+// Helper function to get auth token
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
 
 export const useCategoryManagement = () => {
   // --- STATE ---
@@ -22,7 +28,7 @@ export const useCategoryManagement = () => {
       const json = await res.json();
       
       if (json.success) {
-        const normalizedData = json.data.map((item: any) => ({
+        const normalizedData = json.data.map((item: Category & { _id?: string }) => ({
           ...item,
           id: item.id || item._id,
           parent_id: (item.parent_id && item.parent_id !== "") ? item.parent_id : null
@@ -33,10 +39,10 @@ export const useCategoryManagement = () => {
           .map((c: Category) => c.id);
         setExpandedIds(new Set(rootIds));
       } else {
-        alert('Lỗi tải dữ liệu: ' + json.message);
+        toast.error('Lỗi tải dữ liệu: ' + json.message);
       }
-    } catch (error) {
-      console.error("Lỗi:", error);
+    } catch {
+      toast.error('Không thể tải dữ liệu danh mục');
     } finally {
       setLoading(false);
     }
@@ -44,6 +50,7 @@ export const useCategoryManagement = () => {
 
   const createCategory = async (formData: Partial<Category>) => {
     try {
+      const token = getAuthToken();
       const payload = {
         ...formData,
         parent_id: parentIdForCreate || null,
@@ -51,7 +58,10 @@ export const useCategoryManagement = () => {
 
       const res = await fetch(apiUrl('/api/categories'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
@@ -63,41 +73,64 @@ export const useCategoryManagement = () => {
         setSelectedId(json.data.id);
         setMode('edit');
       } else {
-        alert('Tạo thất bại: ' + json.message);
+        toast.error('Tạo thất bại: ' + json.message);
       }
-    } catch (error) {
-      console.error("Lỗi tạo mới:", error);
+    } catch {
+      toast.error('Không thể tạo danh mục mới');
     }
   };
 
   const updateCategory = async (formData: Partial<Category>) => {
     if (!selectedId) return;
     try {
+      const token = getAuthToken();
       const res = await fetch(apiUrl(`/api/categories/${selectedId}`), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(formData),
       });
       const json = await res.json();
 
       if (json.success) {
         setCategories(prev => prev.map(cat => cat.id === selectedId ? json.data : cat));
-        alert('Đã cập nhật!');
+        toast.success('Đã cập nhật!');
       } else {
-        alert('Cập nhật thất bại: ' + json.message);
+        toast.error('Cập nhật thất bại: ' + json.message);
       }
-    } catch (error) {
-      console.error("Lỗi cập nhật:", error);
+    } catch {
+      toast.error('Không thể cập nhật danh mục');
     }
   };
 
-  const deleteCategory = async () => {
+  const deleteCategory = async (onConfirm?: () => void) => {
     if (!selectedId) return;
+    
+    // If onConfirm callback is provided, call it and return
+    // The actual deletion will be handled by the component
+    if (onConfirm) {
+      onConfirm();
+      return;
+    }
+
+    // Fallback to window.confirm if no callback provided
     if (!window.confirm('Bạn có chắc muốn xóa?')) return;
 
+    await executeDelete();
+  };
+
+  const executeDelete = async () => {
+    if (!selectedId) return;
+
     try {
+      const token = getAuthToken();
       const res = await fetch(apiUrl(`/api/categories/${selectedId}`), {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
       });
       const json = await res.json();
 
@@ -105,11 +138,12 @@ export const useCategoryManagement = () => {
         setCategories(prev => prev.filter(c => c.id !== selectedId));
         setSelectedId(null);
         setMode('view');
+        toast.success('Đã xóa danh mục');
       } else {
-        alert('Xóa thất bại: ' + json.message);
+        toast.error('Xóa thất bại: ' + json.message);
       }
-    } catch (error) {
-      console.error("Lỗi xóa:", error);
+    } catch {
+      toast.error('Không thể xóa danh mục');
     }
   };
 
@@ -176,5 +210,6 @@ export const useCategoryManagement = () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    executeDelete,
   };
 };

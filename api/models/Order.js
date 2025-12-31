@@ -66,6 +66,8 @@ const orderSchema = new mongoose.Schema(
       trim: true,
       required: function() { return this.status !== 'cancelled'; }
     },
+    payment_proof: { type: String, default: null },
+    shipping_proof: { type: String, default: null },
 
     cancellation: {
       by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -90,7 +92,7 @@ const orderSchema = new mongoose.Schema(
 // ============================================================
 orderSchema.index({ seller: 1, status: 1 }); // Seller quản lý đơn bán
 orderSchema.index({ winner: 1, status: 1 }); // Winner quản lý đơn mua
-orderSchema.index({ product: 1 });
+
 
 // ============================================================
 // VIRTUAL PROPERTIES

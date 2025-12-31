@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, ArrowForward } from "@mui/icons-material";
 import { ProductCard } from "./ProductCard";
+import { ProductCardSkeleton } from "./ProductCardSkeleton";
 import { useInfiniteLoop } from "../../hooks/useInfiniteLoops";
 import type { Product } from "../../types";
 
@@ -9,6 +10,9 @@ export interface ProductListProps {
   products: Product[];
   onBidClick?: (productId: string) => void;
   onViewDetails?: (productId: string) => void;
+  loading?: boolean;
+  showViewMore?: boolean;
+  onViewMore?: () => void;
 }
 
 export const ProductList: React.FC<ProductListProps> = ({
@@ -17,6 +21,9 @@ export const ProductList: React.FC<ProductListProps> = ({
   products,
   onBidClick,
   onViewDetails,
+  loading = false,
+  showViewMore = false,
+  onViewMore,
 }) => {
   const ITEM_WIDTH = 300;
 
@@ -39,29 +46,56 @@ export const ProductList: React.FC<ProductListProps> = ({
             </p>
           </div>
 
-          {/* Navigation Buttons */}
-          {products.length >= 5 && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => scroll("left")}
-                className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                aria-label="Previous products"
-              >
-                <ChevronLeft className="text-gray-700 dark:text-gray-300" />
-              </button>
-              <button
-                onClick={() => scroll("right")}
-                className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                aria-label="Next products"
-              >
-                <ChevronRight className="text-gray-700 dark:text-gray-300" />
-              </button>
-            </div>
+          {/* Navigation Buttons or View More Button */}
+          {showViewMore ? (
+            <button
+              onClick={onViewMore}
+              className="flex items-center gap-1 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200 cursor-pointer"
+            >
+              <span>Xem thêm</span>
+              <ArrowForward fontSize="small" />
+            </button>
+          ) : (
+            products.length >= 5 && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => scroll("left")}
+                  className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  aria-label="Previous products"
+                >
+                  <ChevronLeft className="text-gray-700 dark:text-gray-300" />
+                </button>
+                <button
+                  onClick={() => scroll("right")}
+                  className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  aria-label="Next products"
+                >
+                  <ChevronRight className="text-gray-700 dark:text-gray-300" />
+                </button>
+              </div>
+            )
           )}
         </div>
         {/* Products Carousel */}
 
-        {products.length < 5 ? (
+        {loading ? (
+          <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : showViewMore ? (
+          <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
+            {products.slice(0, 5).map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                {...(onBidClick ? { onBidClick } : {})}
+                {...(onViewDetails ? { onViewDetails } : {})}
+              />
+            ))}
+          </div>
+        ) : products.length < 5 ? (
           <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
             {products.map((product) => (
               <ProductCard

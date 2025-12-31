@@ -13,7 +13,14 @@ export interface PlaceBidResponse {
     data?: {
         currentPrice: number;
         bidCount: number;
-        highestBidder: string;
+        highestBidder: {
+            _id: string;
+            full_name: string;
+            rating_summary: {
+                positive_count: number;
+                negative_count: number;
+            };
+        };
         isLeading?: boolean;
         isAutoBid?: boolean;
         endDate?: string;
@@ -30,7 +37,6 @@ export const placeBid = async (
     isAutoBid: boolean = false,
     maxBid?: number
 ): Promise<PlaceBidResponse> => {
-    try {
         const response = await fetch(apiUrl("/api/bids/place"), {
             method: "POST",
             headers: {
@@ -52,10 +58,6 @@ export const placeBid = async (
         }
 
         return data;
-    } catch (error) {
-        console.error("Place bid error:", error);
-        throw error;
-    }
 };
 
 export interface MyAutoBidResponse {
@@ -76,7 +78,6 @@ export const getMyAutoBid = async (
     productId: string,
     token: string
 ): Promise<MyAutoBidResponse> => {
-    try {
         const response = await fetch(
             apiUrl(`/api/bids/product/${productId}/my-auto-bid`),
             {
@@ -94,8 +95,4 @@ export const getMyAutoBid = async (
         }
 
         return data;
-    } catch (error) {
-        console.error("Get my auto-bid error:", error);
-        throw error;
-    }
 };

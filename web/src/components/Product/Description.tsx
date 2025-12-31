@@ -3,6 +3,7 @@ import { formatDate } from "../../utilities/FormatDate";
 import type { Product } from "../../types";
 import { apiUrl } from "../../config/api";
 import { useUser } from "../../context/useUser";
+import DOMPurify from 'dompurify';
 
 interface DescriptionProps {
   product: Product;
@@ -20,13 +21,7 @@ export const Description: React.FC<DescriptionProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Logic kiểm tra seller giữ nguyên
-  const isSeller =
-    user &&
-    product?.seller &&
-    (typeof product.seller === "object"
-      ? (product.seller as any)?._id === user.id ||
-        (product.seller as any)?.id === user.id
-      : product.seller === user.id);
+  const isSeller = user && product?.seller === user.id;
 
   const handleUpdateDescription = async () => {
     if (!newDescription.trim()) {
@@ -94,10 +89,23 @@ export const Description: React.FC<DescriptionProps> = ({
       </div>
 
       {/* Hiển thị Description chính hiện tại */}
-      <p className="text-gray-600 leading-relaxed mb-4">
-        {/* Nếu logic backend là cập nhật description chính thì hiển thị, nếu chỉ push history thì hiển thị cái mới nhất trong history hoặc giữ nguyên */}
-        {product.description || "Chưa có mô tả chi tiết."}
-      </p>
+      <div className="mb-4 description-wrapper"> 
+        {(product.description && product.description.replace(/<[^>]+>/g, '').trim().length > 0) ? (
+          <div className="ql-snow">
+            <div 
+              className="ql-editor !text-gray-900" 
+              style={{ padding: 0 }} 
+              dangerouslySetInnerHTML={{ 
+                __html: DOMPurify.sanitize(product.description) 
+              }} 
+            />
+          </div>
+        ) : (
+          <p className="text-gray-600 leading-relaxed mb-4">
+            Chưa có mô tả chi tiết
+          </p>
+        )}
+      </div>
 
       {/* Update Form */}
       {isEditing && isSeller && (

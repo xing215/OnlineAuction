@@ -6,6 +6,7 @@ import { capitalizeFirstLetter } from "../utilities";
 import { useUser } from "../context/useUser";
 import { apiUrl } from "../config/api";
 import type { AuthUser } from "../context/UserContext.types";
+import toast from "react-hot-toast";
 
 // 1. Định nghĩa Schema (Giữ nguyên)
 const profileSchema = z.object({
@@ -142,14 +143,12 @@ export const useProfileForm = () => {
             // Refresh user data from server to ensure sync
             await refreshUser();
 
-            console.log("Cập nhật thành công:", result);
-            alert(result.message || "Cập nhật thông tin thành công!");
+            toast.success(result.message || "Cập nhật thông tin thành công!");
             setIsEditMode(false);
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : "Có lỗi xảy ra";
-            console.error("Lỗi cập nhật:", message);
-            alert(`Lỗi: ${message}`);
+            toast.error(`Lỗi: ${message}`);
         }
     };
 

@@ -1,9 +1,10 @@
 export interface Product {
+    _id: string;
     id: string;
     name: string;
-    category: string; // ObjectId ref to Category
+    category: string | Category; // ObjectId ref to Category or populated Category
     category_name: string;
-    seller: string; // ObjectId ref to User
+    seller: string | { _id: string; full_name: string }; // ObjectId ref to User or populated
     images: string[];
     description?: string;
     description_updates: {
@@ -22,7 +23,15 @@ export interface Product {
     time_remaining?: number; // virtual
     current_price?: number;
     bid_count?: number;
-    highest_bidder_name?: string;
+    current_bidder?:
+        | string
+        | {
+              full_name: string;
+              rating_summary?: {
+                  positive_count: number;
+                  negative_count: number;
+              };
+          }; // ObjectId ref to User or populated User object with rating
 }
 
 export interface Bid {
@@ -53,7 +62,7 @@ export interface Category {
     product_count?: number;
 }
 export interface CategoryTreeNode extends Category {
-  children: CategoryTreeNode[];
+    children: CategoryTreeNode[];
 }
 
 export interface Feedback {
@@ -64,9 +73,24 @@ export interface Feedback {
 
 export interface Message {
     id: string;
-    sender: string; // ObjectId ref to User
+    sender: string | { _id: string; full_name: string }; // ObjectId ref to User or populated
     content: string;
     sent_at: Date;
+}
+export interface OrderView extends Order {
+    product_detail?: Product;
+    seller_detail?: User;
+    winner_detail?: User;
+}
+
+export interface OrderResponse {
+    success: boolean;
+    data: OrderView[];
+}
+
+export interface OrderDetailResponse {
+    success: boolean;
+    data: OrderView;
 }
 
 export interface Order {
@@ -77,6 +101,8 @@ export interface Order {
     final_price: number;
     status: "pending" | "paid" | "shipped" | "completed" | "cancelled";
     shipping_address?: string;
+    payment_proof?: string;
+    shipping_proof?: string;
     cancellation?: {
         by: string; // ObjectId ref to User
         reason: string;
@@ -141,6 +167,7 @@ export interface SellerDetails {
 
 export interface User {
     id: string;
+    _id?: string;
     full_name: string;
     email: string;
     password?: string;

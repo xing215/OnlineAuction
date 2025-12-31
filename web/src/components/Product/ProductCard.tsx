@@ -10,22 +10,30 @@ import {
 } from "@mui/icons-material";
 import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
+import toast from "react-hot-toast";
+import { RatingModal } from "./RatingModal";
+import { ConfirmModal } from "../ConfirmModal";
 
 export interface ProductCardProps {
-    product: Product;
+    product: Product & { order_id?: string };
     onBidClick?: (productId: string) => void;
     onViewDetails?: (productId: string) => void;
+    showTransactionDetails?: boolean;
+    onTransactionDetails?: (orderId: string) => void;
 }
 
 const NEW_THRESHOLD_MINUTES = 120;
 
 export const ProductCard: React.FC<ProductCardProps> = ({
     product,
-    onBidClick,
-    onViewDetails,
+    showTransactionDetails = false,
+    onTransactionDetails,
 }) => {
     const navigate = useNavigate();
     const [imageError, setImageError] = useState(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const { user, token, refreshUser } = useUser();
 
     // Get product ID from _id field
@@ -48,7 +56,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     const categoryName =
         product.category && typeof product.category === "object"
-            ? (product.category as any).name // Nếu là object (API trả về), lấy .name
+            ? product.category.name // Nếu là object (API trả về), lấy .name
             : product.category; // Nếu là string (Mock data), giữ nguyên
 
     const isNew = useMemo(() => {
@@ -64,7 +72,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const currentPrice = product.current_price ?? product.start_price;
     const buyNowPrice = product.buy_now_price ?? null;
     const bidCount = product.bid_count ?? 0;
-    const highestBidder = product.highest_bidder_name ?? "Chưa có";
+    const highestBidder =
+        typeof product.current_bidder === "object" &&
+        product.current_bidder?.full_name
+            ? product.current_bidder.full_name
+            : "Chưa có ai đặt giá";
     const isAuctionEnded = endDate.getTime() <= Date.now();
     const statusLabel = isAuctionEnded ? "Đã kết thúc" : "Đang diễn ra";
     const timeRemaining = getTimeRemaining(endDate);
@@ -81,21 +93,83 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         setImageError(true);
     };
 
-    const handleBidClick = () => {
+    const handleBidClick = async () => {
         if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
             navigate("/signin");
             return;
-        } else if (onBidClick) {
-            onBidClick(productId);
+        }
+
+        if (!buyNowPrice) {
+            toast.error("Sản phẩm này không hỗ trợ mua ngay");
+            return;
+        }
+
+        if (isAuctionEnded) {
+            toast.error("Sản phẩm đã kết thúc đấu giá");
+            return;
+        }
+
+        // Show confirm modal
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleBuyNowConfirm = async () => {
+        if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để mua sản phẩm");
+            navigate("/signin");
+            return;
+        }
+        setIsConfirmModalOpen(false);
+        setIsBuyNowLoading(true);
+        try {
+            const response = await fetch(
+                apiUrl(`/api/products/${productId}/buy-now`),
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Mua ngay thất bại");
+            }
+
+            toast.success(
+                data.message ||
+                    "Mua ngay thành công! Bạn đã trở thành người thắng cuộc."
+            );
+
+            // Navigate to product detail to see updated status
+            navigate(`/product/${productId}`);
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Mua ngay thất bại. Vui lòng thử lại."
+            );
+        } finally {
+            setIsBuyNowLoading(false);
         }
     };
 
     const handleViewDetails = () => {
-        if (!user || !token) {
-            navigate("/signin");
-            return;
-        } else if (onViewDetails) {
-            onViewDetails(productId);
+        // Navigate to product detail page for bidding
+        navigate(`/product/${productId}`);
+    };
+
+    const handleTransactionDetails = () => {
+        if (
+            showTransactionDetails &&
+            onTransactionDetails &&
+            product.order_id
+        ) {
+            onTransactionDetails(product.order_id);
         }
     };
 
@@ -103,7 +177,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         console.log("Heart clicked! User:", user, "Token:", !!token);
 
         if (!user || !token) {
-            alert(
+            toast.error(
                 "Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích"
             );
             return;
@@ -146,7 +220,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             console.log("Refreshed user:", refreshedUser);
         } catch (err) {
             console.error("Error toggling favorite:", err);
-            alert(
+            toast.error(
                 "Không thể cập nhật danh sách yêu thích: " +
                     (err instanceof Error ? err.message : "Lỗi không xác định")
             );
@@ -173,8 +247,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     />
                 )}
                 {isNew && (
-                    <div className="absolute top-3 right-12 z-10 rounded-md bg-green-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                        NEW
+                    <div className="absolute bottom-3 right-3 z-10">
+                        <div className="flex items-center gap-1 rounded-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 px-3 py-1 shadow-md border border-white/40 backdrop-blur-sm">
+                            <span className="inline-block w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                            <span className="text-[10px] font-extrabold text-white tracking-wider uppercase">
+                                New
+                            </span>
+                        </div>
                     </div>
                 )}
 
@@ -250,37 +329,85 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </p>
 
                 <div className="mt-2 flex gap-2">
-                    <button
-                        type="button"
-                        className={
-                            isAuctionEnded
-                                ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
-                                : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
-                        }
-                        onClick={handleBidClick}
-                        disabled={isAuctionEnded}
-                    >
-                        <span>
-                            {isAuctionEnded ? "Đã kết thúc" : "Mua ngay"}
-                        </span>
-                        {!isAuctionEnded && buyNowPrice !== null && (
-                            <span className="font-bold">
-                                {formatCurrency(buyNowPrice)}
+                    {showTransactionDetails ? (
+                        <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer"
+                            onClick={handleTransactionDetails}
+                        >
+                            <span>Chi tiết giao dịch</span>
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            className={
+                                isAuctionEnded
+                                    ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
+                                    : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            }
+                            onClick={handleBidClick}
+                            disabled={isAuctionEnded || isBuyNowLoading}
+                        >
+                            <span>
+                                {isAuctionEnded
+                                    ? "Đã kết thúc"
+                                    : isBuyNowLoading
+                                    ? "Đang xử lý..."
+                                    : "Mua ngay"}
                             </span>
-                        )}
-                    </button>
+                            {!isAuctionEnded &&
+                                buyNowPrice !== null &&
+                                !isBuyNowLoading && (
+                                    <span className="font-bold">
+                                        {formatCurrency(buyNowPrice)}
+                                    </span>
+                                )}
+                        </button>
+                    )}
                 </div>
 
-                {!isAuctionEnded && (
+                {showTransactionDetails && (
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#D5AD41] bg-white px-4 py-2.5 text-sm font-semibold text-[#D5AD41] shadow-md transition-all duration-200 hover:bg-yellow-50 hover:shadow-lg cursor-pointer"
+                            onClick={() => setIsFeedbackModalOpen(true)}
+                        >
+                            <span>Đánh giá</span>
+                        </button>
+                    </div>
+                )}
+
+                {!isAuctionEnded && !showTransactionDetails && (
                     <button
                         type="button"
                         className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 cursor-pointer"
-                        onClick={handleViewDetails}
+                        onClick={handleBidClick}
                     >
                         <span>Đặt giá</span>
                         <Gavel />
                     </button>
                 )}
+
+                <RatingModal
+                    isOpen={isFeedbackModalOpen}
+                    onClose={() => setIsFeedbackModalOpen(false)}
+                    orderId={product.order_id || ""}
+                    token={token || ""}
+                />
+
+                <ConfirmModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={handleBuyNowConfirm}
+                    title="Xác nhận mua ngay"
+                    message={`Bạn muốn mua ngay sản phẩm này với giá ${formatCurrency(
+                        buyNowPrice || 0
+                    )}?\n\nBạn sẽ trở thành người thắng cuộc và đấu giá sẽ kết thúc ngay lập tức.`}
+                    confirmText="Mua ngay"
+                    type="warning"
+                    isLoading={isBuyNowLoading}
+                />
             </div>
         </article>
     );

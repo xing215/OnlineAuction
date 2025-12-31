@@ -25,6 +25,11 @@ exports.getAllCategories = async (req, res, next) => {
   try {
     const categories = await Category.aggregate([
       {
+        $match: {
+          is_active: true
+        }
+      },
+      {
         $lookup: {
           from: 'products',
           localField: '_id',
@@ -54,6 +59,14 @@ exports.getAllCategories = async (req, res, next) => {
 // POST /api/categories
 exports.createCategory = async (req, res, next) => {
   try {
+    // Check if user is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only.",
+      });
+    }
+
     const { name, parent_id, icon, is_active } = req.body;
     const validParentId = parent_id && parent_id !== "" ? parent_id : null;
 
@@ -74,6 +87,14 @@ exports.createCategory = async (req, res, next) => {
 // PUT /api/categories/:id
 exports.updateCategory = async (req, res, next) => {
   try {
+    // Check if user is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only.",
+      });
+    }
+
     const { id } = req.params;
     const updateData = req.body;
 
@@ -97,6 +118,14 @@ exports.updateCategory = async (req, res, next) => {
 // DELETE /api/categories/:id
 exports.deleteCategory = async (req, res, next) => {
   try {
+    // Check if user is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin only.",
+      });
+    }
+
     const { id } = req.params;
     const childCount = await Category.countDocuments({ parent_id: id });
 

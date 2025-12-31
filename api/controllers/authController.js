@@ -64,6 +64,13 @@ exports.login = async (req, res, next) => {
             });
         }
 
+        if (user.status === 'locked'){
+            return res.status(403).json({
+                success: false,
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+            });
+        }
+
         // Build token payload
         const payload = {
             id: user._id.toString(),
@@ -83,18 +90,69 @@ exports.login = async (req, res, next) => {
     }
 };
 
-// POST /api/auth/register
+// POST /api/auth/register - Request OTP for registration
 exports.register = async (req, res, next) => {
     try {
-        const { email, password, full_name, recaptchaToken } = req.body;
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Email là bắt buộc",
+            });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findByEmail(email);
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: "Email đã được sử dụng",
+            });
+        }
+
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save OTP to database
+        const otp = new Otp({
+            email: email.toLowerCase().trim(),
+            code: otpCode,
+            type: "register",
+        });
+
+        await otp.save();
+
+        // Send OTP via email
+        await sendOTPEmail({
+            email: email.toLowerCase().trim(),
+            full_name: "Người dùng mới",
+            otp: otpCode,
+            type: "register",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Mã OTP đã được gửi đến email của bạn",
+        });
+    } catch (err) {
+        console.error("Lỗi trong register:", err);
+        next(err);
+    }
+};
+
+// POST /api/auth/register-verify - Verify OTP and complete registration
+exports.registerVerify = async (req, res, next) => {
+    try {
+        const { email, otp, password, full_name, recaptchaToken } = req.body;
 
         const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
         const requiresRecaptcha = !!recaptchaSecret;
 
-        if (!email || !password || !full_name || (requiresRecaptcha && !recaptchaToken)) {
+        if (!email || !otp || !password || !full_name || (requiresRecaptcha && !recaptchaToken)) {
             const message = requiresRecaptcha 
-                ? "Email, mật khẩu, họ tên và reCAPTCHA là bắt buộc"
-                : "Email, mật khẩu và họ tên là bắt buộc";
+                ? "Email, OTP, mật khẩu, họ tên và reCAPTCHA là bắt buộc"
+                : "Email, OTP, mật khẩu và họ tên là bắt buộc";
             return res.status(400).json({
                 success: false,
                 message,
@@ -112,7 +170,21 @@ exports.register = async (req, res, next) => {
             }
         }
 
-        // Check if user already exists
+        // Verify OTP
+        const isValidOtp = await Otp.verifyOtp(
+            email,
+            otp,
+            "register"
+        );
+
+        if (!isValidOtp) {
+            return res.status(400).json({
+                success: false,
+                message: "Mã OTP không hợp lệ hoặc đã hết hạn",
+            });
+        }
+
+        // Check if user already exists (double check)
         const existingUser = await User.findByEmail(email);
         if (existingUser) {
             return res.status(409).json({
@@ -129,6 +201,12 @@ exports.register = async (req, res, next) => {
         });
 
         await user.save();
+
+        // Delete used OTP
+        await Otp.deleteMany({
+            email: email.toLowerCase().trim(),
+            type: "register",
+        });
 
         // Generate token
         const payload = {

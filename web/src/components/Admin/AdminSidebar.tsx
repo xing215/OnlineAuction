@@ -49,6 +49,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             icon: "",
             isActive: currentPath === "/admin/upgrade-requests",
         },
+        {
+            label: "Cài đặt Đấu giá",
+            path: "/admin/auction-settings",
+            icon: "",
+            isActive: currentPath === "/admin/auction-settings",
+        },
     ];
 
     const handleLogout = () => {

@@ -9,6 +9,9 @@ const HomePage = () => {
   const [topExpiring, setTopExpiring] = useState<Product[]>([]);
   const [topBidding, setTopBidding] = useState<Product[]>([]);
   const [topPrice, setTopPrice] = useState<Product[]>([]);
+  const [loadingExpiring, setLoadingExpiring] = useState(true);
+  const [loadingBidding, setLoadingBidding] = useState(true);
+  const [loadingPrice, setLoadingPrice] = useState(true);
   const navigate = useNavigate();
 
   // Fetch top products data
@@ -27,6 +30,7 @@ const HomePage = () => {
             setTopExpiring(expiringData.data);
           }
         }
+        setLoadingExpiring(false);
 
         if (biddingRes.status === "fulfilled") {
           const biddingData = await biddingRes.value.json();
@@ -34,6 +38,7 @@ const HomePage = () => {
             setTopBidding(biddingData.data);
           }
         }
+        setLoadingBidding(false);
 
         if (priceRes.status === "fulfilled") {
           const priceData = await priceRes.value.json();
@@ -41,6 +46,7 @@ const HomePage = () => {
             setTopPrice(priceData.data);
           }
         }
+        setLoadingPrice(false);
       } catch (error) {
         console.error('Error fetching top products:', error);
       }
@@ -73,7 +79,7 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-4">
-            Chào mừng đến với BiddenBid
+            Chào mừng đến với GoldenBid
           </h1>
           <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
             Nền tảng đấu giá trực tuyến uy tín, đáng tin cậy
@@ -81,7 +87,7 @@ const HomePage = () => {
           <button
             className="px-8 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={() => {
-              navigate("#topBidding");
+              navigate("/categories");
             }}
           >
             Khám phá ngay
@@ -92,29 +98,38 @@ const HomePage = () => {
       {/* Product Lists Sections */}
       <div className="">
         <ProductList
-          title="Top 5 gần kết thúc"
+          title="Các sản phẩm gần kết thúc"
           subtitle="Đừng bỏ lỡ cơ hội đấu giá"
           products={topExpiring}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
+          loading={loadingExpiring}
+          showViewMore={true}
+          onViewMore={() => navigate("/categories?sort=end_date_asc")}
         />
 
         <div id="topBidding">
           <ProductList
-            title="Top 5 nhiều lượt ra giá"
+            title="Các sản phẩm nhiều lượt ra giá"
             subtitle="Những sản phẩm được quan tâm nhất"
             products={topBidding}
             onBidClick={handleBidClick}
             onViewDetails={handleViewDetails}
+            loading={loadingBidding}
+            showViewMore={true}
+            onViewMore={() => navigate("/categories?sort=bids_desc")}
           />
         </div>
 
         <ProductList
-          title="Top 5 giá cao nhất"
+          title="Các sản phẩm giá cao nhất"
           subtitle="Các sản phẩm có giá trị cao nhất hiện tại"
           products={topPrice}
           onBidClick={handleBidClick}
           onViewDetails={handleViewDetails}
+          loading={loadingPrice}
+          showViewMore={true}
+          onViewMore={() => navigate("/categories?sort=price_desc")}
         />
       </div>
     </div>
