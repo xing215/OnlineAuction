@@ -176,7 +176,7 @@ export default function ChangePasswordPage() {
                         {/* Security Tips */}
                         <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
                             <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                                💡 Lưu ý bảo mật
+                                Lưu ý bảo mật
                             </h3>
                             <ul className="text-xs text-gray-600 space-y-1">
                                 <li>• Sử dụng mật khẩu mạnh với ít nhất 6 ký tự</li>
