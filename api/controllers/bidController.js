@@ -158,7 +158,10 @@ async function processAutoBid(productId, newBidder, product, session) {
     const loserBid = new Bid({
         product: productId,
         user: result.loser.userId,
-        price: result.loser.maxBid < result.newPrice ? result.loser.maxBid : currentHighestBid.price,
+        price:
+            result.loser.maxBid < result.newPrice
+                ? result.loser.maxBid
+                : currentHighestBid.price,
         is_auto_bid: true,
         maximum_bid_limit: result.loser.maxBid,
         created_at: new Date(),
@@ -345,9 +348,13 @@ exports.placeBid = async (req, res) => {
 
         // Auto-extend if within 5 minutes of end
         const timeRemaining = product.end_date - new Date();
-        if (timeRemaining > 0 && timeRemaining < AuctionSettings.auto_extend_threshold * 60 * 1000) {
+        if (
+            timeRemaining > 0 &&
+            timeRemaining < AuctionSettings.auto_extend_threshold * 60 * 1000
+        ) {
             product.end_date = new Date(
-                product.end_date.getTime() + AuctionSettings.auto_extend_extension * 60 * 1000
+                product.end_date.getTime() +
+                    AuctionSettings.auto_extend_extension * 60 * 1000
             );
         }
 
@@ -394,7 +401,10 @@ exports.placeBid = async (req, res) => {
                 }
 
                 // Send outbid notification to previous highest bidder (if exists and different from current)
-                if (highestBid && highestBid.user.toString() !== userId.toString()) {
+                if (
+                    highestBid &&
+                    highestBid.user.toString() !== userId.toString()
+                ) {
                     const previousBidder = await User.findById(highestBid.user);
                     if (previousBidder && previousBidder.email) {
                         sendOutbidEmail({
@@ -408,7 +418,10 @@ exports.placeBid = async (req, res) => {
                     }
                 }
             } catch (emailError) {
-                console.error("Error sending bid notification emails:", emailError);
+                console.error(
+                    "Error sending bid notification emails:",
+                    emailError
+                );
             }
         });
 
@@ -604,7 +617,9 @@ exports.getMyBiddingProducts = async (req, res) => {
         const userId = req.user._id;
 
         // Find all bids by the user
-        const userBids = await Bid.find({ user: userId }).select('product').distinct('product');
+        const userBids = await Bid.find({ user: userId })
+            .select("product")
+            .distinct("product");
 
         if (userBids.length === 0) {
             return res.json({
@@ -616,29 +631,42 @@ exports.getMyBiddingProducts = async (req, res) => {
         // Get products that are still active and user has bid on
         const products = await Product.find({
             _id: { $in: userBids },
-            status: 'active',
-            end_date: { $gt: new Date() } // Still in bidding period
-        }).populate('seller', 'full_name');
+            status: "active",
+            end_date: { $gt: new Date() }, // Still in bidding period
+        })
+            .populate("seller", "full_name")
+            .populate("category", "name");
 
         // Get current bid info for each product
-        const productsWithBidInfo = await Promise.all(products.map(async (product) => {
-            const currentBid = await Bid.findOne({ product: product._id })
-                .sort({ price: -1 })
-                .populate('user', 'full_name');
+        const productsWithBidInfo = await Promise.all(
+            products.map(async (product) => {
+                const currentBid = await Bid.findOne({ product: product._id })
+                    .sort({ price: -1 })
+                    .populate("user", "full_name");
 
-            const userHighestBid = await Bid.findOne({ 
-                product: product._id, 
-                user: userId 
-            }).sort({ price: -1 });
+                const userHighestBid = await Bid.findOne({
+                    product: product._id,
+                    user: userId,
+                }).sort({ price: -1 });
 
-            return {
-                ...product.toObject(),
-                current_price: currentBid ? currentBid.price : product.start_price,
-                bid_count: await Bid.countDocuments({ product: product._id }),
-                current_bidder: currentBid ? currentBid.user.full_name : null,
-                my_highest_bid: userHighestBid ? userHighestBid.price : null
-            };
-        }));
+                return {
+                    ...product.toObject(),
+                    current_price: currentBid
+                        ? currentBid.price
+                        : product.start_price,
+                    bid_count: await Bid.countDocuments({
+                        product: product._id,
+                    }),
+                    current_bidder:
+                        currentBid && currentBid.user
+                            ? { full_name: currentBid.user.full_name }
+                            : null,
+                    my_highest_bid: userHighestBid
+                        ? userHighestBid.price
+                        : null,
+                };
+            })
+        );
 
         res.json({
             success: true,
@@ -659,26 +687,51 @@ exports.getMyWonProducts = async (req, res) => {
         const userId = req.user._id;
 
         // Find orders where user is the winner
-        const Order = mongoose.model('Order');
-        const wonOrders = await Order.find({ 
+        const Order = mongoose.model("Order");
+        const wonOrders = await Order.find({
             winner: userId,
-            status: { $in: ['pending', 'completed', 'shipped'] } // Include various completion statuses
+            status: { $in: ["pending", "completed", "shipped"] }, // Include various completion statuses
         }).populate({
-            path: 'product',
-            populate: {
-                path: 'seller',
-                select: 'full_name'
-            }
+            path: "product",
+            populate: [
+                {
+                    path: "seller",
+                    select: "full_name",
+                },
+                {
+                    path: "category",
+                    select: "name",
+                },
+            ],
         });
 
         // Format the response to match product structure
-        const wonProducts = wonOrders.map(order => ({
-            ...order.product.toObject(),
-            final_price: order.final_price,
-            order_id: order._id,
-            order_status: order.status,
-            won_at: order.createdAt
-        }));
+        const wonProducts = await Promise.all(
+            wonOrders.map(async (order) => {
+                // Get current bid info for won product
+                const currentBid = await Bid.findOne({
+                    product: order.product._id,
+                })
+                    .sort({ price: -1 })
+                    .populate("user", "full_name");
+
+                return {
+                    ...order.product.toObject(),
+                    final_price: order.final_price,
+                    order_id: order._id,
+                    order_status: order.status,
+                    won_at: order.createdAt,
+                    current_price: order.final_price,
+                    bid_count: await Bid.countDocuments({
+                        product: order.product._id,
+                    }),
+                    current_bidder:
+                        currentBid && currentBid.user
+                            ? { full_name: currentBid.user.full_name }
+                            : null,
+                };
+            })
+        );
 
         res.json({
             success: true,
