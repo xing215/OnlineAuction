@@ -1,4 +1,4 @@
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MailIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useUser } from "../../context/useUser";
 
@@ -37,7 +37,7 @@ export default function ProfileHeader() {
                             "Người dùng"}
                     </h2>
                     <p className="text-gray-500 mb-2">
-                        {profile?.email ? `✉ ${profile.email}` : ""}
+                        {profile?.email ?<><MailIcon className="inline w-4 h-4 mr-1" />{profile.email}</> : ""}
                     </p>
                     <div className="flex items-center gap-2">
                         <span className="flex items-center gap-1.5 text-xs ml-2">
