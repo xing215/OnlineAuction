@@ -474,9 +474,9 @@ const OrderDetailPage: React.FC = () => {
 
               <div className="flex justify-between relative z-10">
                 {[
-                  { key: "pending", label: "Thanh toán", icon: CreditCard },
-                  { key: "paid", label: "Vận chuyển", icon: Package },
-                  { key: "shipped", label: "Nhận hàng", icon: Truck },
+                  { key: "pending", label: "Chờ thanh toán", icon: CreditCard },
+                  { key: "paid", label: "Đã thanh toán", icon: Package },
+                  { key: "shipped", label: "Đang vận chuyển", icon: Truck },
                   { key: "completed", label: "Hoàn tất", icon: CheckCircle },
                 ].map((step, idx) => {
                   const isActive = idx <= currentStepIndex;

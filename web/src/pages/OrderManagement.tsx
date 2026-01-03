@@ -19,6 +19,7 @@ const OrderManagement: React.FC = () => {
   const tabs = [
     { id: "all", label: "Tất cả" },
     { id: "pending", label: "Chờ thanh toán" },
+    { id: "paid", label: "Đã thanh toán" },
     { id: "shipped", label: "Đang vận chuyển" },
     { id: "completed", label: "Hoàn tất" },
     { id: "cancelled", label: "Đã hủy" },
