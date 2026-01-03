@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, AlertCircle } from "lucide-react";
 import type { OrderView } from "../../types";
+import { getOrderStatusLabel, getOrderStatusColor } from "../../utilities/orderStatusUtils";
 
 interface OrderCardProps {
   order: OrderView;
@@ -68,21 +69,11 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, currentUserId }) => {
                 {product?.name || "Sản phẩm ẩn"}
               </h3>
               <span
-                className={`inline-flex items-center rounded-2xl px-3 py-1 text-xs font-medium uppercase whitespace-nowrap ${
-                  order.status === "cancelled"
-                    ? "bg-red-50 text-red-600"
-                    : order.status === "completed"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : order.status === "shipped"
-                    ? "bg-purple-50 text-purple-600"
-                    : order.status === "paid"
-                    ? "bg-yellow-50 text-yellow-600"
-                    : order.status === "pending"
-                    ? "bg-blue-50 text-blue-600"
-                    : "bg-gray-50 text-gray-600"
+                className={`inline-flex items-center rounded-2xl px-3 py-1 text-xs font-medium whitespace-nowrap ${
+                  getOrderStatusColor(order.status)
                 }`}
               >
-                {order.status}
+                {getOrderStatusLabel(order.status)}
               </span>
             </div>
             <p className="text-sm text-gray-500 mt-1">
