@@ -4,6 +4,7 @@ import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
 import { useUser } from "../../context/useUser";
 import { AdminLayout } from "../../components/Admin";
+import { ConfirmModal } from "../../components/ConfirmModal";
 
 interface User {
     _id: string;
@@ -33,6 +34,7 @@ export const ManageUser: React.FC = () => {
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const { token } = useUser();
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -173,6 +175,35 @@ export const ManageUser: React.FC = () => {
         setEditRole(user.role);
         setEditStatus(user.status);
         setOpenDropdown(null);
+    };
+
+    const handleDeleteClick = (user: User) => {
+        setUserToDelete(user);
+        setOpenDropdown(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) return;
+        try {
+            const response = await fetch(
+                apiUrl(`/api/users/${userToDelete._id}`),
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.ok) {
+                fetchUsers();
+                setUserToDelete(null);
+            } else {
+                console.error("Failed to delete user");
+            }
+        } catch (error) {
+            console.error("Failed to delete user:", error);
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -503,6 +534,16 @@ export const ManageUser: React.FC = () => {
                                                             >
                                                                 Edit
                                                             </button>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDeleteClick(
+                                                                        user
+                                                                    )
+                                                                }
+                                                                className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-700 font-medium transition-colors cursor-pointer"
+                                                            >
+                                                                Delete
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </td>
@@ -632,6 +673,18 @@ export const ManageUser: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Delete Confirmation Modal */}
+                <ConfirmModal
+                    isOpen={!!userToDelete}
+                    onClose={() => setUserToDelete(null)}
+                    onConfirm={handleConfirmDelete}
+                    title="Xóa người dùng"
+                    message={`Bạn có chắc chắn muốn xóa người dùng "${userToDelete?.full_name}" không? Hành động này không thể hoàn tác.`}
+                    confirmText="Xóa"
+                    cancelText="Hủy"
+                    type="danger"
+                />
             </div>
         </AdminLayout>
     );
