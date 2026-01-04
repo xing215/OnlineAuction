@@ -223,7 +223,7 @@ export const ManageUser: React.FC = () => {
                                     onClick={() =>
                                         setRoleDropdownOpen(!roleDropdownOpen)
                                     }
-                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                                 >
                                     <span>
                                         {filterRole === "all"
@@ -247,7 +247,7 @@ export const ManageUser: React.FC = () => {
                                                 setFilterRole("all");
                                                 setRoleDropdownOpen(false);
                                             }}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors cursor-pointer"
                                         >
                                             Tất cả vai trò
                                         </button>
@@ -264,7 +264,7 @@ export const ManageUser: React.FC = () => {
                                                     setFilterRole(role);
                                                     setRoleDropdownOpen(false);
                                                 }}
-                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0 cursor-pointer"
                                             >
                                                 {role.charAt(0).toUpperCase() +
                                                     role.slice(1)}
@@ -282,7 +282,7 @@ export const ManageUser: React.FC = () => {
                                             !statusDropdownOpen
                                         )
                                     }
-                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                                 >
                                     <span>
                                         {filterStatus === "all"
@@ -309,7 +309,7 @@ export const ManageUser: React.FC = () => {
                                                 setFilterStatus("all");
                                                 setStatusDropdownOpen(false);
                                             }}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors cursor-pointer"
                                         >
                                             Tất cả trạng thái
                                         </button>
@@ -328,7 +328,7 @@ export const ManageUser: React.FC = () => {
                                                         false
                                                     );
                                                 }}
-                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0 cursor-pointer"
                                             >
                                                 {status === "unverified"
                                                     ? "Chưa xác thực"
@@ -467,7 +467,7 @@ export const ManageUser: React.FC = () => {
                                                                     : user._id
                                                             )
                                                         }
-                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                                                         title="More options"
                                                     >
                                                         <MoreVertical className="w-5 h-5 text-gray-600" />
@@ -482,7 +482,7 @@ export const ManageUser: React.FC = () => {
                                                                         user
                                                                     )
                                                                 }
-                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors cursor-pointer"
                                                             >
                                                                 Edit
                                                             </button>
@@ -601,13 +601,13 @@ export const ManageUser: React.FC = () => {
                             <div className="flex gap-2 md:gap-3">
                                 <button
                                     onClick={() => setEditingUser(null)}
-                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium text-sm md:text-base hover:bg-gray-50 transition-colors"
+                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium text-sm md:text-base hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveEdit}
-                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl bg-yellow-600 text-white font-medium text-sm md:text-base hover:bg-yellow-700 transition-colors"
+                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl bg-yellow-600 text-white font-medium text-sm md:text-base hover:bg-yellow-700 transition-colors cursor-pointer"
                                 >
                                     Save
                                 </button>
