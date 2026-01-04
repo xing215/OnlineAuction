@@ -18,4 +18,7 @@ router.post("/:id/unlock", authMiddleware, authMiddleware.adminMiddleware, userC
 // PUT /api/users/:id - Update user
 router.put("/:id", authMiddleware, authMiddleware.adminMiddleware, userController.updateUser);
 
+// DELETE /api/users/:id - Delete user (admin only)
+router.delete("/:id", authMiddleware, authMiddleware.adminMiddleware, userController.deleteUser);
+
 module.exports = router;
