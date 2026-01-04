@@ -38,6 +38,12 @@ router.get('/top-bidding', productController.getTopBidding);
 // GET /api/products/top-price - get products with highest current price
 router.get('/top-price', productController.getTopPrice);
 
+// GET /api/products/my-bidding - get products user is bidding on
+router.get('/my-bidding', authMiddleware, productController.getMyBiddingProducts);
+
+// GET /api/products/my-won - get products user has won
+router.get('/my-won', authMiddleware, productController.getMyWonProducts);
+
 // GET /api/products - must be last to avoid route conflicts
 router.get('/', productController.getProducts);
 

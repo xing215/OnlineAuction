@@ -67,6 +67,7 @@ const ProductSchema = new Schema(
 ProductSchema.index({
     name: "text",
     category_name: "text",
+    description: "text",
 });
 ProductSchema.index({ status: 1, end_date: 1 });
 ProductSchema.index({ status: 1, bid_count: -1 });
