@@ -7,13 +7,19 @@ const { sendBannedBidderEmail } = require("../utils/emailService");
 const { sendUnbannedBidderEmail } = require("../utils/emailService");
 const User = require("../models/User");
 
-// Helper function to mask user name
+// Helper function to mask user name - format: n*d*h*a
 function maskUserName(fullName) {
-    if (!fullName) return "****User";
+    if (!fullName) return "****";
     const name = fullName.trim();
-    const parts = name.split(" ");
-    const lastName = parts[parts.length - 1];
-    return `****${lastName}`;
+    if (name.length === 0) return "****";
+    
+    // All Vietnamese vowels (with and without diacritics, both lowercase and uppercase)
+    const vowelChars = /[aàáảãạâấầẩẫậăắằẳẵặeèéẻẽẹêếềểễệiìíỉĩịoòóỏõọôốồổỗộơớờởỡợuùúủũụưứừửữựyỳýỷỹỵAÀÁẢÃẠÂẤẦẨẪẬĂẮẰẲẴẶEÈÉẺẼẸÊẾỀỂỄỆIÌÍỈĨỊOÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢUÙÚỦŨỤƯỨỪỬỮỰYỲÝỶỸỴ]/;
+    
+    // Replace all vowels with asterisks
+    return name.split("").map(char => {
+        return vowelChars.test(char) ? "*" : char;
+    }).join("");
 }
 
 // Create product handler supporting multipart uploads (req.files)
@@ -223,6 +229,13 @@ exports.getProducts = async (req, res) => {
             Product.countDocuments(filter),
         ]);
 
+        // Mask current_bidder names
+        products.forEach(product => {
+            if (product.current_bidder && product.current_bidder.full_name) {
+                product.current_bidder.full_name = maskUserName(product.current_bidder.full_name);
+            }
+        });
+
         // 6. RESPONSE
         res.json({
             success: true,
@@ -243,6 +256,13 @@ exports.getTopExpiring = async (req, res) => {
         const { limit = 5 } = req.query;
         const products = await Product.findTopExpiring(parseInt(limit));
 
+        // Mask current_bidder names
+        products.forEach(product => {
+            if (product.current_bidder && product.current_bidder.full_name) {
+                product.current_bidder.full_name = maskUserName(product.current_bidder.full_name);
+            }
+        });
+
         res.json({
             success: true,
             data: products,
@@ -258,6 +278,13 @@ exports.getTopBidding = async (req, res) => {
     try {
         const { limit = 5 } = req.query;
         const products = await Product.findTopBidding(parseInt(limit));
+
+        // Mask current_bidder names
+        products.forEach(product => {
+            if (product.current_bidder && product.current_bidder.full_name) {
+                product.current_bidder.full_name = maskUserName(product.current_bidder.full_name);
+            }
+        });
 
         res.json({
             success: true,
@@ -281,6 +308,11 @@ exports.getTopPrice = async (req, res) => {
             productData.current_price = productData.start_price;
         }
 
+        // Mask current_bidder name
+        if (productData.current_bidder && productData.current_bidder.full_name) {
+            productData.current_bidder.full_name = maskUserName(productData.current_bidder.full_name);
+        }
+
         res.json({ success: true, data: productData });
     } catch (error) {
         console.error("Error in getTopPrice:", error);
@@ -297,6 +329,11 @@ exports.getProductById = async (req, res) => {
             return res
                 .status(404)
                 .json({ success: false, message: "Product not found" });
+        }
+
+        // Mask current_bidder name
+        if (product.current_bidder && product.current_bidder.full_name) {
+            product.current_bidder.full_name = maskUserName(product.current_bidder.full_name);
         }
 
         res.json({ success: true, data: product });
@@ -328,6 +365,13 @@ exports.getProductsByCategory = async (req, res) => {
         })
             .populate("category", "name")
             .populate("current_bidder", "full_name");
+
+        // Mask current_bidder names
+        products.forEach(product => {
+            if (product.current_bidder && product.current_bidder.full_name) {
+                product.current_bidder.full_name = maskUserName(product.current_bidder.full_name);
+            }
+        });
 
         res.json({ success: true, data: products });
     } catch (error) {
@@ -464,12 +508,21 @@ exports.banBidder = async (req, res) => {
 
         await product.save();
 
+        // Mask current bidder name before returning
+        let maskedBidder = null;
+        if (newHighestBid && newHighestBid.user) {
+            maskedBidder = {
+                ...newHighestBid.user.toObject(),
+                full_name: maskUserName(newHighestBid.user.full_name)
+            };
+        }
+
         res.json({
             success: true,
             message: "User has been banned from bidding",
             data: {
                 currentPrice: product.current_price,
-                currentBidder: newHighestBid ? newHighestBid.user : null,
+                currentBidder: maskedBidder,
                 bidCount: product.bid_count,
             },
         });
@@ -715,6 +768,11 @@ exports.buyNow = async (req, res) => {
         await product.populate("category", "name");
         await product.populate("seller", "full_name email");
         await product.populate("current_bidder", "full_name email");
+
+        // Mask current_bidder name
+        if (product.current_bidder && product.current_bidder.full_name) {
+            product.current_bidder.full_name = maskUserName(product.current_bidder.full_name);
+        }
 
         res.json({
             success: true,
