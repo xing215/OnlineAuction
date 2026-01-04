@@ -417,6 +417,22 @@ export const ProductDetail: React.FC = () => {
         setIsModalOpen(true);
     };
 
+    const handleOpenRatingsModal = (
+        userId: string | null,
+        userName: string
+    ) => {
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để xem đánh giá");
+            navigate("/signin");
+            return;
+        }
+        setRatingsModalState({
+            isOpen: true,
+            userId,
+            userName,
+        });
+    };
+
     const timeRemaining = useMemo(() => {
         if (!product?.end_date) return "00:00:00";
         return getTimeRemaining(new Date(product.end_date));
@@ -467,7 +483,10 @@ export const ProductDetail: React.FC = () => {
                             </div>
                             <div className="flex gap-2">
                                 {[...Array(4)].map((_, i) => (
-                                    <div key={i} className="w-20 h-15 bg-gray-200 rounded animate-pulse"></div>
+                                    <div
+                                        key={i}
+                                        className="w-20 h-15 bg-gray-200 rounded animate-pulse"
+                                    ></div>
                                 ))}
                             </div>
                         </div>
@@ -559,7 +578,10 @@ export const ProductDetail: React.FC = () => {
                         <div className="h-4 bg-gray-200 rounded animate-pulse w-64 mb-6"></div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[...Array(6)].map((_, i) => (
-                                <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
+                                <div
+                                    key={i}
+                                    className="bg-white rounded-lg shadow overflow-hidden"
+                                >
                                     <div className="aspect-square bg-gray-200 animate-pulse"></div>
                                     <div className="p-4">
                                         <div className="h-5 bg-gray-200 rounded animate-pulse mb-2"></div>
@@ -639,27 +661,37 @@ export const ProductDetail: React.FC = () => {
                                 className="absolute top-3 left-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:bg-white backdrop-blur-sm cursor-pointer"
                                 onClick={handleToggleFavorite}
                                 aria-label={
-                                    isLiked ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"
+                                    isLiked
+                                        ? "Xóa khỏi yêu thích"
+                                        : "Thêm vào yêu thích"
                                 }
                             >
                                 {isLiked ? (
                                     <Favorite
-                                        sx={{ color: "red", pointerEvents: "none" }}
+                                        sx={{
+                                            color: "red",
+                                            pointerEvents: "none",
+                                        }}
                                     />
                                 ) : (
                                     <FavoriteBorder
-                                        sx={{ color: "black", pointerEvents: "none" }}
+                                        sx={{
+                                            color: "black",
+                                            pointerEvents: "none",
+                                        }}
                                     />
                                 )}
                             </button>
-                            
+
                             {/* Image Indicators */}
                             {product.images && product.images.length > 1 && (
                                 <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
                                     {product.images.map((_, index) => (
                                         <button
                                             key={index}
-                                            onClick={() => setSelectedImageIndex(index)}
+                                            onClick={() =>
+                                                setSelectedImageIndex(index)
+                                            }
                                             className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
                                                 index === selectedImageIndex
                                                     ? "bg-yellow-600 w-6"
@@ -709,11 +741,10 @@ export const ProductDetail: React.FC = () => {
                                     </span>
                                     <button
                                         onClick={() =>
-                                            setRatingsModalState({
-                                                isOpen: true,
-                                                userId: seller?.id || null,
-                                                userName: seller?.full_name || "",
-                                            })
+                                            handleOpenRatingsModal(
+                                                seller?.id || null,
+                                                seller?.full_name || ""
+                                            )
                                         }
                                         className="text-yellow-600 font-medium hover:underline cursor-pointer"
                                     >
@@ -721,11 +752,10 @@ export const ProductDetail: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() =>
-                                            setRatingsModalState({
-                                                isOpen: true,
-                                                userId: seller?.id || null,
-                                                userName: seller?.full_name || "",
-                                            })
+                                            handleOpenRatingsModal(
+                                                seller?.id || null,
+                                                seller?.full_name || ""
+                                            )
                                         }
                                         className="flex items-center gap-1.5 text-xs ml-2 hover:opacity-80 cursor-pointer"
                                     >
@@ -793,25 +823,28 @@ export const ProductDetail: React.FC = () => {
                                     product.current_bidder?.full_name ? (
                                         <button
                                             onClick={() =>
-                                                setRatingsModalState({
-                                                    isOpen: true,
-                                                    userId:
-                                                        product.current_bidder &&
+                                                handleOpenRatingsModal(
+                                                    product.current_bidder &&
                                                         typeof product.current_bidder ===
                                                             "object"
-                                                            ? (product.current_bidder as User & { _id?: string })._id ||
-                                                              (product.current_bidder as User).id ||
+                                                        ? (
+                                                              product.current_bidder as User & {
+                                                                  _id?: string;
+                                                              }
+                                                          )._id ||
+                                                              (
+                                                                  product.current_bidder as User
+                                                              ).id ||
                                                               null
-                                                            : null,
-                                                    userName:
-                                                        typeof product.current_bidder ===
-                                                            "object" &&
+                                                        : null,
+                                                    typeof product.current_bidder ===
+                                                        "object" &&
                                                         product.current_bidder
                                                             ?.full_name
-                                                            ? product.current_bidder
-                                                                  .full_name
-                                                            : "",
-                                                })
+                                                        ? product.current_bidder
+                                                              .full_name
+                                                        : ""
+                                                )
                                             }
                                             className="text-gray-800 font-medium hover:underline cursor-pointer"
                                         >
@@ -828,28 +861,30 @@ export const ProductDetail: React.FC = () => {
                                             ?.rating_summary && (
                                             <button
                                                 onClick={() =>
-                                                    setRatingsModalState({
-                                                        isOpen: true,
-                                                        userId:
-                                                            product.current_bidder &&
+                                                    handleOpenRatingsModal(
+                                                        product.current_bidder &&
                                                             typeof product.current_bidder ===
                                                                 "object"
-                                                                ? (product.current_bidder as User & { _id?: string })
-                                                                      ._id ||
-                                                                  (product.current_bidder as User)
-                                                                      .id ||
+                                                            ? (
+                                                                  product.current_bidder as User & {
+                                                                      _id?: string;
+                                                                  }
+                                                              )._id ||
+                                                                  (
+                                                                      product.current_bidder as User
+                                                                  ).id ||
                                                                   null
-                                                                : null,
-                                                        userName:
-                                                            typeof product.current_bidder ===
-                                                                "object" &&
-                                                            product.current_bidder
+                                                            : null,
+                                                        typeof product.current_bidder ===
+                                                            "object" &&
+                                                            product
+                                                                .current_bidder
                                                                 ?.full_name
-                                                                ? product
-                                                                      .current_bidder
-                                                                      .full_name
-                                                                : "",
-                                                    })
+                                                            ? product
+                                                                  .current_bidder
+                                                                  .full_name
+                                                            : ""
+                                                    )
                                                 }
                                                 className="flex items-center gap-1.5 text-xs ml-2 hover:opacity-80 cursor-pointer"
                                             >
