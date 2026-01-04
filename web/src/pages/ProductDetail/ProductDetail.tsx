@@ -29,6 +29,7 @@ export const ProductDetail: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [isImageTransitioning, setIsImageTransitioning] = useState(false);
     //const [bidAmount, setBidAmount] = useState("");
     const [activeTab, setActiveTab] = useState<
         "description" | "history" | "qna"
@@ -389,6 +390,24 @@ export const ProductDetail: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
+    // Auto slideshow for product images (5 seconds per image)
+    useEffect(() => {
+        if (!product?.images || product.images.length <= 1) return;
+
+        const slideshowTimer = setInterval(() => {
+            setIsImageTransitioning(true);
+            setTimeout(() => {
+                setSelectedImageIndex((prevIndex) => {
+                    const nextIndex = prevIndex + 1;
+                    return nextIndex >= product.images.length ? 0 : nextIndex;
+                });
+                setTimeout(() => setIsImageTransitioning(false), 50);
+            }, 300);
+        }, 5000); // Change image every 5 seconds
+
+        return () => clearInterval(slideshowTimer);
+    }, [product?.images]);
+
     const handleBidClick = () => {
         if (!user || !token) {
             toast.error("Vui lòng đăng nhập để mua sản phẩm");
@@ -605,9 +624,14 @@ export const ProductDetail: React.FC = () => {
                         <div className="w-full aspect-4/3 bg-gray-100 rounded-lg overflow-hidden relative">
                             {mainImage && (
                                 <img
+                                    key={selectedImageIndex}
                                     src={mainImage}
                                     alt={product.name}
-                                    className="w-full h-full object-cover"
+                                    className={`w-full h-full object-cover transition-all duration-700 ease-in-out ${
+                                        isImageTransitioning
+                                            ? "opacity-0 scale-95"
+                                            : "opacity-100 scale-100"
+                                    }`}
                                 />
                             )}
                             <button
@@ -628,6 +652,24 @@ export const ProductDetail: React.FC = () => {
                                     />
                                 )}
                             </button>
+                            
+                            {/* Image Indicators */}
+                            {product.images && product.images.length > 1 && (
+                                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+                                    {product.images.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setSelectedImageIndex(index)}
+                                            className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                                                index === selectedImageIndex
+                                                    ? "bg-yellow-600 w-6"
+                                                    : "bg-white/70 hover:bg-white"
+                                            }`}
+                                            aria-label={`Xem hình ${index + 1}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         {product.images && product.images.length > 1 && (
                             <div className="flex gap-2 overflow-x-auto">
