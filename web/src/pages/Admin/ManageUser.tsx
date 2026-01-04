@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
@@ -32,6 +32,7 @@ export const ManageUser: React.FC = () => {
     const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const { token } = useUser();
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -57,6 +58,22 @@ export const ManageUser: React.FC = () => {
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setOpenDropdown(null);
+            }
+        };
+
+        if (openDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openDropdown]);
 
     const filteredUsers = useMemo(() => {
         return users.filter((user) => {
@@ -475,7 +492,7 @@ export const ManageUser: React.FC = () => {
 
                                                     {openDropdown ===
                                                         user._id && (
-                                                        <div className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                                        <div ref={dropdownRef} className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                                             <button
                                                                 onClick={() =>
                                                                     handleEditClick(
