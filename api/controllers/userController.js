@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const { sendAccountDeletedEmail } = require("../utils/emailService");
+const { sendAccountDeletedEmail, sendPasswordResetEmail } = require("../utils/emailService");
 
 // GET all users
 exports.getAllUsers = async (req, res) => {
@@ -199,6 +199,53 @@ exports.updateUser = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to update user",
+        });
+    }
+};
+
+// Reset user password (admin only)
+exports.resetPassword = async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admin only.",
+            });
+        }
+
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Generate a new random password
+        const newPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).substring(0, 4);
+
+        // Update password
+        user.password = newPassword;
+        await user.save();
+
+        // Send email with new password
+        await sendPasswordResetEmail({
+            userEmail: user.email,
+            userName: user.full_name,
+            newPassword: newPassword,
+        });
+
+        res.json({
+            success: true,
+            message: "Password reset successfully. New password sent to user's email.",
+        });
+    } catch (error) {
+        console.error("Error resetting password:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to reset password",
         });
     }
 };
