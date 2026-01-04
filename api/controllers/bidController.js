@@ -659,7 +659,7 @@ exports.getMyBiddingProducts = async (req, res) => {
                     }),
                     current_bidder:
                         currentBid && currentBid.user
-                            ? { full_name: currentBid.user.full_name }
+                            ? { _id: currentBid.user._id, full_name: currentBid.user.full_name }
                             : null,
                     my_highest_bid: userHighestBid
                         ? userHighestBid.price

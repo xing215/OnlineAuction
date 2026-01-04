@@ -26,6 +26,8 @@ export interface Product {
     current_bidder?:
         | string
         | {
+              _id?: string;
+              id?: string;
               full_name: string;
               rating_summary?: {
                   positive_count: number;

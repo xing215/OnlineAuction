@@ -216,7 +216,7 @@ exports.getProducts = async (req, res) => {
             Product.find(filter, projection)
                 .populate("category", "name")
                 .populate("seller", "full_name")
-                .populate("current_bidder", "full_name")
+                .populate("current_bidder", "_id full_name")
                 .sort(sortOption)
                 .skip(skip)
                 .limit(limitNum),

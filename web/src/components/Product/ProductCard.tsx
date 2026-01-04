@@ -7,6 +7,7 @@ import {
     Favorite,
     FavoriteBorder,
     Gavel,
+    ThumbUp,
 } from "@mui/icons-material";
 import { useUser } from "../../context/useUser";
 import { apiUrl } from "../../config/api";
@@ -227,6 +228,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         }
     };
 
+    // Check if current user is the highest bidder
+    const isCurrentUserHighestBidder = useMemo(() => {
+        if (!user || !product.current_bidder) return false;
+        if (typeof product.current_bidder === 'object') {
+            return String(product.current_bidder._id || product.current_bidder.id) === String(user._id || user.id);
+        }
+        return false;
+    }, [user, product.current_bidder]);
+
     return (
         <article className="group flex w-[200px] flex-col shrink-0 rounded-2xl bg-white transition-all duration-300 hover:shadow-sm sm:w-[280px]">
             <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-t-2xl bg-gray-200 sm:h-[280px] cursor-pointer">
@@ -257,11 +267,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </div>
                 )}
 
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
-                    <AccessTime sx={{ color: "black" }} />
-                    <span className="text-xs font-semibold text-gray-800">
-                        {timeRemaining}
-                    </span>
+                <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+                        <AccessTime sx={{ color: "black" }} />
+                        <span className="text-xs font-semibold text-gray-800">
+                            {timeRemaining}
+                        </span>
+                    </div>
+                    {isCurrentUserHighestBidder && (
+                        <div className="flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+                            <ThumbUp sx={{ color: "green" }} />
+                            <span className="text-xs font-semibold text-green-800">
+                                Bạn đang dẫn đầu
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <button
