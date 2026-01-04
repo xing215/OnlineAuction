@@ -9,6 +9,9 @@ router.post("/place", authMiddleware, bidController.placeBid);
 // GET /api/bids/product/:productId - Get bid history
 router.get("/product/:productId", bidController.getBidHistory);
 
+// GET /api/bids/product/:productId/manage - Get bidders for management (product owner only)
+router.get("/product/:productId/manage", authMiddleware, bidController.getBiddersForManagement);
+
 // GET /api/bids/product/:productId/current - Get current bid info
 router.get("/product/:productId/current", bidController.getCurrentBid);
 

@@ -14,6 +14,7 @@ import {
     BidderManagerModal,
 } from "../../components/ProductDetail";
 import { BannedBidderModal } from "../../components/ProductDetail/BannedBidderModal";
+import { UserRatingsModal } from "../../components/ProductDetail/UserRatingsModal";
 import { placeBid, getMyAutoBid } from "../../hooks/usePlaceBid";
 import { BidHistoryTable } from "../../components/ProductDetail/History";
 import toast from "react-hot-toast";
@@ -42,6 +43,11 @@ export const ProductDetail: React.FC = () => {
     const [isBidderManagerOpen, setIsBidderManagerOpen] = useState(false);
     const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [ratingsModalState, setRatingsModalState] = useState<{
+        isOpen: boolean;
+        userId: string | null;
+        userName: string;
+    }>({ isOpen: false, userId: null, userName: "" });
     const { user, token, refreshUser } = useUser();
     const [, setTick] = useState(0);
 
@@ -659,10 +665,28 @@ export const ProductDetail: React.FC = () => {
                                     <span className="text-gray-600">
                                         Người bán:
                                     </span>
-                                    <span className="text-yellow-600 font-medium">
+                                    <button
+                                        onClick={() =>
+                                            setRatingsModalState({
+                                                isOpen: true,
+                                                userId: seller?.id || null,
+                                                userName: seller?.full_name || "",
+                                            })
+                                        }
+                                        className="text-yellow-600 font-medium hover:underline cursor-pointer"
+                                    >
                                         {seller?.full_name}
-                                    </span>
-                                    <span className="flex items-center gap-1.5 text-xs ml-2">
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            setRatingsModalState({
+                                                isOpen: true,
+                                                userId: seller?.id || null,
+                                                userName: seller?.full_name || "",
+                                            })
+                                        }
+                                        className="flex items-center gap-1.5 text-xs ml-2 hover:opacity-80 cursor-pointer"
+                                    >
                                         <ThumbsUp
                                             fill="#D5AD41"
                                             strokeWidth={0.5}
@@ -681,7 +705,7 @@ export const ProductDetail: React.FC = () => {
                                             {seller?.rating_summary
                                                 .negative_count || 0}
                                         </span>
-                                    </span>
+                                    </button>
                                 </div>
 
                                 <div className="flex gap-1">
@@ -722,18 +746,71 @@ export const ProductDetail: React.FC = () => {
                                     <span className="text-gray-600">
                                         Người đặt giá cao nhất:
                                     </span>
-                                    <span className="text-gray-800 font-medium">
-                                        {typeof product.current_bidder ===
-                                            "object" &&
-                                        product.current_bidder?.full_name
-                                            ? product.current_bidder.full_name
-                                            : "Chưa có ai đặt giá"}
-                                    </span>
+                                    {typeof product.current_bidder ===
+                                        "object" &&
+                                    product.current_bidder?.full_name ? (
+                                        <button
+                                            onClick={() =>
+                                                setRatingsModalState({
+                                                    isOpen: true,
+                                                    userId:
+                                                        product.current_bidder &&
+                                                        typeof product.current_bidder ===
+                                                            "object"
+                                                            ? (product.current_bidder as User & { _id?: string })._id ||
+                                                              (product.current_bidder as User).id ||
+                                                              null
+                                                            : null,
+                                                    userName:
+                                                        typeof product.current_bidder ===
+                                                            "object" &&
+                                                        product.current_bidder
+                                                            ?.full_name
+                                                            ? product.current_bidder
+                                                                  .full_name
+                                                            : "",
+                                                })
+                                            }
+                                            className="text-gray-800 font-medium hover:underline cursor-pointer"
+                                        >
+                                            {product.current_bidder.full_name}
+                                        </button>
+                                    ) : (
+                                        <span className="text-gray-800 font-medium">
+                                            Chưa có ai đặt giá
+                                        </span>
+                                    )}
                                     {typeof product.current_bidder ===
                                         "object" &&
                                         product.current_bidder
                                             ?.rating_summary && (
-                                            <span className="flex items-center gap-1.5 text-xs ml-2">
+                                            <button
+                                                onClick={() =>
+                                                    setRatingsModalState({
+                                                        isOpen: true,
+                                                        userId:
+                                                            product.current_bidder &&
+                                                            typeof product.current_bidder ===
+                                                                "object"
+                                                                ? (product.current_bidder as User & { _id?: string })
+                                                                      ._id ||
+                                                                  (product.current_bidder as User)
+                                                                      .id ||
+                                                                  null
+                                                                : null,
+                                                        userName:
+                                                            typeof product.current_bidder ===
+                                                                "object" &&
+                                                            product.current_bidder
+                                                                ?.full_name
+                                                                ? product
+                                                                      .current_bidder
+                                                                      .full_name
+                                                                : "",
+                                                    })
+                                                }
+                                                className="flex items-center gap-1.5 text-xs ml-2 hover:opacity-80 cursor-pointer"
+                                            >
                                                 <ThumbsUp
                                                     fill="#D5AD41"
                                                     strokeWidth={0.5}
@@ -754,7 +831,7 @@ export const ProductDetail: React.FC = () => {
                                                         .rating_summary
                                                         .negative_count || 0}
                                                 </span>
-                                            </span>
+                                            </button>
                                         )}
                                     <span className="text-gray-600 ml-auto">
                                         {product.bid_count} lượt đặt giá
@@ -944,6 +1021,20 @@ export const ProductDetail: React.FC = () => {
                     confirmText="Mua ngay"
                     type="warning"
                     isLoading={isBidLoading}
+                />
+
+                {/* User Ratings Modal */}
+                <UserRatingsModal
+                    isOpen={ratingsModalState.isOpen}
+                    onClose={() =>
+                        setRatingsModalState({
+                            isOpen: false,
+                            userId: null,
+                            userName: "",
+                        })
+                    }
+                    userId={ratingsModalState.userId}
+                    userName={ratingsModalState.userName}
                 />
             </div>
         </div>
