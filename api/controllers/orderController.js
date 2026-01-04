@@ -7,19 +7,22 @@ const { uploadMultipleToCloudinary } = require("../utils/cloudinary");
 exports.getMyOrders = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { status, role } = req.query; // Thêm role filter
+    const { status, role, user } = req.query; // Thêm user filter
 
     // Query: Là người bán HOẶC người thắng
     let query = {};
 
+    // Nếu có query param 'user', lấy orders của userId đó (public endpoint)
+    const targetUserId = user || userId;
+
     // Filter theo role
     if (role === 'seller') {
-      query.seller = userId;
+      query.seller = targetUserId;
     } else if (role === 'buyer') {
-      query.winner = userId;
+      query.winner = targetUserId;
     } else {
       // Mặc định: Cả người bán VÀ người mua
-      query.$or = [{ seller: userId }, { winner: userId }];
+      query.$or = [{ seller: targetUserId }, { winner: targetUserId }];
     }
 
     if (status && status !== "all") {
