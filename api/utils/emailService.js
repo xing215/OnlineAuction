@@ -786,6 +786,69 @@ const sendAuctionWonEmail = async ({
     }
 };
 
+const sendDescriptionUpdateEmail = async ({
+    bidderEmail,
+    bidderName,
+    productName,
+    productId,
+    sellerName,
+}) => {
+    try {
+        const transporter = createTransport();
+
+        const maskedSellerName = maskName(sellerName);
+        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: bidderEmail,
+            subject: `Cập nhật mô tả sản phẩm: ${productName}`,
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                
+                <div style="background-color: #f59e0b; height: 6px; width: 100%;"></div>
+                
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Thông tin sản phẩm đã được cập nhật!
+                </h2>
+                
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                    Xin chào <strong>${bidderName}</strong>,<br>
+                    Người bán <strong>${maskedSellerName}</strong> vừa cập nhật mô tả cho sản phẩm <strong style="color: #d97706;">${productName}</strong> mà bạn đã từng đấu giá.
+                </p>
+
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <a href="${productUrl}" 
+                    style="display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);">
+                    Xem chi tiết sản phẩm
+                    </a>
+                </div>
+                
+                </div>
+
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá.<br>
+                    Vui lòng không trả lời trực tiếp email này.
+                </p>
+                </div>
+            </div>
+            </div>
+        `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(
+            "Email thông báo cập nhật mô tả đã được gửi đến:",
+            bidderEmail
+        );
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo cập nhật mô tả:", error);
+    }
+};
+
 module.exports = {
     sendNewQuestionEmail,
     sendOTPEmail,
@@ -798,5 +861,6 @@ module.exports = {
     sendAuctionExpiredEmail,
     sendAuctionEndedToSellerEmail,
     sendAuctionWonEmail,
+    sendDescriptionUpdateEmail,
     maskName,
 };

@@ -5,6 +5,7 @@ const { uploadMultipleToCloudinary } = require("../utils/cloudinary");
 const Category = require("../models/Category");
 const { sendBannedBidderEmail } = require("../utils/emailService");
 const { sendUnbannedBidderEmail } = require("../utils/emailService");
+const { sendDescriptionUpdateEmail } = require("../utils/emailService");
 const User = require("../models/User");
 
 // Helper function to mask user name
@@ -630,6 +631,49 @@ exports.updateProductDescription = async (req, res) => {
         );
 
         res.json({ success: true, data: updatedProduct });
+
+        // Send emails in background (after response)
+        (async () => {
+            try {
+                const bids = await Bid.find({ product: productId })
+                    .populate('user', 'email full_name')
+                    .lean();
+
+                // Create a map to get unique bidders
+                const uniqueBiddersMap = new Map();
+                bids.forEach(bid => {
+                    if (bid.user && bid.user._id) {
+                        const bidderId = bid.user._id.toString();
+                        if (!uniqueBiddersMap.has(bidderId)) {
+                            uniqueBiddersMap.set(bidderId, bid.user);
+                        }
+                    }
+                });
+
+                // Get seller information
+                const seller = await User.findById(product.seller).select('full_name email');
+
+                // Send email to each unique bidder
+                const emailPromises = Array.from(uniqueBiddersMap.values()).map(bidder => {
+                    return sendDescriptionUpdateEmail({
+                        bidderEmail: bidder.email,
+                        bidderName: bidder.full_name,
+                        productName: product.name,
+                        productId: product._id,
+                        sellerName: seller ? seller.full_name : 'Người bán',
+                    }).catch(emailError => {
+                        console.error(`Failed to send description update email to ${bidder.email}:`, emailError);
+                    });
+                });
+
+                // Send all emails in parallel
+                await Promise.all(emailPromises);
+                console.log(`Sent description update emails to ${uniqueBiddersMap.size} bidders`);
+            } catch (emailError) {
+                console.error('Error sending description update emails:', emailError);
+            }
+        })();
+        
     } catch (error) {
         console.error("Error in updateProductDescription:", error);
         if (error.message === "Product not found") {
