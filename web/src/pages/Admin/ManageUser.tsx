@@ -36,6 +36,7 @@ export const ManageUser: React.FC = () => {
     const { token } = useUser();
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [userToResetPassword, setUserToResetPassword] = useState<User | null>(null);
     const { showSuccess, showError } = useToast();
 
     const fetchUsers = useCallback(async () => {
@@ -184,6 +185,11 @@ export const ManageUser: React.FC = () => {
         setOpenDropdown(null);
     };
 
+    const handleResetPasswordClick = (user: User) => {
+        setUserToResetPassword(user);
+        setOpenDropdown(null);
+    };
+
     const handleConfirmDelete = async () => {
         if (!userToDelete) return;
         try {
@@ -207,6 +213,31 @@ export const ManageUser: React.FC = () => {
         } catch (error) {
             console.error("Failed to delete user:", error);
             showError("Đã xảy ra lỗi khi xóa người dùng.");
+        }
+    };
+
+    const handleConfirmResetPassword = async () => {
+        if (!userToResetPassword) return;
+        try {
+            const response = await fetch(
+                apiUrl(`/api/users/${userToResetPassword._id}/reset-password`),
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.ok) {
+                showSuccess(`Mật khẩu mới đã được gửi đến email của ${userToResetPassword.email}.`);
+                setUserToResetPassword(null);
+            } else {
+                showError("Không thể đặt lại mật khẩu. Vui lòng thử lại.");
+            }
+        } catch (error) {
+            console.error("Failed to reset password:", error);
+            showError("Đã xảy ra lỗi khi đặt lại mật khẩu.");
         }
     };
 
@@ -527,7 +558,7 @@ export const ManageUser: React.FC = () => {
 
                                                     {openDropdown ===
                                                         user._id && (
-                                                        <div ref={dropdownRef} className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                                        <div ref={dropdownRef} className="absolute right-0 mt-0 w-42 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                                             <button
                                                                 onClick={() =>
                                                                     handleEditClick(
@@ -537,6 +568,16 @@ export const ManageUser: React.FC = () => {
                                                                 className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors cursor-pointer"
                                                             >
                                                                 Edit
+                                                            </button>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleResetPasswordClick(
+                                                                        user
+                                                                    )
+                                                                }
+                                                                className="w-full text-left px-4 py-3 hover:bg-blue-50 text-blue-700 font-medium transition-colors cursor-pointer"
+                                                            >
+                                                                Reset Password
                                                             </button>
                                                             <button
                                                                 onClick={() =>
@@ -688,6 +729,18 @@ export const ManageUser: React.FC = () => {
                     confirmText="Xóa"
                     cancelText="Hủy"
                     type="danger"
+                />
+
+                {/* Reset Password Confirmation Modal */}
+                <ConfirmModal
+                    isOpen={!!userToResetPassword}
+                    onClose={() => setUserToResetPassword(null)}
+                    onConfirm={handleConfirmResetPassword}
+                    title="Đặt lại mật khẩu"
+                    message={`Bạn có chắc chắn muốn đặt lại mật khẩu cho người dùng "${userToResetPassword?.full_name}" (${userToResetPassword?.email}) không?\n\nMật khẩu mới sẽ được gửi qua email người dùng.`}
+                    confirmText="Đặt lại"
+                    cancelText="Hủy"
+                    type="warning"
                 />
             </div>
         </AdminLayout>

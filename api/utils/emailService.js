@@ -920,6 +920,70 @@ const sendAccountDeletedEmail = async ({ userEmail, userName }) => {
     }
 };
 
+const sendPasswordResetEmail = async ({ userEmail, userName, newPassword }) => {
+    try {
+        const transporter = createTransport();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: "Mật khẩu mới cho tài khoản của bạn",
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                
+                <div style="background-color: #f59e0b; height: 6px; width: 100%;"></div>
+                
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Mật khẩu mới cho tài khoản của bạn
+                </h2>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Xin chào <strong>${userName}</strong>,
+                </p>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Quản trị viên đã đặt lại mật khẩu cho tài khoản của bạn. Đây là mật khẩu mới:
+                </p>
+                
+                <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; margin: 20px 0;">
+                    <p style="color: #92400e; font-size: 14px; margin: 0; font-weight: 500; text-transform: uppercase;">
+                        Mật khẩu mới:
+                    </p>
+                    <p style="color: #1f2937; font-size: 18px; margin: 10px 0 0 0; font-weight: bold; font-family: 'Courier New', monospace;">
+                        ${newPassword}
+                    </p>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Vui lòng đăng nhập và thay đổi mật khẩu ngay lập tức để đảm bảo an toàn cho tài khoản.
+                </p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="${process.env.FRONTEND_URL}/signin" style="background-color: #f59e0b; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                        Đăng nhập ngay
+                    </a>
+                </div>
+                </div>
+                
+                <div style="background-color: #f9fafb; padding: 20px 30px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá trực tuyến. Vui lòng không trả lời email này.
+                </p>
+                </div>
+            </div>
+            </div>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Email thông báo mật khẩu mới đã được gửi đến:", userEmail);
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo mật khẩu mới:", error);
+    }
+};
+
 module.exports = {
     sendNewQuestionEmail,
     sendOTPEmail,
@@ -934,5 +998,6 @@ module.exports = {
     sendAuctionWonEmail,
     sendDescriptionUpdateEmail,
     sendAccountDeletedEmail,
+    sendPasswordResetEmail,
     maskName,
 };
