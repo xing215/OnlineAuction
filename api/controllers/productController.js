@@ -172,7 +172,7 @@ exports.getProducts = async (req, res) => {
         }
         // 1. FULL-TEXT SEARCH
         if (search && search.trim() !== "") {
-            filter.$text = { $search: search };
+            filter.$text = { $search: `"${search}"` };
         }
 
         // 2. CATEGORY FILTER + SUBCATEGORIES
