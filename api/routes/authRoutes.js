@@ -6,6 +6,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 // Public: Login
 router.post("/login", authController.login);
 
+// Public: Login - verify OTP for unverified accounts
+router.post("/login-verify", authController.loginVerify);
+
 // Public: Register - request OTP
 router.post("/register", authController.register);
 
