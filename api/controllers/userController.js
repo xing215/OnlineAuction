@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { sendAccountDeletedEmail } = require("../utils/emailService");
 
 // GET all users
 exports.getAllUsers = async (req, res) => {
@@ -198,6 +199,45 @@ exports.updateUser = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to update user",
+        });
+    }
+};
+
+// DELETE user by ID (admin only)
+exports.deleteUser = async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied.",
+            });
+        }
+
+        const user = await User.findByIdAndDelete(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Send email notification to the deleted user
+        await sendAccountDeletedEmail({
+            userEmail: user.email,
+            userName: user.full_name,
+        });
+
+        res.json({
+            success: true,
+            message: "User deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete user",
         });
     }
 };

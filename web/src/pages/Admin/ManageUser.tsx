@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { formatDate } from "../../utilities/FormatDate";
 import { useUser } from "../../context/useUser";
 import { AdminLayout } from "../../components/Admin";
+import { ConfirmModal } from "../../components/ConfirmModal";
+import { useToast } from "../../hooks/useToast";
 
 interface User {
     _id: string;
@@ -32,6 +34,9 @@ export const ManageUser: React.FC = () => {
     const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const { token } = useUser();
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const { showSuccess, showError } = useToast();
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -57,6 +62,22 @@ export const ManageUser: React.FC = () => {
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setOpenDropdown(null);
+            }
+        };
+
+        if (openDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openDropdown]);
 
     const filteredUsers = useMemo(() => {
         return users.filter((user) => {
@@ -158,6 +179,37 @@ export const ManageUser: React.FC = () => {
         setOpenDropdown(null);
     };
 
+    const handleDeleteClick = (user: User) => {
+        setUserToDelete(user);
+        setOpenDropdown(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) return;
+        try {
+            const response = await fetch(
+                apiUrl(`/api/users/${userToDelete._id}`),
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.ok) {
+                fetchUsers();
+                showSuccess(`Người dùng ${userToDelete.email} đã được xóa thành công.`);
+                setUserToDelete(null);
+            } else {
+                showError("Không thể xóa người dùng. Vui lòng thử lại.");
+            }
+        } catch (error) {
+            console.error("Failed to delete user:", error);
+            showError("Đã xảy ra lỗi khi xóa người dùng.");
+        }
+    };
+
     const handleSaveEdit = async () => {
         if (!editingUser) return;
         try {
@@ -223,7 +275,7 @@ export const ManageUser: React.FC = () => {
                                     onClick={() =>
                                         setRoleDropdownOpen(!roleDropdownOpen)
                                     }
-                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                                 >
                                     <span>
                                         {filterRole === "all"
@@ -247,7 +299,7 @@ export const ManageUser: React.FC = () => {
                                                 setFilterRole("all");
                                                 setRoleDropdownOpen(false);
                                             }}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors cursor-pointer"
                                         >
                                             Tất cả vai trò
                                         </button>
@@ -264,7 +316,7 @@ export const ManageUser: React.FC = () => {
                                                     setFilterRole(role);
                                                     setRoleDropdownOpen(false);
                                                 }}
-                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0 cursor-pointer"
                                             >
                                                 {role.charAt(0).toUpperCase() +
                                                     role.slice(1)}
@@ -282,7 +334,7 @@ export const ManageUser: React.FC = () => {
                                             !statusDropdownOpen
                                         )
                                     }
-                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                                    className="bg-neutral-50 border border-gray-200 px-4 py-2 rounded-2xl text-sm font-medium text-gray-800 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                                 >
                                     <span>
                                         {filterStatus === "all"
@@ -309,7 +361,7 @@ export const ManageUser: React.FC = () => {
                                                 setFilterStatus("all");
                                                 setStatusDropdownOpen(false);
                                             }}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors"
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors cursor-pointer"
                                         >
                                             Tất cả trạng thái
                                         </button>
@@ -328,7 +380,7 @@ export const ManageUser: React.FC = () => {
                                                         false
                                                     );
                                                 }}
-                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0"
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium border-b border-gray-100 transition-colors last:border-b-0 cursor-pointer"
                                             >
                                                 {status === "unverified"
                                                     ? "Chưa xác thực"
@@ -467,7 +519,7 @@ export const ManageUser: React.FC = () => {
                                                                     : user._id
                                                             )
                                                         }
-                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                                                         title="More options"
                                                     >
                                                         <MoreVertical className="w-5 h-5 text-gray-600" />
@@ -475,16 +527,26 @@ export const ManageUser: React.FC = () => {
 
                                                     {openDropdown ===
                                                         user._id && (
-                                                        <div className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                                        <div ref={dropdownRef} className="absolute left-[-5px] mt-0 w-20 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                                             <button
                                                                 onClick={() =>
                                                                     handleEditClick(
                                                                         user
                                                                     )
                                                                 }
-                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+                                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors cursor-pointer"
                                                             >
                                                                 Edit
+                                                            </button>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDeleteClick(
+                                                                        user
+                                                                    )
+                                                                }
+                                                                className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-700 font-medium transition-colors cursor-pointer"
+                                                            >
+                                                                Delete
                                                             </button>
                                                         </div>
                                                     )}
@@ -601,13 +663,13 @@ export const ManageUser: React.FC = () => {
                             <div className="flex gap-2 md:gap-3">
                                 <button
                                     onClick={() => setEditingUser(null)}
-                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium text-sm md:text-base hover:bg-gray-50 transition-colors"
+                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl border border-gray-200 text-gray-700 font-medium text-sm md:text-base hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveEdit}
-                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl bg-yellow-600 text-white font-medium text-sm md:text-base hover:bg-yellow-700 transition-colors"
+                                    className="flex-1 px-3 md:px-4 py-2 md:py-3 rounded-2xl bg-yellow-600 text-white font-medium text-sm md:text-base hover:bg-yellow-700 transition-colors cursor-pointer"
                                 >
                                     Save
                                 </button>
@@ -615,6 +677,18 @@ export const ManageUser: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Delete Confirmation Modal */}
+                <ConfirmModal
+                    isOpen={!!userToDelete}
+                    onClose={() => setUserToDelete(null)}
+                    onConfirm={handleConfirmDelete}
+                    title="Xóa người dùng"
+                    message={`Bạn có chắc chắn muốn xóa người dùng "${userToDelete?.full_name}" (${userToDelete?.email}) không? Hành động này không thể hoàn tác.`}
+                    confirmText="Xóa"
+                    cancelText="Hủy"
+                    type="danger"
+                />
             </div>
         </AdminLayout>
     );
