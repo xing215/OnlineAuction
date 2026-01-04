@@ -14,6 +14,8 @@ import { apiUrl } from "../../config/api";
 import toast from "react-hot-toast";
 import { RatingModal } from "./RatingModal";
 import { ConfirmModal } from "../ConfirmModal";
+import { PlaceBidModal } from "../ProductDetail/PLaceBidModal";
+import { placeBid, getMyAutoBid, type MyAutoBidResponse } from "../../hooks/usePlaceBid";
 
 export interface ProductCardProps {
     product: Product & { order_id?: string };
@@ -35,6 +37,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
     const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [isPlaceBidModalOpen, setIsPlaceBidModalOpen] = useState(false);
+    const [isBidLoading, setIsBidLoading] = useState(false);
+    const [currentAutoBid, setCurrentAutoBid] = useState<MyAutoBidResponse["data"] | null>(null);
     const { user, token, refreshUser } = useUser();
 
     // Get product ID from _id field
@@ -70,9 +75,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     const primaryImage =
         product.images && product.images.length > 0 ? product.images[0] : "";
-    const currentPrice = product.current_price ?? product.start_price;
+    const currentPrice = product.current_price ?? product.start_price ?? 0;
     const buyNowPrice = product.buy_now_price ?? null;
     const bidCount = product.bid_count ?? 0;
+    const stepPrice = product.step_price ?? 0;
     const highestBidder =
         typeof product.current_bidder === "object" &&
         product.current_bidder?.full_name
@@ -83,6 +89,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const timeRemaining = getTimeRemaining(endDate);
     const startedAt = new Date(product.posted_at);
 
+    // Calculate minimum bid
+    const minimumBid = useMemo(() => {
+        if (!product.start_price || !stepPrice) return 0;
+        const hasNoBid =
+            !product.current_price ||
+            product.current_price === product.start_price;
+        return hasNoBid
+            ? product.start_price + stepPrice
+            : currentPrice + stepPrice;
+    }, [product.current_price, product.start_price, currentPrice, stepPrice]);
+
     useEffect(() => {
         const timer = setInterval(() => {
             setTick((t) => t + 1);
@@ -90,11 +107,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         return () => clearInterval(timer);
     }, []);
 
+    // Fetch auto-bid info when modal opens
+    useEffect(() => {
+        if (isPlaceBidModalOpen && user && token) {
+            const fetchAutoBid = async () => {
+                try {
+                    const autoBid = await getMyAutoBid(productId, token);
+                    setCurrentAutoBid(autoBid.data || null);
+                } catch (error) {
+                    console.error("Error fetching auto-bid:", error);
+                }
+            };
+            fetchAutoBid();
+        }
+    }, [isPlaceBidModalOpen, productId, user, token]);
+
     const handleImageError = () => {
         setImageError(true);
     };
 
-    const handleBidClick = async () => {
+    const handleBuyNowClick = async () => {
         if (!user || !token) {
             toast.error("Vui lòng đăng nhập để mua sản phẩm");
             navigate("/signin");
@@ -113,6 +145,68 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         // Show confirm modal
         setIsConfirmModalOpen(true);
+    };
+
+    const handlePlaceBidClick = () => {
+        if (!user || !token) {
+            toast.error("Vui lòng đăng nhập để đặt giá");
+            navigate("/signin");
+            return;
+        }
+        setIsPlaceBidModalOpen(true);
+    };
+
+    const handleBidConfirm = async (
+        bidAmount: number,
+        isAutoBid?: boolean,
+        maxBid?: number
+    ) => {
+        setIsBidLoading(true);
+        try {
+            if (!user || !token) {
+                toast.error("Vui lòng đăng nhập để đặt giá");
+                navigate("/signin");
+                return;
+            }
+
+            const response = await placeBid(
+                productId,
+                bidAmount,
+                token,
+                isAutoBid,
+                maxBid
+            );
+
+            if (response.success) {
+                const successMessage = response.data?.isLeading
+                    ? isAutoBid
+                        ? "Đặt giá tự động thành công! Bạn đang dẫn đầu."
+                        : "Đặt giá thành công! Bạn đang dẫn đầu."
+                    : isAutoBid
+                    ? "Đặt giá tự động thành công!"
+                    : "Đặt giá thành công!";
+
+                toast.success(successMessage);
+                setIsPlaceBidModalOpen(false);
+
+                // Reload page to get updated product data
+                window.location.reload();
+            } else {
+                toast.error(
+                    response.message ||
+                        "Đặt giá thất bại. Vui lòng thử lại."
+                );
+            }
+        } catch (error) {
+            console.error("Bid error:", error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Đặt giá thất bại. Vui lòng thử lại."
+            );
+        } finally {
+            setIsBidLoading(false);
+        }
     };
 
     const handleBuyNowConfirm = async () => {
@@ -365,7 +459,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     ? "flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-300 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:cursor-not-allowed"
                                     : "flex flex-1 items-center justify-between gap-2 rounded-full bg-[#D5AD41] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-yellow-600 hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             }
-                            onClick={handleBidClick}
+                            onClick={handleBuyNowClick}
                             disabled={isAuctionEnded || isBuyNowLoading}
                         >
                             <span>
@@ -402,12 +496,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     <button
                         type="button"
                         className="flex w-full items-center justify-between gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition-all duration-200 hover:bg-gray-50 cursor-pointer"
-                        onClick={handleBidClick}
+                        onClick={handlePlaceBidClick}
                     >
                         <span>Đặt giá</span>
                         <Gavel />
                     </button>
                 )}
+
+                <PlaceBidModal
+                    isOpen={isPlaceBidModalOpen}
+                    onClose={() => setIsPlaceBidModalOpen(false)}
+                    onConfirm={handleBidConfirm}
+                    currentPrice={currentPrice}
+                    stepPrice={stepPrice}
+                    minimumBid={minimumBid}
+                    isLoading={isBidLoading}
+                    currentAutoBid={currentAutoBid || null}
+                />
 
                 <RatingModal
                     isOpen={isFeedbackModalOpen}
