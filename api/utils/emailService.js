@@ -849,6 +849,71 @@ const sendDescriptionUpdateEmail = async ({
     }
 };
 
+const sendAccountDeletedEmail = async ({ userEmail, userName }) => {
+    try {
+        const transporter = createTransport();
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: "Tài khoản của bạn đã bị xóa",
+            html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 30px 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                
+                <div style="background-color: #dc2626; height: 6px; width: 100%;"></div>
+                
+                <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700;">
+                    Tài khoản của bạn đã bị xóa
+                </h2>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Xin chào <strong>${userName}</strong>,
+                </p>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn trên nền tảng đấu giá trực tuyến đã bị xóa bởi quản trị viên.
+                </p>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Nếu bạn tin rằng đây là một lỗi hoặc có bất kỳ câu hỏi nào, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi.
+                </p>
+                
+                <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0;">
+                    <p style="color: #991b1b; font-size: 14px; margin: 0; font-weight: 500;">
+                        Lưu ý: Bạn sẽ không thể truy cập vào tài khoản này nữa. Tất cả dữ liệu liên quan đã được xóa vĩnh viễn.
+                    </p>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                    Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.
+                </p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="${process.env.FRONTEND_URL}" style="background-color: #f59e0b; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                        Truy cập trang web
+                    </a>
+                </div>
+                </div>
+                
+                <div style="background-color: #f9fafb; padding: 20px 30px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+                    Email này được gửi tự động từ hệ thống đấu giá trực tuyến. Vui lòng không trả lời email này.
+                </p>
+                </div>
+            </div>
+            </div>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log("Email thông báo xóa tài khoản đã được gửi đến:", userEmail);
+    } catch (error) {
+        console.error("Lỗi khi gửi email thông báo xóa tài khoản:", error);
+    }
+};
+
 module.exports = {
     sendNewQuestionEmail,
     sendOTPEmail,
@@ -862,5 +927,6 @@ module.exports = {
     sendAuctionEndedToSellerEmail,
     sendAuctionWonEmail,
     sendDescriptionUpdateEmail,
+    sendAccountDeletedEmail,
     maskName,
 };

@@ -5,6 +5,7 @@ import { formatDate } from "../../utilities/FormatDate";
 import { useUser } from "../../context/useUser";
 import { AdminLayout } from "../../components/Admin";
 import { ConfirmModal } from "../../components/ConfirmModal";
+import { useToast } from "../../hooks/useToast";
 
 interface User {
     _id: string;
@@ -35,6 +36,7 @@ export const ManageUser: React.FC = () => {
     const { token } = useUser();
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const { showSuccess, showError } = useToast();
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -197,12 +199,14 @@ export const ManageUser: React.FC = () => {
 
             if (response.ok) {
                 fetchUsers();
+                showSuccess(`Người dùng ${userToDelete.email} đã được xóa thành công.`);
                 setUserToDelete(null);
             } else {
-                console.error("Failed to delete user");
+                showError("Không thể xóa người dùng. Vui lòng thử lại.");
             }
         } catch (error) {
             console.error("Failed to delete user:", error);
+            showError("Đã xảy ra lỗi khi xóa người dùng.");
         }
     };
 
@@ -680,7 +684,7 @@ export const ManageUser: React.FC = () => {
                     onClose={() => setUserToDelete(null)}
                     onConfirm={handleConfirmDelete}
                     title="Xóa người dùng"
-                    message={`Bạn có chắc chắn muốn xóa người dùng "${userToDelete?.full_name}" không? Hành động này không thể hoàn tác.`}
+                    message={`Bạn có chắc chắn muốn xóa người dùng "${userToDelete?.full_name}" (${userToDelete?.email}) không? Hành động này không thể hoàn tác.`}
                     confirmText="Xóa"
                     cancelText="Hủy"
                     type="danger"

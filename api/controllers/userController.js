@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { sendAccountDeletedEmail } = require("../utils/emailService");
 
 // GET all users
 exports.getAllUsers = async (req, res) => {
@@ -221,6 +222,12 @@ exports.deleteUser = async (req, res) => {
                 message: "User not found",
             });
         }
+
+        // Send email notification to the deleted user
+        await sendAccountDeletedEmail({
+            userEmail: user.email,
+            userName: user.full_name,
+        });
 
         res.json({
             success: true,
