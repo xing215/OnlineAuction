@@ -45,6 +45,20 @@ const AdminGuard = ({ children }: { children: React.ReactNode }) => {
     return <>{children}</>;
 };
 
+const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+    const { token, loading } = useUser();
+
+    if (loading) {
+        return <div>Loading...</div>; // or a proper loading component
+    }
+
+    if (token) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <>{children}</>;
+};
+
 function App() {
     return (
         <UserProvider>
@@ -125,15 +139,27 @@ function App() {
                         />
                         <Route
                             path={AUTH_ROUTES.SIGNIN}
-                            element={<SignInPage />}
+                            element={
+                                <AuthGuard>
+                                    <SignInPage />
+                                </AuthGuard>
+                            }
                         />
                         <Route
                             path={AUTH_ROUTES.SIGNUP}
-                            element={<SignUpPage />}
+                            element={
+                                <AuthGuard>
+                                    <SignUpPage />
+                                </AuthGuard>
+                            }
                         />
                         <Route
                             path={AUTH_ROUTES.FORGOT_PASSWORD}
-                            element={<ForgotPasswordPage />}
+                            element={
+                                <AuthGuard>
+                                    <ForgotPasswordPage />
+                                </AuthGuard>
+                            }
                         />
                         {/* Admin */}
                         <Route
