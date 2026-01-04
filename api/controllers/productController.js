@@ -185,10 +185,11 @@ exports.getProducts = async (req, res) => {
         // 3. SORT
         let sortOption = {};
 
-        if (search) {
-            // Nếu có text search -> ưu tiên relevance score
+        if (search && !sort) {
+            // Nếu có text search nhưng KHÔNG có sort parameter -> ưu tiên relevance score
             sortOption = { score: { $meta: "textScore" } };
-        } else {
+        } else if (sort) {
+            // Nếu có sort parameter -> áp dụng sort theo yêu cầu (kể cả khi có search)
             switch (sort) {
                 case "price_asc":
                     sortOption = { current_price: 1 };
@@ -206,9 +207,22 @@ exports.getProducts = async (req, res) => {
                     sortOption = { bid_count: -1 };
                     break;
                 case "newest":
+                    sortOption = { posted_at: -1 };
+                    break;
+                case "relevance":
+                    // Explicit relevance sort (chỉ hoạt động khi có search)
+                    if (search) {
+                        sortOption = { score: { $meta: "textScore" } };
+                    } else {
+                        sortOption = { posted_at: -1 }; // Fallback
+                    }
+                    break;
                 default:
                     sortOption = { posted_at: -1 };
             }
+        } else {
+            // Không có search và không có sort -> mặc định newest
+            sortOption = { posted_at: -1 };
         }
 
         // 4. PAGINATION
