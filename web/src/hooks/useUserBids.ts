@@ -40,7 +40,7 @@ export const useUserBids = () => {
             try {
                 // Fetch bidding products (products user has bid on that are still active)
                 const biddingResponse = await fetch(
-                    apiUrl("/api/bids/my-bidding-products"),
+                    apiUrl("/api/products/my-bidding"),
                     {
                         method: "GET",
                         headers: {
@@ -61,7 +61,7 @@ export const useUserBids = () => {
 
                 // Fetch won products
                 const wonResponse = await fetch(
-                    apiUrl("/api/bids/my-won-products"),
+                    apiUrl("/api/products/my-won"),
                     {
                         method: "GET",
                         headers: {

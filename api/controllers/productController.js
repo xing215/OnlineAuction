@@ -695,6 +695,127 @@ exports.updateProductDescription = async (req, res) => {
 };
 
 // Buy Now - Người mua trở thành người thắng cuộc và kết thúc đấu giá
+// Get products user has bid on that are still active
+exports.getMyBiddingProducts = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Find all products where user has placed bids
+        const userBids = await Bid.find({ user: userId })
+            .select("product")
+            .distinct("product");
+
+        if (userBids.length === 0) {
+            return res.json({
+                success: true,
+                data: [],
+            });
+        }
+
+        // Get products that are still active
+        const products = await Product.find({
+            _id: { $in: userBids },
+            status: "active",
+            end_date: { $gt: new Date() },
+        })
+            .populate("seller", "full_name")
+            .populate("category", "name")
+            .populate("current_bidder", "full_name");
+
+        // Get user's highest bid for each product
+        const productsWithBidInfo = await Promise.all(
+            products.map(async (product) => {
+                const userHighestBid = await Bid.findOne({
+                    product: product._id,
+                    user: userId,
+                }).sort({ price: -1 });
+
+                const productObj = product.toObject();
+                
+                // Mask current_bidder name
+                if (productObj.current_bidder && productObj.current_bidder.full_name) {
+                    productObj.current_bidder.full_name = maskUserName(productObj.current_bidder.full_name);
+                }
+
+                return {
+                    ...productObj,
+                    my_highest_bid: userHighestBid ? userHighestBid.price : null,
+                };
+            })
+        );
+
+        res.json({
+            success: true,
+            data: productsWithBidInfo,
+        });
+    } catch (error) {
+        console.error("Error fetching user's bidding products:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch bidding products",
+        });
+    }
+};
+
+// Get products user has won
+exports.getMyWonProducts = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Find orders where user is the winner
+        const Order = require("../models/Order");
+        const wonOrders = await Order.find({
+            winner: userId,
+            status: { $in: ["pending", "completed", "shipped"] },
+        }).populate({
+            path: "product",
+            populate: [
+                {
+                    path: "seller",
+                    select: "full_name",
+                },
+                {
+                    path: "category",
+                    select: "name",
+                },
+                {
+                    path: "current_bidder",
+                    select: "full_name",
+                },
+            ],
+        });
+
+        // Format the response
+        const wonProducts = wonOrders.map((order) => {
+            const productObj = order.product.toObject();
+            
+            // Mask current_bidder name
+            if (productObj.current_bidder && productObj.current_bidder.full_name) {
+                productObj.current_bidder.full_name = maskUserName(productObj.current_bidder.full_name);
+            }
+
+            return {
+                ...productObj,
+                final_price: order.final_price,
+                order_id: order._id,
+                order_status: order.status,
+                won_at: order.createdAt,
+            };
+        });
+
+        res.json({
+            success: true,
+            data: wonProducts,
+        });
+    } catch (error) {
+        console.error("Error fetching user's won products:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch won products",
+        });
+    }
+};
+
 exports.buyNow = async (req, res) => {
     const session = await mongoose.startSession();
     
