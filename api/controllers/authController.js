@@ -198,6 +198,7 @@ exports.registerVerify = async (req, res, next) => {
             email,
             password,
             full_name,
+            status: 'active',
         });
 
         await user.save();
