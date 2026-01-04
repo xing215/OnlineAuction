@@ -757,8 +757,8 @@ export const ProductDetail: React.FC = () => {
                                                         product.current_bidder &&
                                                         typeof product.current_bidder ===
                                                             "object"
-                                                            ? product.current_bidder._id ||
-                                                              product.current_bidder.id ||
+                                                            ? (product.current_bidder as User & { _id?: string })._id ||
+                                                              (product.current_bidder as User).id ||
                                                               null
                                                             : null,
                                                     userName:
@@ -792,9 +792,9 @@ export const ProductDetail: React.FC = () => {
                                                             product.current_bidder &&
                                                             typeof product.current_bidder ===
                                                                 "object"
-                                                                ? product.current_bidder
+                                                                ? (product.current_bidder as User & { _id?: string })
                                                                       ._id ||
-                                                                  product.current_bidder
+                                                                  (product.current_bidder as User)
                                                                       .id ||
                                                                   null
                                                                 : null,
