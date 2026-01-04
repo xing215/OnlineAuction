@@ -33,7 +33,7 @@ const sendNewQuestionEmail = async ({
         const transporter = createTransport();
 
         const maskedAskerName = maskName(askerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -187,7 +187,7 @@ const sendAnswerEmail = async ({
         const transporter = createTransport();
 
         const maskedSellerName = maskName(sellerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -262,7 +262,7 @@ const sendBannedBidderEmail = async ({
         const transporter = createTransport();
 
         const maskedSellerName = maskName(sellerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -329,7 +329,7 @@ const sendUnbannedBidderEmail = async ({
         const transporter = createTransport();
 
         const maskedSellerName = maskName(sellerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -397,7 +397,7 @@ const sendNewBidToSellerEmail = async ({
     try {
         const transporter = createTransport();
         const maskedBidderName = maskName(bidderName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -458,7 +458,7 @@ const sendNewBidToCurrentBidderEmail = async ({
 }) => {
     try {
         const transporter = createTransport();
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -515,7 +515,7 @@ const sendOutbidEmail = async ({
 }) => {
     try {
         const transporter = createTransport();
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -582,7 +582,7 @@ const sendAuctionExpiredEmail = async ({
 }) => {
     try {
         const transporter = createTransport();
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -649,7 +649,7 @@ const sendAuctionEndedToSellerEmail = async ({
     try {
         const transporter = createTransport();
         const maskedWinnerName = maskName(winnerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -726,7 +726,7 @@ const sendAuctionWonEmail = async ({
     try {
         const transporter = createTransport();
         const maskedSellerName = maskName(sellerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -803,7 +803,7 @@ const sendDescriptionUpdateEmail = async ({
         const transporter = createTransport();
 
         const maskedSellerName = maskName(sellerName);
-        const productUrl = `${process.env.FRONTEND_URL}/products/${productId}`;
+        const productUrl = `${process.env.FRONTEND_URL}/product/${productId}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
