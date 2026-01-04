@@ -4,15 +4,7 @@ import { apiUrl } from "../../config/api";
 import { formatCurrency } from "../../utilities/FormatCurrency";
 import { useUser } from "../../context/useUser";
 import toast from "react-hot-toast";
-
-// Helper function to mask user name
-const maskUserName = (fullName: string): string => {
-    if (!fullName) return "****User";
-    const name = fullName.trim();
-    const parts = name.split(" ");
-    const lastName = parts[parts.length - 1];
-    return `****${lastName}`;
-};
+import { UserRatingsModal } from "./UserRatingsModal";
 
 interface Bidder {
     _id: string;
@@ -60,13 +52,23 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
     const [bidders, setBidders] = useState<Bidder[]>([]);
     const [loading, setLoading] = useState(false);
     const [bannedUsers, setBannedUsers] = useState<BannedUser[]>([]);
+    const [ratingsModalState, setRatingsModalState] = useState<{
+        isOpen: boolean;
+        userId: string | null;
+        userName: string;
+    }>({ isOpen: false, userId: null, userName: "" });
     const { token } = useUser();
 
     const fetchBidders = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(
-                apiUrl(`/api/bids/product/${productId}`)
+                apiUrl(`/api/bids/product/${productId}/manage`),
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
             if (response.ok) {
                 const data = await response.json();
@@ -81,7 +83,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [productId]);
+    }, [productId, token]);
 
     const fetchBannedList = useCallback(async () => {
         try {
@@ -308,7 +310,7 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                                 : "text-gray-800"
                                                         }`}
                                                     >
-                                                         {maskUserName(user.fullName)}
+                                                         {user.fullName}
                                                     </span>
                                                     {isBanned && (
                                                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-semibold">
@@ -338,6 +340,18 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                                                     <div className="text-sm text-gray-500 italic">
                                                     </div>
                                                 )}
+                                                <button
+                                                    onClick={() =>
+                                                        setRatingsModalState({
+                                                            isOpen: true,
+                                                            userId: user.userId,
+                                                            userName: user.fullName,
+                                                        })
+                                                    }
+                                                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline mt-1 cursor-pointer"
+                                                >
+                                                    Xem tất cả đánh giá →
+                                                </button>
                                             </div>
                                         </div>
 
@@ -372,6 +386,20 @@ export const BidderManagerModal: React.FC<BidderManagerModalProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* User Ratings Modal */}
+            <UserRatingsModal
+                isOpen={ratingsModalState.isOpen}
+                onClose={() =>
+                    setRatingsModalState({
+                        isOpen: false,
+                        userId: null,
+                        userName: "",
+                    })
+                }
+                userId={ratingsModalState.userId}
+                userName={ratingsModalState.userName}
+            />
         </div>
     );
 };

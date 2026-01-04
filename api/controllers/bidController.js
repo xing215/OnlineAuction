@@ -503,6 +503,52 @@ exports.getBidHistory = async (req, res) => {
 };
 
 /**
+ * Get bidders list for product owner to manage (no name masking)
+ * Only accessible by product owner
+ */
+exports.getBiddersForManagement = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const userId = req.user._id;
+
+        // Verify product exists and user is the owner
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found",
+            });
+        }
+
+        // Check if user is the product owner
+        if (product.seller.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Only product owner can access bidder management",
+            });
+        }
+
+        // Get all bids for this product with full user info (no masking)
+        const bids = await Bid.find({ product: productId })
+            .sort({ created_at: -1 })
+            .populate("user", "full_name email username rating_summary")
+            .lean();
+
+        return res.status(200).json({
+            success: true,
+            data: bids,
+        });
+    } catch (error) {
+        console.error("Get bidders for management error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while fetching bidders",
+            error: error.message,
+        });
+    }
+};
+
+/**
  * Get current bid info for a product
  */
 exports.getCurrentBid = async (req, res) => {
