@@ -16,7 +16,7 @@ const otpSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['register', 'forgot_password'],
+      enum: ['register', 'forgot_password', 'login_verify'],
       required: [true, 'OTP type is required']
     },
     // Time-To-Live (TTL): Tự động xóa sau 5 phút (300s)

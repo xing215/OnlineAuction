@@ -238,6 +238,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(message);
       }
 
+      // Check if OTP verification is required
+      if (data.requires_verification) {
+        return { requires_verification: true, email };
+      }
+
       const receivedToken = data?.token ?? data?.data?.token;
       if (!receivedToken || typeof receivedToken !== "string") {
         throw new Error("Máy chủ không trả về token hợp lệ");
@@ -252,6 +257,56 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           finalUser = await fetchUserWithToken(receivedToken);
         } catch (error) {
           console.warn("Failed to fetch profile after login", error);
+        }
+      }
+
+      if (!finalUser) {
+        throw new Error("Không thể tải thông tin người dùng");
+      }
+
+      const targetStorage: StorageKey = "session";
+
+      setToken(receivedToken);
+      setUser(finalUser);
+      setStorageKey(targetStorage);
+      persistAuth(finalUser, receivedToken, targetStorage);
+
+      return finalUser;
+    },
+    [fetchUserWithToken]
+  );
+
+  const loginVerify = useCallback(
+    async ({ email, otp, recaptchaToken }: { email: string; otp: string; recaptchaToken?: string }) => {
+      const response = await fetch(apiUrl("/api/auth/login-verify"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, otp, recaptchaToken }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = typeof data?.message === "string" ? data.message : "Xác thực OTP thất bại";
+        throw new Error(message);
+      }
+
+      const receivedToken = data?.token ?? data?.data?.token;
+      if (!receivedToken || typeof receivedToken !== "string") {
+        throw new Error("Máy chủ không trả về token hợp lệ");
+      }
+
+      const receivedUser = resolveUser(data) ?? resolveUser(data?.data) ?? null;
+
+      let finalUser = receivedUser;
+
+      if (!finalUser) {
+        try {
+          finalUser = await fetchUserWithToken(receivedToken);
+        } catch (error) {
+          console.warn("Failed to fetch profile after login verification", error);
         }
       }
 
@@ -301,8 +356,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUserWithToken, storageKey, token]);
 
   const value = useMemo(
-    () => ({ user, token, loading, login, logout, refreshUser, setUser }),
-    [user, token, loading, login, logout, refreshUser, setUser]
+    () => ({ user, token, loading, login, loginVerify, logout, refreshUser, setUser }),
+    [user, token, loading, login, loginVerify, logout, refreshUser, setUser]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

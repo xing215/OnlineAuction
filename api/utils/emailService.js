@@ -103,14 +103,20 @@ const sendOTPEmail = async ({
 
         const subject = type === "register" 
             ? "Mã OTP xác thực đăng ký" 
+            : type === "login_verify"
+            ? "Mã OTP xác thực đăng nhập"
             : "Mã OTP khôi phục mật khẩu";
         
         const description = type === "register"
             ? "Bạn đã thực hiện đăng ký tài khoản. Đây là mã xác thực của bạn:"
+            : type === "login_verify"
+            ? "Bạn đang thực hiện đăng nhập. Đây là mã xác thực email của bạn:"
             : "Bạn đã yêu cầu khôi phục mật khẩu. Đây là mã xác thực của bạn:";
         
         const footer = type === "register"
             ? "Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này."
+            : type === "login_verify"
+            ? "Nếu bạn không thực hiện đăng nhập, vui lòng bỏ qua email này."
             : "Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.";
 
         const mailOptions = {

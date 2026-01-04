@@ -3,20 +3,26 @@ import { useUser } from "../context/useUser";
 import { useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast";
+import type { AuthUser } from "../context/UserContext.types";
 
 export const useLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [requiresVerification, setRequiresVerification] = useState(false);
+    const [verificationEmail, setVerificationEmail] = useState("");
     const [errors, setErrors] = useState<{
         email?: string;
+        password?: string;
+        otp?: string;
         recaptcha?: string;
     }>({});
     const [formData, setFormData] = useState({
         email: "",
         password: "",
+        otp: "",
     });
     const recaptchaRef = useRef<ReCAPTCHA>(null);
-    const { login } = useUser();
+    const { login, loginVerify } = useUser();
     const navigate = useNavigate();
 
     const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
@@ -36,6 +42,13 @@ export const useLoginForm = () => {
                 return next;
             });
         }
+        if (name === "otp" && errors.otp) {
+            setErrors((prev) => {
+                const next = { ...prev };
+                delete next.otp;
+                return next;
+            });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +57,20 @@ export const useLoginForm = () => {
         if (!emailRegex.test(formData.email)) {
             setErrors({ email: "Vui lòng nhập email hợp lệ!" });
             return;
+        }
+
+        if (requiresVerification) {
+            // OTP verification
+            if (!formData.otp || formData.otp.length !== 6) {
+                setErrors({ otp: "Vui lòng nhập mã OTP 6 chữ số!" });
+                return;
+            }
+        } else {
+            // Initial login
+            if (!formData.password) {
+                setErrors({ password: "Vui lòng nhập mật khẩu!" });
+                return;
+            }
         }
 
         setErrors({});
@@ -60,17 +87,43 @@ export const useLoginForm = () => {
                 }
             }
 
-            const user = await login({
-                email: formData.email,
-                password: formData.password,
-                ...(recaptchaToken && { recaptchaToken }),
-            });
+            if (requiresVerification) {
+                // Complete login with OTP
+                const user = await loginVerify({
+                    email: verificationEmail,
+                    otp: formData.otp,
+                    ...(recaptchaToken && { recaptchaToken }),
+                });
 
-            // Navigate based on user role
-            if (user?.role === "admin") {
-                navigate("/admin/manage-user");
+                // Navigate based on user role
+                if (user?.role === "admin") {
+                    navigate("/admin/manage-user");
+                } else {
+                    navigate("/");
+                }
             } else {
-                navigate("/");
+                // Initial login attempt
+                const result = await login({
+                    email: formData.email,
+                    password: formData.password,
+                    ...(recaptchaToken && { recaptchaToken }),
+                });
+
+                if ('requires_verification' in result && result.requires_verification) {
+                    // Account needs verification
+                    setRequiresVerification(true);
+                    setVerificationEmail(result.email);
+                    toast.success("Mã OTP đã được gửi đến email của bạn!");
+                } else {
+                    // Direct login successful
+                    const user = result as AuthUser;
+                    // Navigate based on user role
+                    if (user?.role === "admin") {
+                        navigate("/admin/manage-user");
+                    } else {
+                        navigate("/");
+                    }
+                }
             }
             setIsLoading(false);
         } catch (err) {
@@ -83,14 +136,24 @@ export const useLoginForm = () => {
         }
     };
 
+    const handleBackToLogin = () => {
+        setRequiresVerification(false);
+        setVerificationEmail("");
+        setFormData(prev => ({ ...prev, otp: "" }));
+        setErrors({});
+    };
+
     return {
         formData,
         errors,
         showPassword,
         setShowPassword,
         isLoading,
+        requiresVerification,
+        verificationEmail,
         handleInputChange,
         handleSubmit,
+        handleBackToLogin,
         recaptchaRef,
         recaptchaSiteKey,
     };

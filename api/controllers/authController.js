@@ -71,7 +71,116 @@ exports.login = async (req, res, next) => {
             });
         }
 
+        if (user.status === 'unverified'){
+            // Generate 6-digit OTP for email verification
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+            // Save OTP to database
+            const otp = new Otp({
+                email: email.toLowerCase().trim(),
+                code: otpCode,
+                type: "login_verify",
+            });
+
+            await otp.save();
+
+            // Send OTP via email
+            await sendOTPEmail({
+                email: email.toLowerCase().trim(),
+                full_name: user.full_name,
+                otp: otpCode,
+                type: "login_verify",
+            });
+
+            return res.status(200).json({
+                success: true,
+                requires_verification: true,
+                message: "Tài khoản chưa được xác minh. Mã OTP đã được gửi đến email của bạn.",
+            });
+        }
+
         // Build token payload
+        const payload = {
+            id: user._id.toString(),
+            email: user.email,
+            role: user.role,
+        };
+
+        const token = jwtHelper.generateToken(payload);
+
+        return res.json({
+            success: true,
+            token,
+            user: user.toProfileJSON(),
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// POST /api/auth/login-verify - Verify OTP for login
+exports.loginVerify = async (req, res, next) => {
+    try {
+        const { email, otp, recaptchaToken } = req.body;
+
+        const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+        const requiresRecaptcha = !!recaptchaSecret;
+
+        if (!email || !otp || (requiresRecaptcha && !recaptchaToken)) {
+            const message = requiresRecaptcha 
+                ? "Email, OTP và reCAPTCHA là bắt buộc"
+                : "Email và OTP là bắt buộc";
+            return res.status(400).json({
+                success: false,
+                message,
+            });
+        }
+
+        // Verify reCAPTCHA if configured
+        if (requiresRecaptcha) {
+            const recaptchaResult = await verifyRecaptcha(recaptchaToken, recaptchaSecret);
+            if (!recaptchaResult.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Xác minh reCAPTCHA thất bại",
+                });
+            }
+        }
+
+        // Verify OTP
+        const isValidOtp = await Otp.verifyOtp(
+            email,
+            otp,
+            "login_verify"
+        );
+
+        if (!isValidOtp) {
+            return res.status(400).json({
+                success: false,
+                message: "Mã OTP không hợp lệ hoặc đã hết hạn",
+            });
+        }
+
+        // Find user
+        const user = await User.findByEmail(email);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Người dùng không tồn tại",
+            });
+        }
+
+        // Update user status to active
+        user.status = 'active';
+        await user.save();
+
+        // Delete used OTP
+        await Otp.deleteMany({
+            email: email.toLowerCase().trim(),
+            type: "login_verify",
+        });
+
+        // Generate token
         const payload = {
             id: user._id.toString(),
             email: user.email,
